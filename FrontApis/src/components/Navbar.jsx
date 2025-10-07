@@ -5,7 +5,7 @@ export default function Navbar() {
 
       <ul className="nav-links">
         <li><a href="#nueva">Nueva</a></li>
-        <li><a href="#mujer">Indumentaria</a></li>
+        <li><a href="#indumentaria">Indumentaria</a></li>
         <li><a href="#hombre">Arma tu outfit</a></li>
         <li><a href="#colecciones">Colecciones</a></li>
       </ul>
