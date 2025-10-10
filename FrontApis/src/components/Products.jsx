@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import BASE_URL from "../config/api";
 
 function Productos({ category = null }) {
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const BASE_URL = import.meta.env.VITE_API_URL;
+
 
   useEffect(() => {
     setLoading(true);
