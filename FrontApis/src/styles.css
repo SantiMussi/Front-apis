@@ -251,6 +251,94 @@ nav{
   font-size: 0.95rem;
 }
 
+/* productos */
+
+.productos {
+  padding: 4rem;
+  background: #0a0a0a;
+  color: #fff;
+}
+
+.productos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 2rem;
+}
+
+.producto-card {
+  background: #111;
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  transition: transform 0.2s ease;
+}
+
+.producto-card p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3; /* muestra solo 3 líneas */
+  -webkit-box-orient: vertical;
+}
+
+.producto-card img {
+  width: 100%;
+  height: 250px; 
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.producto-card:hover {
+  transform: scale(1.05);
+}
+
+/*productos title*/
+
+/* ==== City Nights / Neon Pulse para título ==== */
+.productos-neon {
+  font-size: clamp(2.5rem, 2rem + 2vw, 4rem);
+  font-weight: 300;
+  text-align: center;
+  letter-spacing: 0.3rem;
+  text-transform: uppercase;
+  margin: 4rem 0 3rem;
+  color: #fff;
+  animation: softNeonBlue 5s 0.5s ease-in-out infinite;
+}
+
+@keyframes softNeonBlue {
+  0% {
+    text-shadow:
+      0 0 0.4em rgba(58, 142, 246, 0.25),
+      0 0 0.1em rgba(255, 255, 255, 0.15);
+  }
+  30% {
+    text-shadow:
+      0 0 0.6em rgba(58, 142, 246, 0.4),
+      0 0 0.15em rgba(255, 255, 255, 0.25);
+  }
+  50% {
+    text-shadow:
+      0 0 0.8em rgba(58, 142, 246, 0.5),
+      0 0 0.2em rgba(255, 255, 255, 0.3);
+  }
+  70% {
+    text-shadow:
+      0 0 0.6em rgba(58, 142, 246, 0.4),
+      0 0 0.15em rgba(255, 255, 255, 0.25);
+  }
+  100% {
+    text-shadow:
+      0 0 0.4em rgba(58, 142, 246, 0.25),
+      0 0 0.1em rgba(255, 255, 255, 0.15);
+  }
+}
+
+
 /* anims*/
 @keyframes fadeInUp{
   from{ opacity: 0; transform: translateY(30px); }

@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
 import About from "./components/About";
+import Products from "./components/Products"
 import Cart from "./views/Cart";
 import "./styles.css";
 
@@ -14,6 +15,7 @@ function App() {
             <>
               <Hero />
               <About />
+              <Products />
             </>
           }
         />
