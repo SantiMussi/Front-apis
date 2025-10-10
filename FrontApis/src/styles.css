@@ -22,6 +22,8 @@
   /* z-index */
   --z-nav: 1000;
   --z-content: 2;
+
+  --nav-h: 96px;
 }
 
 *{ margin:0; padding:0; box-sizing:border-box; }
@@ -279,14 +281,14 @@ nav{
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
-  -webkit-line-clamp: 3; /* muestra solo 3 líneas */
+  -webkit-line-clamp: 3; 
   -webkit-box-orient: vertical;
 }
 
 .producto-card img {
   width: 100%;
   height: 250px; 
-  object-fit: cover;
+  object-fit: contain;
   border-radius: 8px;
   margin-bottom: 1rem;
   display: block;
@@ -298,7 +300,7 @@ nav{
 
 /*productos title*/
 
-/* ==== City Nights / Neon Pulse para título ==== */
+/* City Nights / Neon Pulse para título */
 .productos-neon {
   font-size: clamp(2.5rem, 2rem + 2vw, 4rem);
   font-weight: 300;
@@ -335,6 +337,71 @@ nav{
     text-shadow:
       0 0 0.4em rgba(58, 142, 246, 0.25),
       0 0 0.1em rgba(255, 255, 255, 0.15);
+  }
+}
+
+/*categorys*/
+.indumentaria-page{ padding-top: calc(var(--nav-h) + 16px); }
+
+.cat-bar { 
+    display:flex;
+    flex-wrap:wrap; gap:.75rem;
+    margin:1rem auto 2rem;
+    padding: .5rem 1rem;
+    max-width: 1200px;
+    justify-content: center;
+}
+
+.cat-pill { 
+    padding: .9rem 1.6rem;
+    border-radius:999px; 
+    border:1px solid var(--text); 
+    background: transparent; 
+    color: var(--text); 
+    cursor:pointer; 
+    letter-spacing: var(--ls-sm);
+    text-transform: uppercase;
+    transition: all .3s ease;
+    box-shadow: 0 0 0 rgba(255,255,255,0);
+}
+
+.cat-pill:hover { 
+    background: var(--text);
+    color: var(--bg);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 40px rgba(255,255,255,0.15);
+}
+
+.cat-pill.active { 
+    background: var(--text); 
+    color: var(--bg); 
+    box-shadow: 0 10px 40px rgba(255,255,255,0.2);
+}
+
+/*LOADING*/
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  color: #fff;
+  letter-spacing: 0.1rem;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 

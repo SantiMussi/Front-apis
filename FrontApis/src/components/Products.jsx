@@ -1,21 +1,39 @@
 import { useEffect, useState } from "react";
+import BASE_URL from "../config/api";
 
-function Productos() {
+function Productos({ category = null }) {
   const [productos, setProductos] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("https://fakestoreapi.com/products")
+    setLoading(true);
+
+    const url = category
+      ? `${BASE_URL}/products/category/${encodeURIComponent(category)}`
+      : `${BASE_URL}/products`;
+
+    fetch(url)
       .then((res) => res.json())
-      .then((data) => setProductos(data))
-      .catch((err) => console.error("Error al cargar productos:", err));
-  }, []);
+      .then((data) => {
+        setLoading(false);
+        setProductos(data)})
+      .catch((err) => {
+        setLoading(false);
+        console.error("Error al cargar productos:", err)});
+      
+  }, [category]);  //se actualiza si cambia la categoría
+
+    if (loading) {
+    return (
+      <div className="loading">
+        <div className="spinner"></div>
+        <p>Cargando productos...</p>
+      </div>
+    );
+  }
 
   return (
     <section className="productos">
-      <h2 className="productos-neon">
-        <span>NUESTROS PRODUCTOS</span>
-      </h2>
-
       <div className="productos-grid">
         {productos.map((p) => (
           <div key={p.id} className="producto-card">

@@ -1,4 +1,8 @@
+import { useNavigate } from "react-router-dom";
+
 export default function Hero() {
+  const navigate = useNavigate();
+  
   return (
     <section className="hero">
       <div className="bg-shapes">
@@ -10,7 +14,7 @@ export default function Hero() {
       <div className="hero-content">
         <h1>SZAFRANKUS</h1>
         <p>El click que cambia tu look</p>
-        <button className="cta-button">Explorar Ahora</button>
+        <button className="cta-button" onClick={() => navigate("/indumentaria")}>Explorar Ahora</button>
       </div>
     </section>
   );
