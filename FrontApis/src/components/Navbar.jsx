@@ -9,7 +9,6 @@ export default function Navbar() {
         <li><Link to="/nueva">Nueva</Link></li>
         <li><Link to="/indumentaria">Indumentaria</Link></li>
         <li><Link to="/outfit">Arma tu outfit</Link></li>
-        <li><Link to="/colecciones">Colecciones</Link></li>
       </ul>
 
       <ul className="nav-links right">
