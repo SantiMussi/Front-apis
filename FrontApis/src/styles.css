@@ -29,6 +29,9 @@
             font-weight: 300;
             letter-spacing: 0.3rem;
             cursor: pointer;
+            text-decoration: none;  /* removes underline */
+            color: inherit;         /* uses parent text color instead of default link blue/purple */
+
         }
 
         .nav-links {
