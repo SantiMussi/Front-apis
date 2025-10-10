@@ -16,7 +16,7 @@ function App() {
             <>
               <Hero />
               <About />
-                <h2 className="productos-neon">
+                    <h2 className="productos-neon">
                 <span>NUESTROS PRODUCTOS</span>
                 </h2>
               <Products />

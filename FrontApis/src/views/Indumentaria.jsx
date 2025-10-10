@@ -1,10 +1,11 @@
 import {useEffect, useState} from "react";
 import Products from "../components/Products";
-import BASE_URL from "../config/api";
 
 export default function(){
     const [cats, setCats] = useState([]);
     const [sel, setSel] = useState("all");
+    const BASE_URL = import.meta.env.VITE_API_URL;
+
 
     useEffect(() => {
         fetch(`${BASE_URL}/products/categories`)
