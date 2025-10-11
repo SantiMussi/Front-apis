@@ -5,6 +5,7 @@ import Cart from "./views/Cart";
 import Indumentaria from "./views/Indumentaria"
 import "./styles.css";
 import MainPage from './views/MainPage';
+import VirtualFitter from './components/VirtualFitter'
 
 function App() {
   return (
@@ -15,7 +16,9 @@ function App() {
         <Route path="/cart" element={<Cart />} />
         <Route path="/indumentaria" element={<Indumentaria />} />
         <Route path="/product/:id" element={<ProductDetail />} />
+        <Route path="/VirtualFitter" element={<VirtualFitter />}/>
       </Routes>
+      
     </BrowserRouter>
   );
 }

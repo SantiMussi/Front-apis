@@ -1,0 +1,166 @@
+/* ========== Probador Virtual (match con estilo general) ========== */
+
+/* Página del probador: compensa la navbar fija y centra vertical/horizontal */
+.vf-page {
+  padding-top: calc(var(--nav-h) + 16px);
+  min-height: calc(100vh - var(--nav-h) - 16px);
+  display: flex;
+  align-items: center;           /* centra vertical */
+}
+
+.vf-shell.container {
+  /* ya hereda max-width y padding de .container */
+  width: 100%;
+}
+
+/* Tarjetas/columnas con mismo estilo que cards del sitio */
+.vf-card {
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,0.02);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 10px 40px rgba(255,255,255,0.04);
+}
+
+/* Título y subtítulo con tu tipografía y espaciados */
+.vf-header {
+  margin-bottom: 1rem;
+}
+.vf-title {
+  font-size: clamp(1.5rem, 1rem + 1.2vw, 2rem);
+  font-weight: 300;
+  letter-spacing: var(--ls-md);
+  background: linear-gradient(45deg, #fff, #888);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.vf-subtitle {
+  color: var(--text-muted);
+  letter-spacing: var(--ls-xs);
+  margin-top: .25rem;
+}
+
+/* Grid principal: controles a la izquierda, escenario a la derecha */
+.vf-grid {
+  display: grid;
+  grid-template-columns: 1.05fr 1.6fr;
+  gap: 2rem;
+  align-items: stretch;
+}
+
+/* Controles (lista de filas) */
+.vf-controls .vf-control-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  gap: .5rem 1rem;
+  padding: .9rem 0;
+  border-bottom: 1px dashed var(--line);
+}
+.vf-controls .vf-control-row:last-child { border-bottom: none; }
+
+.vf-control-label {
+  grid-column: 1 / -1;
+  font-size: .95rem;
+  color: var(--text-muted);
+  letter-spacing: .04em;
+}
+
+/* Flechas y nombre actual, con estilo de botones del sitio */
+.vf-arrows { display: flex; align-items: center; gap: .5rem; }
+.vf-arrow {
+  background: transparent;
+  border: 1px solid var(--line);
+  width: 2.2rem; height: 2.2rem;
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: transform .06s ease, border-color .2s ease, box-shadow .2s ease;
+}
+.vf-arrow:hover {
+  border-color: var(--line-strong);
+  box-shadow: 0 10px 40px rgba(255,255,255,0.12);
+}
+.vf-arrow:disabled { opacity: .4; cursor: not-allowed; }
+
+.vf-current-name {
+  min-width: 10rem; max-width: 16rem;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  font-size: .98rem; color: #fff;
+}
+
+/* Mini preview */
+.vf-mini { display: flex; align-items: center; justify-content: flex-end; }
+.vf-mini img,
+.vf-mini-empty {
+  width: 52px; height: 52px;
+  border-radius: 8px;
+}
+.vf-mini img {
+  object-fit: contain;
+  border: 1px solid var(--line);
+  padding: .25rem;
+  background: rgba(255,255,255,0.02);
+}
+.vf-mini-empty {
+  display: grid; place-items: center;
+  border: 1px dashed var(--line);
+  color: var(--text-muted);
+}
+
+/* Escenario con estética del sitio */
+.vf-stage.vf-card {
+  position: relative;
+  min-height: 560px;
+  overflow: hidden;
+  /* mismo tipo de fondos suaves */
+  background:
+    radial-gradient(1200px 420px at 50% 105%, rgba(255,255,255,0.06), transparent 50%),
+    linear-gradient(180deg, rgba(255,255,255,0.03), transparent 40%);
+}
+
+/* Maniquí centrado horizontal, pegado al piso visual */
+.vf-mannequin {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: -10px;
+  width: 64%;
+  max-width: 480px;
+  opacity: .9;
+  pointer-events: none;
+  user-select: none;
+  filter: drop-shadow(0 12px 24px rgba(0,0,0,.55));
+}
+
+/* Capas de ropa (mismo tamaño/posición que el maniquí) */
+.vf-layer {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: -10px;
+  width: 64%;
+  max-width: 480px;
+  image-rendering: auto;
+  pointer-events: none;
+}
+.vf-layer-bottom { z-index: 3; }
+.vf-layer-top    { z-index: 4; }
+.vf-layer-coat   { z-index: 5; }
+
+/* Estados */
+.vf-loading, .vf-error {
+  display: grid; place-items: center;
+  color: var(--text-muted);
+  min-height: 420px;
+}
+.vf-error { color: #ff8a8a; }
+
+/* Responsive */
+@media (max-width: 1024px){
+  .vf-grid { grid-template-columns: 1fr; }
+  .vf-stage { min-height: 520px; }
+  .vf-mannequin, .vf-layer { width: 74%; }
+}
