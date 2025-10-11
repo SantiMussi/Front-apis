@@ -1,0 +1,48 @@
+import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+
+const ProductDetail = () => {
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const [loading, setLoading] = useState(true);
+  const [product, setProduct] = useState(null);
+  const BASE_URL = import.meta.env.VITE_API_URL;
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const response = await fetch(`${BASE_URL}/products/${id}`);
+        const data = await response.json();
+        setProduct(data);
+      } catch (error) {
+        console.error("Error fetching product:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProduct();
+  }, [id]);
+
+  if (loading) {
+    return <div className="loading">Cargando...</div>;
+  }
+
+  if (!product) {
+    return <div className="error">Producto no encontrado</div>;
+  }
+
+  return (
+    <div className="product-detail">
+      <button className="back-button" onClick={() => navigate(-1)}>← Volver</button>
+      <h2>{product.title}</h2>
+      <img src={product.image} alt={product.title} />
+      <p className="description">{product.description}</p>
+      <p className="price">Precio: USD${product.price}</p>
+      <p className="stock">Stock disponible: {product.stock}</p>
+    </div>
+  );
+};
+
+export default ProductDetail;

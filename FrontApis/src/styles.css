@@ -268,6 +268,10 @@ nav{
 }
 
 .producto-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border: 1px solid var(--line);
   background: #111;
   border-radius: 12px;
   padding: 1.5rem;
@@ -294,11 +298,113 @@ nav{
   display: block;
 }
 
+.producto-card span{
+  display: block;
+  font-size: 1.1rem;
+  margin: 0.9rem 0;
+}
+
+.detail-btn{
+  padding: .8rem 1.5rem;
+  background: transparent;
+  border: 1px solid var(--text);
+  color: var(--text);
+  font-size: 0.9rem;
+  letter-spacing: var(--ls-sm);
+  cursor: pointer;
+  transition: all 0.4s ease;
+  text-transform: uppercase;
+  margin-top: auto;
+}
 .producto-card:hover {
   transform: scale(1.05);
 }
 
 /*productos title*/
+
+
+/* product detail*/
+
+.product-detail {
+  margin: 6rem 3rem 2rem 3rem;
+  background: #111;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 2.5rem 2rem;
+  color: #fff;
+  text-align: center;
+  box-shadow: 0 10px 40px rgba(255,255,255,0.04);
+  animation: fadeInUp 0.8s;
+}
+
+.product-detail img {
+  width: 100%;
+  max-width: 320px;
+  height: 320px;
+  object-fit: contain;
+  border-radius: 8px;
+  margin: 1.5rem auto;
+  display: block;
+  background: #222;
+}
+
+.product-detail h2 {
+  font-size: 2rem;
+  font-weight: 300;
+  margin-bottom: 1rem;
+  letter-spacing: var(--ls-md);
+  color: #fff;
+}
+
+.product-detail .description {
+  font-family: 'Georgia', serif;
+  font-size: 1rem;
+  font-style: italic;
+  color: var(--text-muted);
+  margin: 1.5rem 0;
+  line-height: 1.6;
+}
+
+.product-detail .price {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 1.5rem;
+}
+
+.product-detail .stock {
+  font-size: 1rem;
+  color: var(--text-muted);
+  margin-bottom: 2rem;
+}
+
+.product-detail p {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+
+.product-detail .back-button {
+  display: inline-block;
+  margin-bottom: 2rem;
+  padding: .7rem 1.3rem;
+  background: transparent;
+  border: 1px solid var(--text);
+  color: var(--text);
+  font-size: 0.9rem;
+  letter-spacing: var(--ls-sm);
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+}
+
+.product-detail .back-button:hover {
+  background: var(--text);
+  color: var(--bg);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 40px rgba(255,255,255,0.12);
+}
 
 /* City Nights / Neon Pulse para título */
 .productos-neon {
@@ -340,7 +446,7 @@ nav{
   }
 }
 
-/*categorys*/
+/*categories*/
 .indumentaria-page{ padding-top: calc(var(--nav-h) + 16px); }
 
 .cat-bar { 
