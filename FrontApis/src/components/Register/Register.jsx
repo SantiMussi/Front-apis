@@ -28,7 +28,6 @@ function Register() {
                 formData.password
             );
             console.log("Usuario registrado: ", data);
-            alert("Registro exitoso");
 
 
             //nav al login con un mensaje de cuenta creada exitosamente

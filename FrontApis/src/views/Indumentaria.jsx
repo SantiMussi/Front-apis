@@ -7,12 +7,25 @@ export default function(){
     const BASE_URL = import.meta.env.VITE_API_URL;
 
 
-    useEffect(() => {
-        fetch(`${BASE_URL}/products/categories`)
-        .then(r => r.json())
-        .then(setCats)
-        .catch(() => setCats([]));
-    }, []);
+   useEffect(() => {
+    fetch(`${BASE_URL}/categories`)
+      .then(async (res) => {
+        if (!res.ok) {
+          //403 u otros estados no exitosos
+          const text = await res.text();
+          throw new Error(`${res.status} ${text || res.statusText}`);
+        }
+        return res.json();
+      })
+      .then((data) => {
+        //cats es siempre un array
+        const list =
+          Array.isArray(data) ? data :
+          Array.isArray(data.content) ? data.content : [];
+        setCats(list);
+      })
+      .catch(() => setCats([]));
+  }, [BASE_URL]);
 
     const categoryForApi = sel === "all" ? null : sel;
     

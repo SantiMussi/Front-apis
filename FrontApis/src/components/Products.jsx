@@ -5,6 +5,8 @@ import { Link } from "react-router-dom";
 function Productos({ category = null }) {
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const BASE_URL = import.meta.env.VITE_API_URL;
 
 
@@ -12,19 +14,29 @@ function Productos({ category = null }) {
     setLoading(true);
 
     const url = category
-      ? `${BASE_URL}/products/category/${encodeURIComponent(category)}`
-      : `${BASE_URL}/products`;
+      ? `${BASE_URL}/product/category/${encodeURIComponent(category)}?page=${page}`
+      : `${BASE_URL}/product?page=${page}`;
 
     fetch(url)
-      .then((res) => res.json())
+      .then(async (res) => {
+        if(!res.ok){
+          const text = await res.text();
+          throw new Error(`${res.status} ${text || res.statusText}`)
+        }
+        return res.json();
+      })
       .then((data) => {
-        setLoading(false);
-        setProductos(data)})
+        const items = Array.isArray(data.content) ? data.content : [];
+        setProductos(items)
+        setTotalPages(data.totalPages ?? 1);
+      })
       .catch((err) => {
-        setLoading(false);
-        console.error("Error al cargar productos:", err)});
+        console.error("Error al cargar productos: ", err);
+        setProductos([]);
+      })
+      .finally(() => setLoading(false))
       
-  }, [category]);  //se actualiza si cambia la categoría
+  }, [category, page]);  //se actualiza si cambia la categoría
 
     if (loading) {
     return (
