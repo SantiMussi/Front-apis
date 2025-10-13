@@ -7,7 +7,7 @@ import "./styles.css";
 import MainPage from './views/MainPage';
 import VirtualFitter from './components/OutfitBuilder/VirtualFitter'
 import LoginPage from './views/LoginPage'
-
+import RegisterPage from './views/RegisterPage'
 function App() {
   return (
     <BrowserRouter>
@@ -18,7 +18,8 @@ function App() {
         <Route path="/indumentaria" element={<Indumentaria />} />
         <Route path="/product/:id" element={<ProductDetail />} />
         <Route path="/virtual-fitter" element={<VirtualFitter />}/>
-        <Route path="/login-page" element={<LoginPage/>}/>
+        <Route path="/login" element={<LoginPage/>}/>
+        <Route path="/register" element={<RegisterPage/>}/>
       </Routes>
       
     </BrowserRouter>

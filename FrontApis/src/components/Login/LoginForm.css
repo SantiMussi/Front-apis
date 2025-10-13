@@ -58,3 +58,20 @@
   color: #ff6b6b;
   font-size: .9rem;
 }
+
+.redirect-text {
+  text-align: center;
+  margin-top: 1rem;
+  font-size: 0.95rem;
+  color: var(--text-muted, #aaa);
+}
+
+.redirect-link {
+  color: var(--text, #fff);
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+.redirect-link:hover {
+  color: #ccc;
+}

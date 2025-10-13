@@ -2,8 +2,12 @@ import React, { useState } from 'react';
 import Loader from './AuthLoader.jsx'
 import { login } from '../../services/authService.js';
 import './LoginForm.css';
+import {useNavigate} from "react-router-dom";
+
+
 
 const LoginForm = () => {
+    const navigate = useNavigate();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('')
     const [loading, setLoading] = useState(false);
@@ -21,7 +25,10 @@ const LoginForm = () => {
             }
             console.log('Respuesta de autenticacion: ', data);
 
-            //TODO: Nav a otra pag
+            //nav a la ultima pagina que estuvo
+            const lastPath = localStorage.getItem("lastPath") || "/";
+            navigate(lastPath, {replace: true});
+            
         } catch(err){
             setError(err.message);
         } finally{
