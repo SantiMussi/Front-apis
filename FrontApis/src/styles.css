@@ -74,6 +74,12 @@ nav{
   list-style: none;
 }
 
+.nav-links.center{
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
 .nav-links a{
   color: var(--text);
   text-decoration: none;

@@ -5,7 +5,7 @@ export default function Navbar() {
     <nav>
       <div className="logo"><Link to ="/" className="logo-link">SZAFRANKUS</Link></div>
 
-      <ul className="nav-links">
+      <ul className="nav-links center">
         <li><Link to="/nueva">Nueva</Link></li>
         <li><Link to="/indumentaria">Indumentaria</Link></li>
         <li><Link to="/VirtualFitter">Arma tu outfit</Link></li>
