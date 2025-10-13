@@ -1,7 +1,7 @@
 .login-form {
   width: 100%;
   max-width: 420px;
-  margin: calc(var(--nav-h) + 2rem) auto 4rem;
+  margin: calc(var(--nav-h) + 8rem) auto 4rem;
   padding: 2rem;
   background: #111;
   border: 1px solid var(--line);

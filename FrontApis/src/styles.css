@@ -505,6 +505,26 @@ nav{
 }
 
 
+/*Cuenta creada correctamente*/
+.success-message {
+  position: fixed;
+  top: var(--nav-h, 96px); /* respeta la altura de tu navbar */
+  left: 0; right: 0;
+  margin: 0 auto;
+  max-width: 720px;
+  z-index: var(--z-nav, 1000);
+  padding: 0.9rem 1.2rem;
+  border: 1px solid var(--line-strong, rgba(255,255,255,.3));
+  background: rgba(40, 167, 69, .12); /* leve verde translúcido */
+  color: #c9ffd6;
+  backdrop-filter: blur(6px);
+  border-radius: var(--radius, 0);
+  text-align: center;
+  border-color: rgba(40,167,69,.5);
+  letter-spacing: var(--ls-xs, .1rem);
+}
+
+
 /* anims*/
 @keyframes fadeInUp{
   from{ opacity: 0; transform: translateY(30px); }

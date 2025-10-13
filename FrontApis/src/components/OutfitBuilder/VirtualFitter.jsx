@@ -3,6 +3,10 @@ import "./VirtualFitter.css";
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 
+
+/* TIRA ERROR POR LAS CATEGORIAS, ESTO SE HACE AL FINAL, CUANDO TERMINEMOS CON EL COSO */
+
+
 /**
  * CATEGORIES define el mapeo de las tres secciones del probador top, bottom, coat
  * con la lista de nombres de categoría que aparecen 
