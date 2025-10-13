@@ -25,8 +25,13 @@ const ProductDetail = () => {
     fetchProduct();
   }, [id]);
 
-  if (loading) {
-    return <div className="loading">Cargando...</div>;
+    if (loading) {
+    return (
+      <div className="loading">
+        <div className="spinner"></div>
+        <p>Cargando productos...</p>
+      </div>
+    );
   }
 
   if (!product) {
