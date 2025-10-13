@@ -5,7 +5,8 @@ import Cart from "./views/Cart";
 import Indumentaria from "./views/Indumentaria"
 import "./styles.css";
 import MainPage from './views/MainPage';
-import VirtualFitter from './components/VirtualFitter'
+import VirtualFitter from './components/OutfitBuilder/VirtualFitter'
+import LoginPage from './views/LoginPage'
 
 function App() {
   return (
@@ -16,7 +17,8 @@ function App() {
         <Route path="/cart" element={<Cart />} />
         <Route path="/indumentaria" element={<Indumentaria />} />
         <Route path="/product/:id" element={<ProductDetail />} />
-        <Route path="/VirtualFitter" element={<VirtualFitter />}/>
+        <Route path="/virtual-fitter" element={<VirtualFitter />}/>
+        <Route path="/login-page" element={<LoginPage/>}/>
       </Routes>
       
     </BrowserRouter>

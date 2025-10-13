@@ -1,5 +1,5 @@
-import Hero from "../components/Hero"
-import About from "../components/About"
+import Hero from "../components/Main/Hero"
+import About from "../components/Main/About"
 import Products from "../components/Products"
 
 const MainPage = () => {

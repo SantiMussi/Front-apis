@@ -1,0 +1,60 @@
+.login-form {
+  width: 100%;
+  max-width: 420px;
+  margin: calc(var(--nav-h) + 2rem) auto 4rem;
+  padding: 2rem;
+  background: #111;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(255,255,255,0.04);
+  animation: fadeInUp .8s ease;
+}
+
+.login-form h2 {
+  font-weight: 300;
+  letter-spacing: 0.05rem;
+  margin-bottom: .8rem;
+  font-size: 1.8rem;
+  background: linear-gradient(45deg, #fff, #888);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.login-form label {
+  display: block;
+  margin-top: 1rem;
+  margin-bottom: .4rem;
+  color: var(--text);
+  letter-spacing: var(--ls-xs);
+  text-transform: uppercase;
+  font-size: .8rem;
+  opacity: .9;
+}
+
+.login-form input {
+  width: 100%;
+  padding: .9rem 1rem;
+  background: #0d0d0d;
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  outline: none;
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+.login-form input:focus {
+  border-color: var(--line-strong);
+  box-shadow: 0 0 0 3px rgba(255,255,255,0.08);
+}
+
+.login-form .cta-button {
+  width: 100%;
+  margin-top: 1.5rem;
+}
+
+.error-message {
+  margin-top: .8rem;
+  color: #ff6b6b;
+  font-size: .9rem;
+}
