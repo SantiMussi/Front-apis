@@ -8,7 +8,7 @@ export default function Navbar() {
       <ul className="nav-links center">
         <li><Link to="/nueva">Nueva</Link></li>
         <li><Link to="/indumentaria">Indumentaria</Link></li>
-        <li><Link to="/VirtualFitter">Arma tu outfit</Link></li>
+        <li><Link to="/virtual-fitter">Arma tu outfit</Link></li>
       </ul>
 
       <ul className="nav-links right">
