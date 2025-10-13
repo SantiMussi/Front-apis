@@ -1,38 +1,44 @@
 .auth-loader-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.6); 
+  inset: 0; /* top/right/bottom/left: 0 */
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.65);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 99999; 
+  z-index: 2147483646; /* arriba de todo */
 }
 
 .auth-loader-content {
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border: 1px solid var(--line, rgba(255,255,255,0.12));
+  border-radius: var(--radius, 0);
   background: #111;
-  padding: 2rem;
+  padding: 2rem 2.5rem;
   text-align: center;
-  color: var(--text);
-  box-shadow: 0 10px 40px rgba(255,255,255,0.06);
+  color: var(--text, #fff);
+  box-shadow: 0 10px 40px rgba(255,255,255,0.08);
+  animation: auth-fade-in .25s ease;
 }
 
 .login-spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid rgba(255, 255, 255, 0.2);
-  border-top-color: var(--text);
+  display: inline-block;          /* necesario para transform */
+  border: 3px solid rgba(255,255,255,0.2);
+  border-top-color: var(--text, #fff);
   border-radius: 50%;
-  animation: spin 1s linear infinite;
+  animation: auth-spin .9s linear infinite;
+  will-change: transform;
   margin-top: 1rem;
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+@keyframes auth-spin { 
+  0% { transform: rotate(0deg); } 
+  100% { transform: rotate(360deg); } 
+}
+
+@keyframes auth-fade-in {
+  from { opacity: 0; transform: translateY(6px) scale(.98); }
+  to   { opacity: 1; transform: translateY(0)   scale(1); }
 }
