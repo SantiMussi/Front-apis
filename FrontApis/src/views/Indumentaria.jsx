@@ -29,7 +29,7 @@ export default function(){
             }
             return{
               id: c?.id ?? c?.description ?? cryptoRandom(),
-              label: c?.description ?? c?.name ?? String(c?.id ?? "Sin nombre"),
+              label: c?.description ?? c?.name ?? String(c?.id ?? ""),
             }
           })
         setCats(list);
