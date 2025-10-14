@@ -18,7 +18,7 @@ const LoginForm = () => {
 
     try {
       const data = await login(email, password);
-      if (data?.token) localStorage.setItem("token", data.token);
+      if (data?.access_token) localStorage.setItem("token", data.access_token);
       const lastPath = localStorage.getItem("lastPath") || "/";
       navigate(lastPath, { replace: true });
     } catch (err) {

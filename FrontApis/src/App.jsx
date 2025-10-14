@@ -8,6 +8,10 @@ import MainPage from './views/MainPage';
 import VirtualFitter from './components/OutfitBuilder/VirtualFitter'
 import LoginPage from './views/LoginPage'
 import RegisterPage from './views/RegisterPage'
+import RequireRole from './components/RequireRole';
+import THEGODPAGE from './views/THEGODPAGE';
+
+
 function App() {
   return (
     <BrowserRouter>
@@ -25,7 +29,7 @@ function App() {
             path="/admin/*" 
             element={
             <RequireRole roles={['ADMIN']}> 
-              <AdminPage/> 
+              <THEGODPAGE/> 
             </RequireRole>}
           />
 
@@ -33,7 +37,7 @@ function App() {
           path="/seller/*"
           element={
             <RequireRole roles={['ADMIN', 'SELLER']}>
-              <SellerPage/>
+              
             </RequireRole>
           }/>
       </Routes>
