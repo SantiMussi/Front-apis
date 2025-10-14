@@ -31,3 +31,18 @@ export async function register(firstname, lastname, email, password){
     }
     return response.json();
 }
+
+export function getRoles(){
+    const token = localStorage.getItem('token');
+    if(!token) return [];
+    try{
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        return payload.authorities || payload.roles || [];
+    } catch(e){
+        return [];
+    }
+}
+
+export function isAdmin(){
+    return getRoles().includes('ADMIN');
+}
