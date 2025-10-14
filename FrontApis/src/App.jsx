@@ -20,6 +20,22 @@ function App() {
         <Route path="/virtual-fitter" element={<VirtualFitter />}/>
         <Route path="/login" element={<LoginPage/>}/>
         <Route path="/register" element={<RegisterPage/>}/>
+        {/*Ruta solo para admins */}
+        <Route 
+            path="/admin/*" 
+            element={
+            <RequireRole roles={['ADMIN']}> 
+              <AdminPage/> 
+            </RequireRole>}
+          />
+
+        <Route
+          path="/seller/*"
+          element={
+            <RequireRole roles={['ADMIN', 'SELLER']}>
+              <SellerPage/>
+            </RequireRole>
+          }/>
       </Routes>
       
     </BrowserRouter>

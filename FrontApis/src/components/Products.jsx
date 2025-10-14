@@ -54,7 +54,7 @@ function Productos({ category = null }) {
           <div key={p.id} className="producto-card">
             <img src={p.image} alt={p.title} />
             <h3>{p.title}</h3>
-            <span>USD${p.price}</span>
+            <span>${p.price}</span>
             <p></p>
             <Link to={`/product/${p.id}`} className="detail-btn">
               Ver mas

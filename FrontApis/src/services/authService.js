@@ -37,12 +37,13 @@ export function getRoles(){
     if(!token) return [];
     try{
         const payload = JSON.parse(atob(token.split('.')[1]));
-        return payload.authorities || payload.roles || [];
+        return payload.authorities || [];
     } catch(e){
         return [];
     }
 }
 
-export function isAdmin(){
-    return getRoles().includes('ADMIN');
+export function hasRole(...requiredRoles){
+    const roles = getRoles();
+    return requiredRoles.some(role => roles.includes(role));
 }

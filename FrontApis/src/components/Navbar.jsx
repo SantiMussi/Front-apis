@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-
+import {isAdmin} from '../services/authService'
 export default function Navbar() {
   return (
     <nav>
@@ -13,6 +13,7 @@ export default function Navbar() {
 
       <ul className="nav-links right">
         <li><Link to="/cart">Carrito</Link></li>
+        {isAdmin() && <li><Link to="/admin">Admin</Link></li>}
       </ul>
     </nav>
   );
