@@ -10,6 +10,7 @@ import {
   updateUser,
   deleteUser,
 } from "../services/adminService";
+import { toNumberOrEmpty, toDisplayValue } from "../helpers/valueConverter";
 
 const EMPTY_PRODUCT = {
   name: "",
@@ -32,17 +33,8 @@ const ROLE_OPTIONS = [
   { value: "USER", label: "Usuario" },
 ];
 
-const toNumberOrEmpty = (value) => {
-  if (value === "" || value === null || value === undefined) {
-    return "";
-  }
-  const parsed = Number(value);
-  return Number.isNaN(parsed) ? "" : String(parsed);
-};
-
 const SIZE_OPTIONS = ["S", "M", "L", "XL"];
 
-const toDisplayValue = (value) => (value === null || value === undefined ? "" : value);
 
 function THEGODPAGE() {
   const [products, setProducts] = useState([]);
