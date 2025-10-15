@@ -1,6 +1,38 @@
-import { Link } from "react-router-dom";
-import { hasRole } from '../services/authService'
+import { useEffect, useState} from 'react'
+import { Link, useNavigate, useLocation} from "react-router-dom";
+import { hasRole, isLoggedIn, getRole, onAuthChange, logout} from '../services/authService'
+
 export default function Navbar() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const [auth, setAuth] = useState({
+    isAuth: isLoggedIn(),
+    role: getRole()
+  });
+
+  //Guarda el last path
+  useEffect(() => {
+    if(!['/login', '/register'].includes(location.pathname)){
+      localStorage.setItem('lastPath', location.pathname)
+    }
+  }, [location.pathname]);
+
+  //Subscribe a cambios de auth (login, logout, role)
+  useEffect(()=> {
+    const unsubscribe = onAuthChange(({isLoggedIn, role}) => {
+      setAuth({isAuth: isLoggedIn, role});
+    });
+
+    //Estado inicial
+    setAuth({isAuth: isLoggedIn, role: getRole()});
+  }, []);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/', {replace: true})
+  };
+
   return (
     <nav>
       <div className="logo"><Link to ="/" className="logo-link">SZAFRANKUS</Link></div>
@@ -12,8 +44,26 @@ export default function Navbar() {
       </ul>
 
       <ul className="nav-links right">
-        <li><Link to="/cart">Carrito</Link></li>
-        {hasRole("ADMIN") && <li><Link to="/admin/panel">Admin</Link></li>}
+        {/* Si NO esta logeado => Login / Register */}
+        {!auth.isAuth && (
+          <>
+          <li><Link to="/login">Ingresar</Link></li>
+          <li><Link to="/register">Registrarse</Link></li>
+          </>
+        )}
+
+        {/* Si esta loggeado => carrito*/}
+        {auth.isAuth && <li><Link to="/cart">Carrito</Link></li>}
+
+        {/* ADMIN */}
+        {hasRole('ADMIN') && <li><Link to="/admin/panel">Admin</Link></li>}
+
+        {/* Boton de logout */}
+        {auth.isAuth && (
+          <li>
+            <button onClick={handleLogout} className="linklike">Salir</button>
+          </li>
+        )}
       </ul>
     </nav>
   );

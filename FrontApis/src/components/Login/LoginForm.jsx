@@ -1,9 +1,8 @@
 import React, { useState } from "react";
 import AuthLoader from "./AuthLoader"; // <-- ruta relativa a este archivo
-import { getCurrentUser, login } from "../../services/authService";
+import { getCurrentUser, login, setRole, setToken} from "../../services/authService";
 import "./LoginForm.css";
 import { useNavigate } from "react-router-dom";
-import {setRole} from '../../services/authService'
 
 const LoginForm = () => {
   const navigate = useNavigate();
@@ -21,7 +20,7 @@ const LoginForm = () => {
 
       //Loggea al usuario y guarda la data en localstorage
       const data = await login(email, password);
-      if (data?.access_token) localStorage.setItem("token", data.access_token);
+      if (data?.access_token) setToken(data.access_token);
       const user = await getCurrentUser();
       setRole(user.role);
 

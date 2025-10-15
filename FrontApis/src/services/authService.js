@@ -1,10 +1,40 @@
 const BASE_URL = import.meta.env.VITE_API_URL;
+const TOKEN_KEY = 'token';
+const ROLE_KEY = 'role';
 
+const authEmitter = new EventTarget();
+const notifyAuth = () => authEmitter.dispatchEvent(new Event('auth-change'));
+
+export function onAuthChange(cb){
+    const handler = () => cb( {isLoggedIn: isLoggedIn(), role: getRole()} );
+    authEmitter.addEventListener('auth-change', handler);
+
+    //cleanup
+    return () => authEmitter.removeEventListener('auth-change', handler);
+}
+
+//Token y headers 
 export function authHeader(){
     const token = localStorage.getItem('token');
     return token ? { 'Authorization': `Bearer ${token}` } : {};
 }
 
+export function setToken(token){
+    if(token) localStorage.setItem(TOKEN_KEY, token);
+    return token ? { 'Authorization': `Bearer ${token}` } : {};
+}
+
+export function getToken(){
+    return localStorage.getItem(TOKEN_KEY);
+}
+
+export function logout(){
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(ROLE_KEY);
+    notifyAuth();
+}
+
+//User / rol
 export async function getCurrentUser(){
     const res = await fetch(`${BASE_URL}/users/me`, {
         headers: {...authHeader()}
@@ -32,7 +62,7 @@ export function isLoggedIn() {
 }
 
 
-
+// AUTH API
 export async function login(email, password){
     // Usa la variable de entorno para la URL base
     const response = await fetch(`${BASE_URL}/api/v1/auth/authenticate`, {
