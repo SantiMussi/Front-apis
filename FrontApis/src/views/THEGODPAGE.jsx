@@ -23,7 +23,6 @@ const EMPTY_PRODUCT = {
 };
 
 const EMPTY_CATEGORY = {
-  name: "",
   description: "",
 };
 
@@ -245,13 +244,14 @@ function THEGODPAGE() {
 
   const handleCategorySubmit = async (event) => {
     event.preventDefault();
-    if (!categoryForm.name.trim()) {
-      notify("error", "La categoría necesita un nombre");
+    const trimmedDescription = categoryForm.description.trim();
+    if (!trimmedDescription) {
+      notify("error", "La categoría necesita una descripción");
       return;
     }
     setLoading(true);
     try {
-      await createCategory(categoryForm);
+      await createCategory({ description: trimmedDescription });
       notify("success", "Categoría creada correctamente");
       setCategoryForm(EMPTY_CATEGORY);
       await loadCategories();
@@ -362,10 +362,10 @@ function THEGODPAGE() {
                   ? categories.find(
                       (category) =>
                         String(category.id) === String(categoryIdValue)
-                    )?.name
+                    )?.description
                   : null) ||
-                product.category?.name ||
-                product.category_name ||
+                product.category?.description ||
+                product.category_description ||
                 categoryIdValue;
               return (
                 <article
@@ -507,7 +507,7 @@ function THEGODPAGE() {
                   <option value="">Seleccionar categoría</option>
                   {categories.map((category) => (
                     <option key={category.id} value={category.id}>
-                      {category.description}
+                      {category.description ?? `ID ${category.id}`}
                     </option>
                   ))}
                 </select>
@@ -539,12 +539,10 @@ function THEGODPAGE() {
           </div>
           <ul className="admin-list compact">
             {categories.map((category) => (
-              <li key={category.id || category.name} className="admin-item">
+              <li key={category.id} className="admin-item">
                 <div className="admin-item-main">
-                  <h3>{category.name || `Categoría #${category.id}`}</h3>
-                  {category.description && (
-                    <p className="admin-item-meta">{category.description}</p>
-                  )}
+                  <h3>{category.description || `Categoría #${category.id}`}</h3>
+                  <p className="admin-item-meta">ID: {category.id ?? "-"}</p>
                 </div>
               </li>
             ))}
@@ -555,22 +553,14 @@ function THEGODPAGE() {
           <form className="admin-form" onSubmit={handleCategorySubmit}>
             <h3>Nueva categoría</h3>
             <label>
-              Nombre
+              Descripción
               <input
                 type="text"
-                name="name"
-                value={categoryForm.name}
-                onChange={handleCategoryChange}
-                required
-              />
-            </label>
-            <label>
-              Descripción
-              <textarea
                 name="description"
                 value={categoryForm.description}
                 onChange={handleCategoryChange}
-                rows={3}
+                placeholder="Descripción de la categoría"
+                required
               />
             </label>
             <button type="submit" className="admin-button primary" disabled={loading}>
