@@ -49,6 +49,7 @@ export async function getCurrentUser(){
 //Helpers de rol
 export function setRole(role){
     localStorage.setItem('role', role);
+    notifyAuth();
 }
 
 export function getRole(){

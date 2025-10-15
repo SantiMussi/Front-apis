@@ -28,7 +28,6 @@ const LoginForm = () => {
       const lastPath = localStorage.getItem("lastPath") || "/";
       navigate(lastPath, { replace: true });
 
-
     } catch (err) {
       setError(err?.message || "Error de autenticación");
     } finally {

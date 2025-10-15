@@ -48,6 +48,8 @@ export default function Navbar() {
     navigate('/', {replace: true});
   }
 
+  const isAdminOrSeller = auth.role === "ADMIN" || auth.role === "SELLER";
+
   return (
     <nav>
       <div className="logo"><Link to ="/" className="logo-link">SZAFRANKUS</Link></div>
@@ -68,15 +70,20 @@ export default function Navbar() {
         )}
 
         {/* Si esta loggeado => carrito*/}
-        {auth.isAuth && <li><Link to="/cart">Carrito</Link></li>}
+        {auth.isAuth && !hasRole('ADMIN', 'SELLER') && (<li><Link to="/cart">Carrito</Link></li>)}
 
         {/* ADMIN */}
         {hasRole('ADMIN') && <li><Link to="/admin/panel">Admin</Link></li>}
 
+        {/* Seller */}
+        {hasRole('SELLER') && (
+          <li><Link to="/seller/panel">Seller</Link></li>
+        )}
+
         {/* Boton de logout */}
         {auth.isAuth && (
           <li>
-            <button onClick={handleLogout} className="linklike">Salir</button>
+            <Link onClick={handleLogout} to="/" className="logout-link">Salir</Link>
           </li>
         )}
       </ul>
