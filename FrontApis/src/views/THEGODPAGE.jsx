@@ -8,6 +8,7 @@ import {
   createCategory,
   getUsers,
 } from "../services/adminService";
+import { toDisplayValue, toNumberOrEmpty } from "../helpers/valueConverter";
 
 const EMPTY_PRODUCT = {
   name: "",
@@ -24,17 +25,7 @@ const EMPTY_CATEGORY = {
   description: "",
 };
 
-const toNumberOrEmpty = (value) => {
-  if (value === "" || value === null || value === undefined) {
-    return "";
-  }
-  const parsed = Number(value);
-  return Number.isNaN(parsed) ? "" : String(parsed);
-};
-
 const SIZE_OPTIONS = ["S", "M", "L", "XL"];
-
-const toDisplayValue = (value) => (value === null || value === undefined ? "" : value);
 
 const formatRole = (role) => {
   if (role === null || role === undefined || role === "") {
