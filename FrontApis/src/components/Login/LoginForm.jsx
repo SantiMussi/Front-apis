@@ -3,6 +3,7 @@ import AuthLoader from "./AuthLoader"; // <-- ruta relativa a este archivo
 import { getCurrentUser, login } from "../../services/authService";
 import "./LoginForm.css";
 import { useNavigate } from "react-router-dom";
+import {setRole} from '../../services/authService'
 
 const LoginForm = () => {
   const navigate = useNavigate();
