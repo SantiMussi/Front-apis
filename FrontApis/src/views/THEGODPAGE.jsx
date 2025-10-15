@@ -42,10 +42,10 @@ const formatRole = (role) => {
 const normalizeUserRecord = (user, index) => {
   console.log(user)
   if (Array.isArray(user)) {
-    const [email, firstName, lastName, role] = user;
+    const [email, tank_variable, firstName, lastName, user_id, role] = user;
     return { 
-      id: email || index,
       email: email || "",
+      id: user_id,
       first_name: firstName || "",
       last_name: lastName || "",
       role: role ?? "",
@@ -53,7 +53,6 @@ const normalizeUserRecord = (user, index) => {
   }
 
   return {
-    id: user?.id ?? user?.email ?? index,
     email: user?.email ?? "",
     first_name: user?.first_name ?? user?.firstName ?? user?.firstname ?? "",
     last_name: user?.last_name ?? user?.lastName ?? user?.lastname ?? "",
@@ -552,7 +551,7 @@ function THEGODPAGE() {
             <h2>Usuarios</h2>
             <span>{users.length} registrados</span>
           </div>
-          <div className="admin-list">
+          <div className="admin-list users">
             {users.map((user) => {
               const emailValue = user.email || "";
               const firstNameValue = user.first_name || "";
