@@ -53,15 +53,15 @@ export default function(){
         {cats.map((c) => (
           <button
             key={c.id}
-            className={`cat-pill ${sel === c.label ? "active" : ""}`}
-            onClick={() => setSel(c.label)}
+            className={`cat-pill ${sel === c.id ? "active" : ""}`}
+            onClick={() => setSel(c.id)}
           >
             {c.label}
           </button>
         ))}
       </div>
 
-      <Products category={categoryForApi} />
+      <Products categoryId={sel === 'all' ? null : sel} />
     </main>
     )
 }
