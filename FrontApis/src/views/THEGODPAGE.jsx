@@ -40,7 +40,6 @@ const formatRole = (role) => {
 };
 
 const normalizeUserRecord = (user, index) => {
-  console.log(user)
   if (Array.isArray(user)) {
     const [email, tank_variable, firstName, lastName, user_id, role] = user;
     return { 
@@ -59,13 +58,6 @@ const normalizeUserRecord = (user, index) => {
     role: user?.role ?? "",
   };
 };
-
-
-const TESTING_TIME = (users) => {
-      users.forEach(user => {
-        console.log(user)
-      });
-}
 
 function THEGODPAGE() {
   const [products, setProducts] = useState([]);
@@ -112,7 +104,6 @@ function THEGODPAGE() {
     try {
       const data = await getUsers();
       const rawUsers = Array.isArray(data) ? data : data?.content || [];
-      console.log(rawUsers)
       setUsers(rawUsers.map((user, index) => normalizeUserRecord(user, index)));
     } catch (error) {
       console.error(error);
@@ -299,7 +290,6 @@ function THEGODPAGE() {
           className="admin-refresh"
           onClick={() => {
             setLoading(true);
-            TESTING_TIME(users)
             Promise.all([loadProducts(), loadCategories(), loadUsers()])
               .catch(() => null)
               .finally(() => setLoading(false));
