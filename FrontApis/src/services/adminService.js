@@ -19,6 +19,7 @@ export async function getProducts(){
 //Crear producto
 
 export async function createProduct(product){
+    console.log(product)
     const response = await fetch(`${BASE_URL}/product`, {
         method: 'POST',
         headers: {
@@ -34,7 +35,7 @@ export async function createProduct(product){
 // Actualizar producto existente
 
 export async function updateProduct(id, product){
-    const response = await fetch(`${BASE_URL}/product/${id}`, {
+    const response = await fetch(`${BASE_URL}/product/${id}/modify`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',

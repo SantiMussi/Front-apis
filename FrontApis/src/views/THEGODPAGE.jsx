@@ -12,12 +12,14 @@ import {
 } from "../services/adminService";
 
 const EMPTY_PRODUCT = {
-  title: "",
+  name: "",
   description: "",
   price: "",
+  discount: "",
+  size: "",
   stock: "",
-  image: "",
-  category: "",
+  category_id: "",
+  image_url: "",
 };
 
 const EMPTY_CATEGORY = {
@@ -31,7 +33,15 @@ const ROLE_OPTIONS = [
   { value: "USER", label: "Usuario" },
 ];
 
-const formatNumberInput = (value) => (value === "" ? "" : Number(value));
+const toNumberOrEmpty = (value) => {
+  if (value === "" || value === null || value === undefined) {
+    return "";
+  }
+  const parsed = Number(value);
+  return Number.isNaN(parsed) ? "" : String(parsed);
+};
+
+const SIZE_OPTIONS = ["S", "M", "L", "XL"];
 
 const toDisplayValue = (value) => (value === null || value === undefined ? "" : value);
 
@@ -118,10 +128,56 @@ function THEGODPAGE() {
     event.preventDefault();
     setLoading(true);
     try {
+      const trimmedName = productForm.name.trim();
+      if (!trimmedName) {
+        notify("error", "El nombre del producto es obligatorio");
+        setLoading(false);
+        return;
+      }
+
+      const priceValue = Number.parseFloat(productForm.price);
+      if (Number.isNaN(priceValue)) {
+        notify("error", "Ingresá un precio válido");
+        setLoading(false);
+        return;
+      }
+
+      const discountValue =
+        productForm.discount === ""
+          ? 0
+          : Number.parseFloat(productForm.discount);
+      if (Number.isNaN(discountValue) || discountValue < 0 || discountValue > 1) {
+        notify("error", "El descuento debe estar entre 0 y 1");
+        setLoading(false);
+        return;
+      }
+
+      const stockValue =
+        productForm.stock === ""
+          ? 0
+          : Number.parseInt(productForm.stock, 10);
+      if (Number.isNaN(stockValue) || stockValue < 0) {
+        notify("error", "El stock no es válido");
+        setLoading(false);
+        return;
+      }
+
+      const categoryValue = Number.parseInt(productForm.category_id, 10);
+      if (Number.isNaN(categoryValue)) {
+        notify("error", "Seleccioná una categoría válida");
+        setLoading(false);
+        return;
+      }
+
       const payload = {
-        ...productForm,
-        price: formatNumberInput(productForm.price),
-        stock: formatNumberInput(productForm.stock),
+        name: trimmedName,
+        description: productForm.description,
+        price: priceValue,
+        discount: discountValue,
+        size: productForm.size ? productForm.size.toUpperCase() : null,
+        stock: stockValue,
+        category_id: categoryValue,
+        image_url: productForm.image_url || null,
       };
       if (selectedProductId) {
         await updateProduct(selectedProductId, payload);
@@ -142,13 +198,20 @@ function THEGODPAGE() {
 
   const handleEditProduct = (product) => {
     setSelectedProductId(product?.id ?? null);
+    const sizeValue = toDisplayValue(product?.size);
     setProductForm({
-      title: toDisplayValue(product?.title),
+      name: toDisplayValue(product?.name ?? product?.title),
       description: toDisplayValue(product?.description),
-      price: toDisplayValue(product?.price),
-      stock: toDisplayValue(product?.stock),
-      image: toDisplayValue(product?.image),
-      category: toDisplayValue(product?.category ?? product?.categoryId ?? ""),
+      price: toNumberOrEmpty(product?.price),
+      discount: toNumberOrEmpty(product?.discount),
+      size: sizeValue ? String(sizeValue).toUpperCase() : "",
+      stock: toNumberOrEmpty(product?.stock),
+      category_id: toNumberOrEmpty(
+        product?.category_id ?? product?.categoryId ?? product?.category?.id
+      ),
+      image_url: toDisplayValue(
+        product?.image_url ?? product?.imageUrl ?? product?.image
+      ),
     });
   };
 
@@ -246,10 +309,6 @@ function THEGODPAGE() {
     }
   };
 
-
-
-  /* AGREGAR BOTON PARA CARGAR ARCHIVO JPG, PNG PARA IMAGEN DEL PRODUCTO */
-
   return (
     <div className="admin-page">
       <header className="admin-header">
@@ -290,35 +349,67 @@ function THEGODPAGE() {
             <span>{products.length} en total</span>
           </div>
           <div className="admin-list">
-            {products.map((product) => (
-              <article key={product.id || product.title} className="admin-item">
-                <div className="admin-item-main">
-                  <h3>{product.title || `Producto #${product.id}`}</h3>
-                  <p className="admin-item-meta">
-                    ID: {product.id ?? "-"} · Precio: ${product.price ?? "-"} · Stock: {product.stock ?? "-"}
-                  </p>
-                  {product.category && (
-                    <p className="admin-item-meta">Categoría: {product.category}</p>
-                  )}
-                </div>
-                <div className="admin-item-actions">
-                  <button
-                    type="button"
-                    className="admin-button"
-                    onClick={() => handleEditProduct(product)}
-                  >
-                    Editar
-                  </button>
-                  <button
-                    type="button"
-                    className="admin-button danger"
-                    onClick={() => handleDeleteProduct(product.id)}
-                  >
-                    Eliminar
-                  </button>
-                </div>
-              </article>
-            ))}
+            {products.map((product) => {
+              const discountValue = Number(product.discount ?? 0);
+              const hasDiscount = Number.isFinite(discountValue) && discountValue > 0;
+              const categoryIdValue =
+                product.category_id ??
+                product.categoryId ??
+                product.category?.id ??
+                null;
+              const categoryLabel =
+                (categoryIdValue !== null
+                  ? categories.find(
+                      (category) =>
+                        String(category.id) === String(categoryIdValue)
+                    )?.name
+                  : null) ||
+                product.category?.name ||
+                product.category_name ||
+                categoryIdValue;
+              return (
+                <article
+                  key={product.id || product.name || product.title}
+                  className="admin-item"
+                >
+                  <div className="admin-item-main">
+                    <h3>{product.name || product.title || `Producto #${product.id}`}</h3>
+                    <p className="admin-item-meta">
+                      ID: {product.id ?? "-"} · Precio: ${product.price ?? "-"} · Stock: {product.stock ?? "-"}
+                    </p>
+                    <p className="admin-item-meta">
+                      Descuento: {hasDiscount
+                        ? `${(discountValue * 100).toFixed(0)}%`
+                        : "Sin descuento"}
+                    </p>
+                    {product.size && (
+                      <p className="admin-item-meta">Talle: {product.size}</p>
+                    )}
+                    {categoryLabel && (
+                      <p className="admin-item-meta">
+                        Categoría: {categoryLabel}
+                      </p>
+                    )}
+                  </div>
+                  <div className="admin-item-actions">
+                    <button
+                      type="button"
+                      className="admin-button"
+                      onClick={() => handleEditProduct(product)}
+                    >
+                      Editar
+                    </button>
+                    <button
+                      type="button"
+                      className="admin-button danger"
+                      onClick={() => handleDeleteProduct(product.id)}
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                </article>
+              );
+            })}
             {products.length === 0 && (
               <p className="admin-empty">No hay productos cargados.</p>
             )}
@@ -328,11 +419,11 @@ function THEGODPAGE() {
             <h3>{selectedProductId ? "Editar producto" : "Crear producto"}</h3>
             <div className="admin-form-grid">
               <label>
-                Título
+                Nombre
                 <input
                   type="text"
-                  name="title"
-                  value={productForm.title}
+                  name="name"
+                  value={productForm.name}
                   onChange={handleProductChange}
                   required
                 />
@@ -352,8 +443,22 @@ function THEGODPAGE() {
                 Stock
                 <input
                   type="number"
+                  min="0"
                   name="stock"
                   value={productForm.stock}
+                  onChange={handleProductChange}
+                  required
+                />
+              </label>
+              <label>
+                Descuento
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max="1"
+                  name="discount"
+                  value={productForm.discount}
                   onChange={handleProductChange}
                 />
               </label>
@@ -361,8 +466,8 @@ function THEGODPAGE() {
                 Imagen (URL)
                 <input
                   type="url"
-                  name="image"
-                  value={productForm.image}
+                  name="image_url"
+                  value={productForm.image_url}
                   onChange={handleProductChange}
                 />
               </label>
@@ -376,12 +481,30 @@ function THEGODPAGE() {
                 />
               </label>
               <label>
+                Talle
+                <select
+                  name="size"
+                  value={productForm.size}
+                  onChange={handleProductChange}
+                  required
+                >
+                  <option value="">Seleccionar talle</option>
+                  {SIZE_OPTIONS.map((size) => (
+                    <option key={size} value={size}>
+                      {size}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
                 Categoría
                 <select
-                  name="category"
-                  value={productForm.category}
+                  name="category_id"
+                  value={productForm.category_id}
                   onChange={handleProductChange}
+                  required
                 >
+                  <option value="">Seleccionar categoría</option>
                   {categories.map((category) => (
                     <option key={category.id} value={category.id}>
                       {category.description}
@@ -469,7 +592,7 @@ function THEGODPAGE() {
                 <article key={user.id || user.email} className="admin-item">
                   <div className="admin-item-main">
                     <h3>
-                      {user.first_name} {user.last_name || ""}
+                      {user.firstname || user.firstName || ""} {user.lastname || user.lastName || ""}
                     </h3>
                     <p className="admin-item-meta">ID: {user.id ?? "-"}</p>
                     {user.email && (
