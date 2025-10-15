@@ -20,7 +20,10 @@ export function authHeader(){
 }
 
 export function setToken(token){
-    if(token) localStorage.setItem(TOKEN_KEY, token);
+    if(token){
+        localStorage.setItem(TOKEN_KEY, token)
+        notifyAuth();
+    }
     return token ? { 'Authorization': `Bearer ${token}` } : {};
 }
 

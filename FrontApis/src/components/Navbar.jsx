@@ -1,6 +1,6 @@
 import { useEffect, useState} from 'react'
 import { Link, useNavigate, useLocation} from "react-router-dom";
-import { hasRole, isLoggedIn, getRole, onAuthChange, logout} from '../services/authService'
+import { hasRole, isLoggedIn, getRole, onAuthChange, logout, getCurrentUser, setRole} from '../services/authService'
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -21,17 +21,32 @@ export default function Navbar() {
   //Subscribe a cambios de auth (login, logout, role)
   useEffect(()=> {
     const unsubscribe = onAuthChange(({isLoggedIn, role}) => {
-      setAuth({isAuth: isLoggedIn, role});
+      setAuth({isAuth: isLoggedIn, role})
     });
 
     //Estado inicial
-    setAuth({isAuth: isLoggedIn, role: getRole()});
-  }, []);
+    setAuth({isAuth: isLoggedIn(), role: getRole()});
+
+    (async () => {
+      try{
+        if(isLoggedIn()){
+          const me = await getCurrentUser(); 
+          if (me?.role) setRole(me.role);
+          setAuth({isAuth:true, role: me?.role ?? getRole()});
+        }
+      } catch(e){
+        logout();
+        setAuth({isAuth: false, role: null})
+      }
+    }) ();
+
+    return unsubscribe; 
+  }, [])
 
   const handleLogout = () => {
     logout();
-    navigate('/', {replace: true})
-  };
+    navigate('/', {replace: true});
+  }
 
   return (
     <nav>
