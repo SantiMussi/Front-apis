@@ -7,6 +7,7 @@ import {
   getCategories,
   createCategory,
   getUsers,
+  updateUser,
 } from "../services/adminService";
 import { toDisplayValue, toNumberOrEmpty } from "../helpers/valueConverter";
 
@@ -26,6 +27,7 @@ const EMPTY_CATEGORY = {
 };
 
 const SIZE_OPTIONS = ["S", "M", "L", "XL"];
+const ROLE_OPTIONS = ["USER", "SELLER"];
 
 const formatRole = (role) => {
   if (role === null || role === undefined || role === "") {
@@ -42,6 +44,7 @@ const formatRole = (role) => {
 const normalizeUserRecord = (user, index) => {
   if (Array.isArray(user)) {
     const [email, tank_variable, firstName, lastName, user_id, role] = user;
+
     return { 
       email: email || "",
       id: user_id,
@@ -52,6 +55,7 @@ const normalizeUserRecord = (user, index) => {
   }
 
   return {
+    id: user?.id ?? index,
     email: user?.email ?? "",
     first_name: user?.first_name ?? user?.firstName ?? user?.firstname ?? "",
     last_name: user?.last_name ?? user?.lastName ?? user?.lastname ?? "",
@@ -72,6 +76,7 @@ function THEGODPAGE() {
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(false);
   const [initialLoad, setInitialLoad] = useState(true);
+  const [updatingUserId, setUpdatingUserId] = useState(null);
 
   const notify = (type, message) => {
     setStatus({ type, message });
@@ -97,6 +102,58 @@ function THEGODPAGE() {
       console.error(error);
       notify("error", error.message || "No se pudieron cargar las categorías");
       setCategories([]);
+    }
+  };
+
+  const handleUserRoleChange = async (user, newRole) => {
+
+    console.log("ATTEMPTING TO CHANGE ROLE...")
+    const normalizedRole = (newRole || "").trim().toUpperCase();
+
+    if (!normalizedRole) {
+      notify("error", "Seleccioná un rol válido");
+      return;
+    }
+
+    if (!user?.id) {
+      notify("error", "No se puede actualizar un usuario sin identificador");
+      return;
+    }
+
+    const previousRole = user.role ?? "";
+
+    setUsers((prevUsers) =>
+      prevUsers.map((item) =>
+        item.id === user.id
+          ? {
+              ...item,
+              role: normalizedRole,
+            }
+          : item
+      )
+    );
+
+    setUpdatingUserId(user.id);
+    try {
+      await updateUser(user.id, { role: normalizedRole });
+      notify("success", "Rol actualizado correctamente");
+    } catch (error) {
+      setUsers((prevUsers) =>
+        prevUsers.map((item) =>
+          item.id === user.id
+            ? {
+                ...item,
+                role: previousRole,
+              }
+            : item
+        )
+      );
+      notify(
+        "error",
+        error.message || "No se pudo actualizar el rol del usuario"
+      );
+    } finally {
+      setUpdatingUserId(null);
     }
   };
 
@@ -450,6 +507,7 @@ function THEGODPAGE() {
               <label>
                 Talle
                 <select
+                  className="admin-select"
                   name="size"
                   value={productForm.size}
                   onChange={handleProductChange}
@@ -466,6 +524,7 @@ function THEGODPAGE() {
               <label>
                 Categoría
                 <select
+                  className="admin-select"
                   name="category_id"
                   value={productForm.category_id}
                   onChange={handleProductChange}
@@ -547,6 +606,7 @@ function THEGODPAGE() {
               const firstNameValue = user.first_name || "";
               const lastNameValue = user.last_name || "";
               const roleValue = user.role ?? "";
+              const normalizedRoleValue = roleValue.trim().toUpperCase();
               const displayName = [firstNameValue, lastNameValue]
                 .filter(Boolean)
                 .join(" ")
@@ -556,7 +616,25 @@ function THEGODPAGE() {
                   <div className="admin-item-main">
                     <h3>{displayName || "Usuario sin nombre"}</h3>
                     <p className="admin-item-meta">{emailValue || "Sin email"}</p>
-                    <p className="admin-item-meta">Rol: {formatRole(roleValue)}</p>
+                    <label className="admin-item-meta">
+                      Rol:
+                      <select
+                        value={normalizedRoleValue}
+                        onChange={(event) =>
+                          handleUserRoleChange(user, event.target.value)
+                        }
+                        disabled={updatingUserId === user.id}
+                      >
+                        <option value="" disabled>
+                          Seleccionar rol
+                        </option>
+                        {ROLE_OPTIONS.map((roleOption) => (
+                          <option key={roleOption} value={roleOption}>
+                            {roleOption}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
                   </div>
                 </article>
               );

@@ -39,6 +39,32 @@ body{
 .text-center{ text-align: center; }
 .text-muted{ color: var(--text-muted); }
 
+/* Global scrollbar styling */
+*{
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+
+*::-webkit-scrollbar{
+  width: 8px;
+}
+
+*::-webkit-scrollbar-track{
+  background: rgba(255,255,255,0.04);
+}
+
+*::-webkit-scrollbar-thumb{
+  background: var(--line);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  transition: background 0.3s ease;
+}
+
+*::-webkit-scrollbar-thumb:hover{
+  background: var(--line-strong);
+}
+
 /* nav */
 nav{
   position: fixed;
