@@ -7,10 +7,7 @@ import {
   getCategories,
   createCategory,
   getUsers,
-  updateUser,
-  deleteUser,
 } from "../services/adminService";
-import { toNumberOrEmpty, toDisplayValue } from "../helpers/valueConverter";
 
 const EMPTY_PRODUCT = {
   name: "",
@@ -27,14 +24,58 @@ const EMPTY_CATEGORY = {
   description: "",
 };
 
-const ROLE_OPTIONS = [
-  { value: "ADMIN", label: "Admin" },
-  { value: "SELLER", label: "Seller" },
-  { value: "USER", label: "Usuario" },
-];
+const toNumberOrEmpty = (value) => {
+  if (value === "" || value === null || value === undefined) {
+    return "";
+  }
+  const parsed = Number(value);
+  return Number.isNaN(parsed) ? "" : String(parsed);
+};
 
 const SIZE_OPTIONS = ["S", "M", "L", "XL"];
 
+const toDisplayValue = (value) => (value === null || value === undefined ? "" : value);
+
+const formatRole = (role) => {
+  if (role === null || role === undefined || role === "") {
+    return "Sin rol";
+  }
+
+  if (typeof role === "string") {
+    return role.trim() ? role.trim().toUpperCase() : "Sin rol";
+  }
+
+  return String(role);
+};
+
+const normalizeUserRecord = (user, index) => {
+  console.log(user)
+  if (Array.isArray(user)) {
+    const [email, firstName, lastName, role] = user;
+    return { 
+      id: email || index,
+      email: email || "",
+      first_name: firstName || "",
+      last_name: lastName || "",
+      role: role ?? "",
+    };
+  }
+
+  return {
+    id: user?.id ?? user?.email ?? index,
+    email: user?.email ?? "",
+    first_name: user?.first_name ?? user?.firstName ?? user?.firstname ?? "",
+    last_name: user?.last_name ?? user?.lastName ?? user?.lastname ?? "",
+    role: user?.role ?? "",
+  };
+};
+
+
+const TESTING_TIME = (users) => {
+      users.forEach(user => {
+        console.log(user)
+      });
+}
 
 function THEGODPAGE() {
   const [products, setProducts] = useState([]);
@@ -45,8 +86,6 @@ function THEGODPAGE() {
   const [selectedProductId, setSelectedProductId] = useState(null);
 
   const [categoryForm, setCategoryForm] = useState(EMPTY_CATEGORY);
-
-  const [userDrafts, setUserDrafts] = useState({});
 
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -82,8 +121,9 @@ function THEGODPAGE() {
   const loadUsers = async () => {
     try {
       const data = await getUsers();
-      setUsers(Array.isArray(data) ? data : data?.content || []);
-      setUserDrafts({});
+      const rawUsers = Array.isArray(data) ? data : data?.content || [];
+      console.log(rawUsers)
+      setUsers(rawUsers.map((user, index) => normalizeUserRecord(user, index)));
     } catch (error) {
       console.error(error);
       notify("error", error.message || "No se pudieron cargar los usuarios");
@@ -255,52 +295,6 @@ function THEGODPAGE() {
     }
   };
 
-  const handleUserDraftChange = (id, field, value) => {
-    setUserDrafts((prev) => ({
-      ...prev,
-      [id]: {
-        ...(prev[id] || {}),
-        [field]: value,
-      },
-    }));
-  };
-
-  const handleUserSave = async (user) => {
-    if (!user?.id) return;
-    const payload = {
-      ...user,
-      ...(userDrafts[user.id] || {}),
-    };
-    setLoading(true);
-    try {
-      await updateUser(user.id, payload);
-      notify("success", "Usuario actualizado");
-      await loadUsers();
-    } catch (error) {
-      console.error(error);
-      notify("error", error.message || "No se pudo actualizar el usuario");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDeleteUser = async (id) => {
-    if (!id) return;
-    const confirmed = window.confirm("¿Eliminar este usuario?");
-    if (!confirmed) return;
-    setLoading(true);
-    try {
-      await deleteUser(id);
-      notify("success", "Usuario eliminado");
-      await loadUsers();
-    } catch (error) {
-      console.error(error);
-      notify("error", error.message || "No se pudo eliminar el usuario");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <div className="admin-page">
       <header className="admin-header">
@@ -315,6 +309,7 @@ function THEGODPAGE() {
           className="admin-refresh"
           onClick={() => {
             setLoading(true);
+            TESTING_TIME(users)
             Promise.all([loadProducts(), loadCategories(), loadUsers()])
               .catch(() => null)
               .finally(() => setLoading(false));
@@ -568,50 +563,20 @@ function THEGODPAGE() {
           </div>
           <div className="admin-list">
             {users.map((user) => {
-              const draft = userDrafts[user.id] || {};
-              const roleValue = draft.role ?? user.role ?? "";
+              const emailValue = user.email || "";
+              const firstNameValue = user.first_name || "";
+              const lastNameValue = user.last_name || "";
+              const roleValue = user.role ?? "";
+              const displayName = [firstNameValue, lastNameValue]
+                .filter(Boolean)
+                .join(" ")
+                .trim();
               return (
-                <article key={user.id || user.email} className="admin-item">
+                <article key={user.id || user.email || emailValue || displayName} className="admin-item">
                   <div className="admin-item-main">
-                    <h3>
-                      {user.firstname || user.firstName || ""} {user.lastname || user.lastName || ""}
-                    </h3>
-                    <p className="admin-item-meta">ID: {user.id ?? "-"}</p>
-                    {user.email && (
-                      <p className="admin-item-meta">{user.email}</p>
-                    )}
-                    <label className="admin-inline-field">
-                      Rol
-                      <select
-                        value={roleValue}
-                        onChange={(event) =>
-                          handleUserDraftChange(user.id, "role", event.target.value)
-                        }
-                      >
-                        <option value="">Seleccionar rol</option>
-                        {ROLE_OPTIONS.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                  </div>
-                  <div className="admin-item-actions">
-                    <button
-                      type="button"
-                      className="admin-button"
-                      onClick={() => handleUserSave(user)}
-                    >
-                      Guardar
-                    </button>
-                    <button
-                      type="button"
-                      className="admin-button danger"
-                      onClick={() => handleDeleteUser(user.id)}
-                    >
-                      Eliminar
-                    </button>
+                    <h3>{displayName || "Usuario sin nombre"}</h3>
+                    <p className="admin-item-meta">{emailValue || "Sin email"}</p>
+                    <p className="admin-item-meta">Rol: {formatRole(roleValue)}</p>
                   </div>
                 </article>
               );
