@@ -69,6 +69,14 @@ export async function getCategories(){
     return response.json();
 }
 
+export async function getCategoryById(id){
+    const response = await fetch(`${BASE_URL}/categories/${id}`, {
+        headers: authHeader()
+    });
+    if(!response.ok) throw new Error('Error al obtener categoria');
+    return response.json();
+}
+
 // Crear categoria
 
 export async function createCategory(category){

@@ -6,6 +6,7 @@ import {
   deleteProduct,
   getCategories,
   createCategory,
+  getCategoryById,
   getUsers,
   updateUser,
 } from "../services/adminService";
@@ -533,7 +534,7 @@ function THEGODPAGE() {
                   <option value="">Seleccionar categoría</option>
                   {categories.map((category) => (
                     <option key={category.id} value={category.id}>
-                      {category.description ?? `ID ${category.id}`}
+                      {category.description}
                     </option>
                   ))}
                 </select>
