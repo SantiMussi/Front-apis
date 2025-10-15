@@ -9,6 +9,7 @@ import VirtualFitter from './components/OutfitBuilder/VirtualFitter'
 import LoginPage from './views/LoginPage'
 import RegisterPage from './views/RegisterPage'
 import RequireRole from './components/RequireRole';
+import SellerView from './views/SellerView';
 import THEGODPAGE from './views/THEGODPAGE';
 
 
@@ -30,14 +31,15 @@ function App() {
             element={
             <RequireRole roles={['ADMIN']}> 
               <THEGODPAGE/> 
-            </RequireRole>}
+            </RequireRole>
+            }
           />
 
         <Route
           path="/seller/*"
           element={
-            <RequireRole roles={['ADMIN', 'SELLER']}>
-              
+            <RequireRole roles={['SELLER']}>
+              <SellerView />
             </RequireRole>
           }/>
       </Routes>
