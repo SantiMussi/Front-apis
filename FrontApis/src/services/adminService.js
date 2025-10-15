@@ -50,7 +50,7 @@ export async function updateProduct(id, product){
 // Eliminar producto
 
 export async function deleteProduct(id){
-    const response = await fetch(`${BASE_URL}/product/${id}`, {
+    const response = await fetch(`${BASE_URL}/product/${id}/delete`, {
         method: 'DELETE',
         headers: authHeader()
     });
@@ -82,6 +82,18 @@ export async function createCategory(category){
     if(!response.ok) throw new Error('Error al crear categoria');
     return response.json();
 }
+
+
+// Eliminar categorua
+
+export async function deleteCategory(id){
+    const response = await fetch(`${BASE_URL}/category/${id}/delete`, {
+        method: 'DELETE',
+        headers: authHeader()
+    });
+    if(!response.ok) throw new Error('Error al eliminar producto')
+}
+
 
 // USUARIOS
 
