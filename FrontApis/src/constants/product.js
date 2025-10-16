@@ -6,7 +6,8 @@ export const EMPTY_PRODUCT = {
   size: "",
   stock: "",
   category_id: "",
-  image_url: "",
+  base64img: "",
+  image_preview_url: null,
 };
 
 export const SIZE_OPTIONS = ["S", "M", "L", "XL"];
