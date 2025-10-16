@@ -216,7 +216,7 @@ function THEGODPAGE() {
         size: productForm.size ? productForm.size.toUpperCase() : null,
         stock: stockValue,
         category_id: categoryValue,
-        image_url: productForm.image_url || null,
+        base64img: productForm.base64img || null,
       };
       if (selectedProductId) {
         await updateProduct(selectedProductId, payload);
