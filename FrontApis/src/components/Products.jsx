@@ -20,6 +20,9 @@ function Productos({ categoryId = null }) {
       const res = await fetch(`${BASE_URL}/product`);
       if (!res.ok) throw new Error(await res.text());
       const data = await res.json();
+
+      console.log(data)
+
       const items = Array.isArray(data?.content) ? data.content : [];
       setProductos(items);
     };
@@ -51,11 +54,11 @@ function Productos({ categoryId = null }) {
       <div className="productos-grid">
         {list.map((p) => {
           return (
-            <div key={p.id} className="producto-card">
-              <img src={p.img} alt={p.name} />
+            <div key={p.productId} className="producto-card">
+              <img src={p.base64img} alt={p.name} />
               <h3>{p.name}</h3>
               <span>${p.price}</span>
-              <Link to={`/product/${p.id}`} className="detail-btn">Ver más</Link>
+              <Link to={`/product/${p.productId}`} className="detail-btn">Ver más</Link>
             </div>
           );
         })}

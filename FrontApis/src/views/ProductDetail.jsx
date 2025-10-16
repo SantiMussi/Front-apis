@@ -42,7 +42,7 @@ const ProductDetail = () => {
     <div className="product-detail">
       <button className="back-button" onClick={() => navigate(-1)}>← Volver</button>
       <h2>{product.name}</h2>
-      <img src={product.image} alt={product.name} />
+      <img src={product.base64img} alt={product.name} />
       <p className="description">{product.description}</p>
       <p className="price">Precio: ${product.price}</p>
       {product.discount > 0 && <p>Precio: ${(product.price - (product.price * product.discount).toFixed(2))}</p>}
