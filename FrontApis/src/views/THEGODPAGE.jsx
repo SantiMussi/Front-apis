@@ -10,6 +10,7 @@ import {
   updateUser,
 } from "../services/adminService";
 import { toDisplayValue, toNumberOrEmpty } from "../helpers/valueConverter";
+import { hasRole } from "../services/authService";
 
 const EMPTY_PRODUCT = {
   name: "",
@@ -179,6 +180,13 @@ function THEGODPAGE() {
 
     bootstrap();
   }, []);
+
+  const shouldHideAdminUsers = hasRole("ADMIN");
+
+  const visibleUsers = users.filter((user) => {
+    const roleValue = (user?.role ?? "").toString().trim().toUpperCase();
+    return !(shouldHideAdminUsers && roleValue === "ADMIN");
+  });
 
   const resetProductForm = () => {
     setProductForm(EMPTY_PRODUCT);
@@ -598,10 +606,10 @@ function THEGODPAGE() {
         <div className="admin-card">
           <div className="admin-card-header">
             <h2>Usuarios</h2>
-            <span>{users.length} registrados</span>
+            <span>{visibleUsers.length} registrados</span>
           </div>
           <div className="admin-list users">
-            {users.map((user) => {
+            {visibleUsers.map((user) => {
               const emailValue = user.email || "";
               const firstNameValue = user.first_name || "";
               const lastNameValue = user.last_name || "";
@@ -639,7 +647,7 @@ function THEGODPAGE() {
                 </article>
               );
             })}
-            {users.length === 0 && (
+            {visibleUsers.length === 0 && (
               <p className="admin-empty">No hay usuarios disponibles.</p>
             )}
           </div>
