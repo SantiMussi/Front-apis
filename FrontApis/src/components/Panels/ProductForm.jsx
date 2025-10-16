@@ -42,65 +42,60 @@ function ProductForm({
 
   //Imagen -> base64 y validaciones
   const handleImageChange = async (e) => {
-  const file = e.target.files?.[0] || null;
+    const file = e.target.files?.[0] || null;
+    if(!file){
+      onChange({ target: {name: 'base64img'}, value: ''})
+      setPreviewUrl(null);
+      return
+    }
 
-  if (!file) {
-    onChange({ target: { name: 'base64img', value: '' } });   // <-- FIX
-    setPreviewUrl(null);
-    return;
-  }
+    //Validar el tipo
+    const validTypes = ['image/jpeg', 'image/png'];
+    if(!validTypes.includes(file.type)){
+      onImageValidationError?.('Formato inválido. Sólo PNG o JPG')
+      e.target.value = ""
+      return;
+    }
 
-  const validTypes = ['image/jpeg', 'image/png'];
-  if (!validTypes.includes(file.type)) {
-    onImageValidationError?.('Formato inválido. Sólo PNG o JPG');
-    e.target.value = "";
-    onChange({ target: { name: 'base64img', value: '' } });   // <-- limpia
-    setPreviewUrl(null);                                      // <-- limpia
-    return;
-  }
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+      const dataUrl = reader.result; //String base64
+      //Validar dimensiones
 
-  const reader = new FileReader();
-  reader.readAsDataURL(file);
-  reader.onload = () => {
-    const dataUrl = reader.result; // string base64 con prefijo data:
-
-    if (expectedWidth || expectedHeight) {
-      validateImageDimensions(dataUrl)
-        .then(({ width, height }) => {
+      if(expectedWidth || expectedHeight){
+        validateImageDimensions(dataUrl).then(({width, height}) => {
           const okW = expectedWidth ? width === expectedWidth : true;
           const okH = expectedHeight ? height === expectedHeight : true;
 
-          if (!okW || !okH) {
+          if(!okW || !okH){
             onImageValidationError?.(
-              `Dimensiones inválidas. Se esperaba ${expectedWidth ?? '?'}x${expectedHeight ?? '?'} px y se recibió ${width}x${height} px`
+              `Dimensiones inválidas. Se esperaba ${expectedWidth}x${expectedHeight ?? '?'} px y se recibió ${width}x${height} px`
             );
             e.target.value = "";
-            onChange({ target: { name: 'base64img', value: '' } }); // <-- limpia
-            setPreviewUrl(null);                                    // <-- limpia
             return;
           }
 
-          onChange({ target: { name: 'base64img', value: dataUrl } }); // <-- OK
+          //Guardar base64 y preview
+          onChange({target: {name: 'base64img', value: dataUrl}});
           setPreviewUrl(dataUrl);
         })
         .catch(() => {
-          onImageValidationError?.('No se pudo leer la imagen para validar las dimensiones.');
+          onImageValidationError?.('No se pudo leer la imagen para validar las dimensiones.')
           e.target.value = "";
-          onChange({ target: { name: 'base64img', value: '' } });  // <-- limpia
-          setPreviewUrl(null);                                     // <-- limpia
-        });
-    } else {
-      onChange({ target: { name: 'base64img', value: dataUrl } }); // <-- OK
-      setPreviewUrl(dataUrl);
-    }
+        })
+      } else {
+        //Sin validacion de tamano
+        onChange({target: {name: 'base64img', value: dataUrl}});
+        setPreviewUrl(dataUrl);
+      }
+    };
+    reader.onerror = () => {
+      onImageValidationError?.("Error leyendo el archivo de imagen.")
+      e.target.value = "";
+    };
   };
-  reader.onerror = () => {
-    onImageValidationError?.("Error leyendo el archivo de imagen.");
-    e.target.value = "";
-    onChange({ target: { name: 'base64img', value: '' } });        // <-- limpia
-    setPreviewUrl(null);                                           // <-- limpia
-  };
-};
+
 
   return (
     <form className="admin-form" onSubmit={onSubmit}>
