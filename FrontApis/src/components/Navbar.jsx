@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { hasRole, isLoggedIn, getRole, onAuthChange, logout, getCurrentUser, setRole } from '../services/authService'
 import UserWidget from "../components/UserWidget.jsx"
-import './'
+import './UserWidget.css'
+
 export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
