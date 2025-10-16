@@ -9,60 +9,16 @@ import {
   getUsers,
   updateUser,
 } from "../services/adminService";
-import { toDisplayValue, toNumberOrEmpty } from "../helpers/valueConverter";
 import { hasRole } from "../services/authService";
+import { EMPTY_PRODUCT } from "../constants/product";
+import ProductList from "../components/Panels/ProductList";
+import ProductForm from "../components/Panels/ProductForm";
+import CategoryList from "../components/Panels/CategoryList";
+import UserList from "../components/Panels/UserList";
+import StatusAlert from "../components/Panels/StatusAlert";
+import { normalizeUserRecord } from "../helpers/userAdmin";
 
-const EMPTY_PRODUCT = {
-  name: "",
-  description: "",
-  price: "",
-  discount: "",
-  size: "",
-  stock: "",
-  category_id: "",
-  image_url: "",
-};
-
-const EMPTY_CATEGORY = {
-  description: "",
-};
-
-const SIZE_OPTIONS = ["S", "M", "L", "XL"];
-const ROLE_OPTIONS = ["USER", "SELLER"];
-
-const formatRole = (role) => {
-  if (role === null || role === undefined || role === "") {
-    return "Sin rol";
-  }
-
-  if (typeof role === "string") {
-    return role.trim() ? role.trim().toUpperCase() : "Sin rol";
-  }
-
-  return String(role);
-};
-
-const normalizeUserRecord = (user, index) => {
-  if (Array.isArray(user)) {
-    const [email, tank_variable, firstName, lastName, user_id, role] = user;
-
-    return { 
-      email: email || "",
-      id: user_id,
-      first_name: firstName || "",
-      last_name: lastName || "",
-      role: role ?? "",
-    };
-  }
-
-  return {
-    id: user?.id ?? index,
-    email: user?.email ?? "",
-    first_name: user?.first_name ?? user?.firstName ?? user?.firstname ?? "",
-    last_name: user?.last_name ?? user?.lastName ?? user?.lastname ?? "",
-    role: user?.role ?? "",
-  };
-};
+const EMPTY_CATEGORY = { description: "" };
 
 function THEGODPAGE() {
   const [products, setProducts] = useState([]);
@@ -80,9 +36,10 @@ function THEGODPAGE() {
   const [updatingUserId, setUpdatingUserId] = useState(null);
 
   const notify = (type, message) => {
-    setStatus({ type, message });
-    setTimeout(() => setStatus(null), 5000);
-  };
+      setStatus({ type, message });
+      window.clearTimeout(notify.timeoutId);
+      notify.timeoutId = window.setTimeout(() => setStatus(null), 5000);
+    };
 
   const loadProducts = async () => {
     try {
@@ -107,8 +64,6 @@ function THEGODPAGE() {
   };
 
   const handleUserRoleChange = async (user, newRole) => {
-
-    console.log("ATTEMPTING TO CHANGE ROLE...")
     const normalizedRole = (newRole || "").trim().toUpperCase();
 
     if (!normalizedRole) {
@@ -179,6 +134,13 @@ function THEGODPAGE() {
     };
 
     bootstrap();
+
+    
+    return () => {
+      if (notify.timeoutId) {
+        window.clearTimeout(notify.timeoutId);
+      }
+    };
   }, []);
 
   const shouldHideAdminUsers = hasRole("ADMIN");
@@ -273,23 +235,9 @@ function THEGODPAGE() {
     }
   };
 
-  const handleEditProduct = (product) => {
-    setSelectedProductId(product?.id ?? null);
-    const sizeValue = toDisplayValue(product?.size);
-    setProductForm({
-      name: toDisplayValue(product?.name ?? product?.title),
-      description: toDisplayValue(product?.description),
-      price: toNumberOrEmpty(product?.price),
-      discount: toNumberOrEmpty(product?.discount),
-      size: sizeValue ? String(sizeValue).toUpperCase() : "",
-      stock: toNumberOrEmpty(product?.stock),
-      category_id: toNumberOrEmpty(
-        product?.category_id ?? product?.categoryId ?? product?.category?.id
-      ),
-      image_url: toDisplayValue(
-        product?.image_url ?? product?.imageUrl ?? product?.image
-      ),
-    });
+  const handleEditProduct = (formValues, productId) => {
+    setSelectedProductId(productId ?? null);
+    setProductForm(formValues);
   };
 
   const handleDeleteProduct = async (id) => {
@@ -341,6 +289,13 @@ function THEGODPAGE() {
     }
   };
 
+  const refreshAll = () => {
+    setLoading(true);
+    Promise.all([loadProducts(), loadCategories(), loadUsers()])
+      .catch(() => null)
+      .finally(() => setLoading(false));
+  };
+
   return (
     <div className="admin-page">
       <header className="admin-header">
@@ -353,22 +308,13 @@ function THEGODPAGE() {
         <button
           type="button"
           className="admin-refresh"
-          onClick={() => {
-            setLoading(true);
-            Promise.all([loadProducts(), loadCategories(), loadUsers()])
-              .catch(() => null)
-              .finally(() => setLoading(false));
-          }}
+          onClick={refreshAll}
         >
           Refrescar todo
         </button>
       </header>
 
-      {status && (
-        <div className={`admin-alert ${status.type}`}>
-          {status.message}
-        </div>
-      )}
+      <StatusAlert status={status}/>
 
       {loading && initialLoad && (
         <div className="admin-loading">Cargando información...</div>
@@ -380,188 +326,24 @@ function THEGODPAGE() {
             <h2>Productos</h2>
             <span>{products.length} en total</span>
           </div>
-          <div className="admin-list">
-            {products.map((product) => {
-              const discountValue = Number(product.discount ?? 0);
-              const hasDiscount = Number.isFinite(discountValue) && discountValue > 0;
-              const categoryIdValue =
-                product.category_id ??
-                product.categoryId ??
-                product.category?.id ??
-                null;
-              const categoryLabel =
-                (categoryIdValue !== null
-                  ? categories.find(
-                      (category) =>
-                        String(category.id) === String(categoryIdValue)
-                    )?.description
-                  : null) ||
-                product.category?.description ||
-                product.category_description ||
-                categoryIdValue;
-              return (
-                <article
-                  key={product.id || product.name || product.title}
-                  className="admin-item"
-                >
-                  <div className="admin-item-main">
-                    <h3>{product.name || product.title || `Producto #${product.id}`}</h3>
-                    <p className="admin-item-meta">
-                      ID: {product.id ?? "-"} · Precio: ${product.price ?? "-"} · Stock: {product.stock ?? "-"}
-                    </p>
-                    <p className="admin-item-meta">
-                      Descuento: {hasDiscount
-                        ? `${(discountValue * 100).toFixed(0)}%`
-                        : "Sin descuento"}
-                    </p>
-                    {product.size && (
-                      <p className="admin-item-meta">Talle: {product.size}</p>
-                    )}
-                    {categoryLabel && (
-                      <p className="admin-item-meta">
-                        Categoría: {categoryLabel}
-                      </p>
-                    )}
-                  </div>
-                  <div className="admin-item-actions">
-                    <button
-                      type="button"
-                      className="admin-button"
-                      onClick={() => handleEditProduct(product)}
-                    >
-                      Editar
-                    </button>
-                    <button
-                      type="button"
-                      className="admin-button danger"
-                      onClick={() => handleDeleteProduct(product.id)}
-                    >
-                      Eliminar
-                    </button>
-                  </div>
-                </article>
-              );
-            })}
-            {products.length === 0 && (
-              <p className="admin-empty">No hay productos cargados.</p>
-            )}
-          </div>
+          <ProductList
+            products={products}
+            categories={categories}
+            onEdit={handleEditProduct}
+            onDelete={handleDeleteProduct}
+          />
 
-          <form className="admin-form" onSubmit={handleProductSubmit}>
-            <h3>{selectedProductId ? "Editar producto" : "Crear producto"}</h3>
-            <div className="admin-form-grid">
-              <label>
-                Nombre
-                <input
-                  type="text"
-                  name="name"
-                  value={productForm.name}
-                  onChange={handleProductChange}
-                  required
-                />
-              </label>
-              <label>
-                Precio
-                <input
-                  type="number"
-                  step="0.01"
-                  name="price"
-                  value={productForm.price}
-                  onChange={handleProductChange}
-                  required
-                />
-              </label>
-              <label>
-                Stock
-                <input
-                  type="number"
-                  min="0"
-                  name="stock"
-                  value={productForm.stock}
-                  onChange={handleProductChange}
-                  required
-                />
-              </label>
-              <label>
-                Descuento
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  max="1"
-                  name="discount"
-                  value={productForm.discount}
-                  onChange={handleProductChange}
-                />
-              </label>
-              <label>
-                Imagen (URL)
-                <input
-                  type="url"
-                  name="image_url"
-                  value={productForm.image_url}
-                  onChange={handleProductChange}
-                />
-              </label>
-              <label className="full-width">
-                Descripción
-                <textarea
-                  name="description"
-                  value={productForm.description}
-                  onChange={handleProductChange}
-                  rows={3}
-                />
-              </label>
-              <label>
-                Talle
-                <select
-                  className="admin-select"
-                  name="size"
-                  value={productForm.size}
-                  onChange={handleProductChange}
-                  required
-                >
-                  <option value="">Seleccionar talle</option>
-                  {SIZE_OPTIONS.map((size) => (
-                    <option key={size} value={size}>
-                      {size}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                Categoría
-                <select
-                  className="admin-select"
-                  name="category_id"
-                  value={productForm.category_id}
-                  onChange={handleProductChange}
-                  required
-                >
-                  <option value="">Seleccionar categoría</option>
-                  {categories.map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.description ?? `ID ${category.id}`}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
-            <div className="admin-form-actions">
-              {selectedProductId && (
-                <button
-                  type="button"
-                  className="admin-button ghost"
-                  onClick={resetProductForm}
-                >
-                  Cancelar edición
-                </button>
-              )}
-              <button type="submit" className="admin-button primary" disabled={loading}>
-                {selectedProductId ? "Actualizar" : "Crear"}
-              </button>
-            </div>
-          </form>
+          <ProductForm
+            title={selectedProductId ? "Editar producto" : "Crear producto"}
+            product={productForm}
+            categories={categories}
+            onChange={handleProductChange}
+            onSubmit={handleProductSubmit}
+            onCancel={selectedProductId ? resetProductForm : undefined}
+            submitLabel={selectedProductId ? "Actualizar" : "Crear"}
+            isSubmitting={loading}
+          />
+          
         </div>
       </section>
 
@@ -571,19 +353,9 @@ function THEGODPAGE() {
             <h2>Categorías</h2>
             <span>{categories.length} registradas</span>
           </div>
-          <ul className="admin-list compact">
-            {categories.map((category) => (
-              <li key={category.id} className="admin-item">
-                <div className="admin-item-main">
-                  <h3>{category.description || `Categoría #${category.id}`}</h3>
-                  <p className="admin-item-meta">ID: {category.id ?? "-"}</p>
-                </div>
-              </li>
-            ))}
-            {categories.length === 0 && (
-              <p className="admin-empty">No hay categorías disponibles.</p>
-            )}
-          </ul>
+
+          <CategoryList categories={categories} />
+
           <form className="admin-form" onSubmit={handleCategorySubmit}>
             <h3>Nueva categoría</h3>
             <label>
@@ -597,7 +369,11 @@ function THEGODPAGE() {
                 required
               />
             </label>
-            <button type="submit" className="admin-button primary" disabled={loading}>
+            <button
+              type="submit"
+              className="admin-button primary"
+              disabled={loading}
+            >
               Crear categoría
             </button>
           </form>
@@ -608,49 +384,11 @@ function THEGODPAGE() {
             <h2>Usuarios</h2>
             <span>{visibleUsers.length} registrados</span>
           </div>
-          <div className="admin-list users">
-            {visibleUsers.map((user) => {
-              const emailValue = user.email || "";
-              const firstNameValue = user.first_name || "";
-              const lastNameValue = user.last_name || "";
-              const roleValue = user.role ?? "";
-              const normalizedRoleValue = roleValue.trim().toUpperCase();
-              const displayName = [firstNameValue, lastNameValue]
-                .filter(Boolean)
-                .join(" ")
-                .trim();
-              return (
-                <article key={user.id || user.email || emailValue || displayName} className="admin-item">
-                  <div className="admin-item-main">
-                    <h3>{displayName || "Usuario sin nombre"}</h3>
-                    <p className="admin-item-meta">{emailValue || "Sin email"}</p>
-                    <label className="admin-item-meta">
-                      Rol:
-                      <select
-                        value={normalizedRoleValue}
-                        onChange={(event) =>
-                          handleUserRoleChange(user, event.target.value)
-                        }
-                        disabled={updatingUserId === user.id}
-                      >
-                        <option value="" disabled>
-                          Seleccionar rol
-                        </option>
-                        {ROLE_OPTIONS.map((roleOption) => (
-                          <option key={roleOption} value={roleOption}>
-                            {roleOption}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                  </div>
-                </article>
-              );
-            })}
-            {visibleUsers.length === 0 && (
-              <p className="admin-empty">No hay usuarios disponibles.</p>
-            )}
-          </div>
+          <UserList
+            users={visibleUsers}
+            onRoleChange={handleUserRoleChange}
+            updatingUserId={updatingUserId}
+          />
         </div>
       </section>
     </div>

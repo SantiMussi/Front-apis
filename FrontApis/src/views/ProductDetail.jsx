@@ -12,7 +12,7 @@ const ProductDetail = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const response = await fetch(`${BASE_URL}/products/${id}`);
+        const response = await fetch(`${BASE_URL}/product/${id}`);
         const data = await response.json();
         setProduct(data);
       } catch (error) {
@@ -41,11 +41,16 @@ const ProductDetail = () => {
   return (
     <div className="product-detail">
       <button className="back-button" onClick={() => navigate(-1)}>← Volver</button>
-      <h2>{product.title}</h2>
-      <img src={product.image} alt={product.title} />
+      <h2>{product.name}</h2>
+      <img src={product.image} alt={product.name} />
       <p className="description">{product.description}</p>
       <p className="price">Precio: ${product.price}</p>
+      {product.discount > 0 && <p>Precio: ${(product.price - (product.price * product.discount).toFixed(2))}</p>}
       <p className="stock">Stock disponible: {product.stock}</p>
+      <input
+      type="number"
+      />
+      <button className="cta-button">Agregar al carrito</button>
     </div>
   );
 };

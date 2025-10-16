@@ -1,18 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { createProduct, getCategories } from "../services/adminService";
-
-const EMPTY_PRODUCT = {
-  name: "",
-  description: "",
-  price: "",
-  discount: "",
-  size: "",
-  stock: "",
-  category_id: "",
-  image_url: "",
-};
-
-const SIZE_OPTIONS = ["S", "M", "L", "XL"];
+import ProductForm from "../components/Panels/ProductForm";
+import StatusAlert from "../components/Panels/StatusAlert";
+import { EMPTY_PRODUCT } from "../constants/product";
 
 function SellerView() {
   const [productForm, setProductForm] = useState(EMPTY_PRODUCT);
@@ -158,7 +148,7 @@ function SellerView() {
         </button>
       </header>
 
-      {status && <div className={`admin-alert ${status.type}`}>{status.message}</div>}
+      <StatusAlert status={status} />
 
       {isLoadingCategories && categories.length === 0 && (
         <div className="admin-loading">Cargando categorías...</div>
@@ -170,128 +160,18 @@ function SellerView() {
             <h2>Cargar producto</h2>
             <span>{categories.length} categorías disponibles</span>
           </div>
-
-          <form className="admin-form" onSubmit={handleProductSubmit}>
-            <h3>Datos del producto</h3>
-            <div className="admin-form-grid">
-              <label>
-                Nombre
-                <input
-                  type="text"
-                  name="name"
-                  value={productForm.name}
-                  onChange={handleProductChange}
-                  required
-                />
-              </label>
-              <label>
-                Precio
-                <input
-                  type="number"
-                  step="0.01"
-                  name="price"
-                  value={productForm.price}
-                  onChange={handleProductChange}
-                  required
-                />
-              </label>
-              <label>
-                Stock
-                <input
-                  type="number"
-                  min="0"
-                  name="stock"
-                  value={productForm.stock}
-                  onChange={handleProductChange}
-                  required
-                />
-              </label>
-              <label>
-                Descuento
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  max="1"
-                  name="discount"
-                  value={productForm.discount}
-                  onChange={handleProductChange}
-                />
-              </label>
-              <label>
-                Imagen (URL)
-                <input
-                  type="url"
-                  name="image_url"
-                  value={productForm.image_url}
-                  onChange={handleProductChange}
-                />
-              </label>
-              <label className="full-width">
-                Descripción
-                <textarea
-                  name="description"
-                  value={productForm.description}
-                  onChange={handleProductChange}
-                  rows={3}
-                />
-              </label>
-              <label>
-                Talle
-                <select
-                  name="size"
-                  value={productForm.size}
-                  onChange={handleProductChange}
-                  required
-                >
-                  <option value="">Seleccionar talle</option>
-                  {SIZE_OPTIONS.map((size) => (
-                    <option key={size} value={size}>
-                      {size}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                Categoría
-                <select
-                  name="category_id"
-                  value={productForm.category_id}
-                  onChange={handleProductChange}
-                  required
-                  disabled={categories.length === 0}
-                >
-                  <option value="">
-                    {categories.length === 0
-                      ? "No hay categorías disponibles"
-                      : "Seleccionar categoría"}
-                  </option>
-                  {categories.map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.description ?? `ID ${category.id}`}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
-            <div className="admin-form-actions">
-              <button
-                type="submit"
-                className="admin-button primary"
-                disabled={isSubmitDisabled}
-              >
-                {isSubmitting ? "Cargando..." : "Cargar producto"}
-              </button>
-              <button
-                type="button"
-                className="admin-button ghost"
-                onClick={resetProductForm}
-                disabled={isSubmitting}
-              >
-                Limpiar formulario
-              </button>
-            </div>
-          </form>
+          <ProductForm
+            title="Datos del producto"
+            product={productForm}
+            categories={categories}
+            onChange={handleProductChange}
+            onSubmit={handleProductSubmit}
+            submitLabel={isSubmitting ? "Cargando..." : "Cargar producto"}
+            isSubmitting={isSubmitting}
+            isSubmitDisabled={isSubmitDisabled}
+            onCancel={resetProductForm}
+            cancelLabel="Limpiar formulario"
+          />
         </div>
       </section>
     </div>
