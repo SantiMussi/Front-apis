@@ -32,18 +32,15 @@ const getDiscountLabel = (product) => {
 };
 
 const mapProductToForm = (product) => ({
-  name: toDisplayValue(product?.name ?? product?.title),
+  name: toDisplayValue(product?.name),
   description: toDisplayValue(product?.description),
   price: toNumberOrEmpty(product?.price),
   discount: toNumberOrEmpty(product?.discount),
   size: (toDisplayValue(product?.size) || "").toUpperCase(),
   stock: toNumberOrEmpty(product?.stock),
-  category_id: toNumberOrEmpty(
-    product?.category_id ?? product?.categoryId ?? product?.category?.id
-  ),
-  image_url: toDisplayValue(
-    product?.image_url ?? product?.imageUrl ?? product?.image
-  ),
+  category_id: toNumberOrEmpty(product?.category_id),
+  image_url: toDisplayValue(product?.base64img),
+  creator_id: toNumberOrEmpty(product?.creator_id),
 });
 
 function ProductList({ products, categories, onEdit, onDelete }) {

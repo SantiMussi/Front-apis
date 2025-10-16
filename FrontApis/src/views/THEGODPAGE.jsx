@@ -9,7 +9,7 @@ import {
   getUsers,
   updateUser,
 } from "../services/adminService";
-import { hasRole } from "../services/authService";
+import { getCurrentUser, hasRole } from "../services/authService";
 import { EMPTY_PRODUCT } from "../constants/product";
 import ProductList from "../components/Panels/ProductList";
 import ProductForm from "../components/Panels/ProductForm";
@@ -208,6 +208,13 @@ function THEGODPAGE() {
         return;
       }
 
+      const currentUser = await getCurrentUser();
+      if (!currentUser?.id) {
+        notify("error", "No se pudo identificar al creador del producto");
+        setLoading(false);
+        return;
+      }
+
       const payload = {
         name: trimmedName,
         description: productForm.description,
@@ -217,6 +224,7 @@ function THEGODPAGE() {
         stock: stockValue,
         category_id: categoryValue,
         base64img: productForm.base64img || null,
+        creator_id: currentUser.id,
       };
       if (selectedProductId) {
         await updateProduct(selectedProductId, payload);

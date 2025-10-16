@@ -28,7 +28,7 @@ export async function createProduct(product){
         },
         body: JSON.stringify(product)
     });
-    if(!response.ok) throw new Error('Error al crear producto');
+    if(!response.ok) throw new Error('Error al crear producto: ' + (await response.json()).message);
     return response.json();
 }
 
