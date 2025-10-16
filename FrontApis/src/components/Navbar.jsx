@@ -1,6 +1,7 @@
-import { useEffect, useState} from 'react'
-import { Link, useNavigate, useLocation} from "react-router-dom";
-import { hasRole, isLoggedIn, getRole, onAuthChange, logout, getCurrentUser, setRole} from '../services/authService'
+import { useEffect, useState } from 'react'
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { hasRole, isLoggedIn, getRole, onAuthChange, logout, getCurrentUser, setRole } from '../services/authService'
+import UserWidget from "../components/UserWidget.jsx"
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -13,46 +14,46 @@ export default function Navbar() {
 
   //Guarda el last path
   useEffect(() => {
-    if(!['/login', '/register'].includes(location.pathname)){
+    if (!['/login', '/register'].includes(location.pathname)) {
       localStorage.setItem('lastPath', location.pathname)
     }
   }, [location.pathname]);
 
   //Subscribe a cambios de auth (login, logout, role)
-  useEffect(()=> {
-    const unsubscribe = onAuthChange(({isLoggedIn, role}) => {
-      setAuth({isAuth: isLoggedIn, role})
+  useEffect(() => {
+    const unsubscribe = onAuthChange(({ isLoggedIn, role }) => {
+      setAuth({ isAuth: isLoggedIn, role })
     });
 
     //Estado inicial
-    setAuth({isAuth: isLoggedIn(), role: getRole()});
+    setAuth({ isAuth: isLoggedIn(), role: getRole() });
 
     (async () => {
-      try{
-        if(isLoggedIn()){
-          const me = await getCurrentUser(); 
+      try {
+        if (isLoggedIn()) {
+          const me = await getCurrentUser();
           if (me?.role) setRole(me.role);
-          setAuth({isAuth:true, role: me?.role ?? getRole()});
+          setAuth({ isAuth: true, role: me?.role ?? getRole() });
         }
-      } catch(e){
+      } catch (e) {
         logout();
-        setAuth({isAuth: false, role: null})
+        setAuth({ isAuth: false, role: null })
       }
-    }) ();
+    })();
 
-    return unsubscribe; 
+    return unsubscribe;
   }, [])
 
   const handleLogout = () => {
     logout();
-    navigate('/', {replace: true});
+    navigate('/', { replace: true });
   }
 
   const isAdminOrSeller = auth.role === "ADMIN" || auth.role === "SELLER";
 
   return (
     <nav>
-      <div className="logo"><Link to ="/" className="logo-link">SZAFRANKUS</Link></div>
+      <div className="logo"><Link to="/" className="logo-link">SZAFRANKUS</Link></div>
 
       <ul className="nav-links center">
         <li><Link to="/nueva">Nueva</Link></li>
@@ -61,31 +62,19 @@ export default function Navbar() {
       </ul>
 
       <ul className="nav-links right">
-        {/* Si NO esta logeado => Login / Register */}
         {!auth.isAuth && (
           <>
-          <li><Link to="/login">Ingresar</Link></li>
-          <li><Link to="/register">Registrarse</Link></li>
+            <Link to="/login">Iniciar sesión</Link>
+            <Link to='/register'>Registrarse</Link>
           </>
         )}
-
-        {/* Si esta loggeado => carrito*/}
-        {auth.isAuth && !hasRole('ADMIN', 'SELLER') && (<li><Link to="/cart">Carrito</Link></li>)}
-
-        {/* ADMIN */}
-        {hasRole('ADMIN') && <li><Link to="/admin/panel">Admin</Link></li>}
-
-        {/* Seller */}
-        {hasRole('SELLER') && (
-          <li><Link to="/seller/panel">Seller</Link></li>
+        {auth.isAuth && !hasRole('ADMIN', 'SELLER') && (
+          <>
+          <Link to="/cart" className="cart-link" aria-label="carrito">🛒</Link>
+          </>
         )}
+        {auth.isAuth && (<UserWidget onLogout={handleLogout} />)}
 
-        {/* Boton de logout */}
-        {auth.isAuth && (
-          <li>
-            <Link onClick={handleLogout} to="/" className="logout-link">Salir</Link>
-          </li>
-        )}
       </ul>
     </nav>
   );

@@ -225,7 +225,7 @@ export default function VirtualFitter() {
           <section className="vf-stage vf-card">
             <img
               className="vf-mannequin"
-              src={`${import.meta.env.BASE_URL}mannequin.png`}
+              src="src/assets/mannequin.png"
               alt="Maniquí"
             />
 
