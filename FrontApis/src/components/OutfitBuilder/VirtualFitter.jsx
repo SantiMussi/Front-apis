@@ -59,6 +59,10 @@ export default function VirtualFitter() {
   const [overrides, setOverrides] = useState(getOverridesFromLS);
   const [editKey, setEditKey] = useState("top");
 
+  // --- NUEVO: estado para agregar al carrito ---
+  const [adding, setAdding] = useState(false);
+  const [addMsg, setAddMsg] = useState("");
+
   //helpers
   const bucketize = (all) => {
     const out = { top: [], bottom: [], coat: [] };
@@ -123,6 +127,11 @@ export default function VirtualFitter() {
   const currentTop    = useMemo(() => (indexes.top    >= 0 ? itemsByCat.top[indexes.top]       : null), [itemsByCat.top, indexes.top]);
   const currentBottom = useMemo(() => (indexes.bottom >= 0 ? itemsByCat.bottom[indexes.bottom] : null), [itemsByCat.bottom, indexes.bottom]);
   const currentCoat   = useMemo(() => (indexes.coat   >= 0 ? itemsByCat.coat[indexes.coat]     : null), [itemsByCat.coat, indexes.coat]);
+
+  // --- NUEVO: productos seleccionados (para el carrito) ---
+  const selectedProducts = useMemo(() => {
+    return [currentTop, currentBottom, currentCoat].filter(Boolean);
+  }, [currentTop, currentBottom, currentCoat]);
 
   // ciclo que incluye ninguna (-1)
   const cycle = useCallback((key, dir = 1) => {
@@ -223,6 +232,50 @@ export default function VirtualFitter() {
   const activeOv   = activeProd ? overrides[activeProd.id] : null;
   const activeScale = activeOv?.scale ?? activeBase.scale;
 
+  // --- NUEVO: handler agregar outfit al carrito ---
+  async function addOutfitToCart() {
+    setAddMsg("");
+    if (selectedProducts.length === 0) {
+      setAddMsg("Elegí al menos 1 prenda para agregar al carrito.");
+      return;
+    }
+    setAdding(true);
+    try {
+      // payload: lista de { productId, qty }
+      const items = selectedProducts.map(p => ({ productId: p.id, qty: 1 }));
+
+      // token (ajustá el key si en tu app se guarda distinto)
+      const token =
+        localStorage.getItem("token") ||
+        localStorage.getItem("authToken") ||
+        localStorage.getItem("jwt");
+
+      // endpoint sugerido: /cart/items (ajustalo si tu backend usa otro)
+      const res = await fetch(`${BASE_URL}/cart/items`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { "Authorization": `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ items })
+      });
+
+      if (!res.ok) {
+        // fallback local (backend not ready)
+        const pending = JSON.parse(localStorage.getItem("pending_cart_outfit") || "[]");
+        pending.push({ ts: Date.now(), items });
+        localStorage.setItem("pending_cart_outfit", JSON.stringify(pending));
+        throw new Error(`No se pudo enviar al backend (HTTP ${res.status}). Se guardó localmente y se intentará luego.`);
+      }
+
+      setAddMsg("Outfit agregado al carrito.");
+    } catch (e) {
+      setAddMsg(`${e.message}`);
+    } finally {
+      setAdding(false);
+    }
+  }
+
   if (loading) return <div className="vf-loading">Cargando prendas…</div>;
   if (err)      return <div className="vf-error">Error: {err}</div>;
 
@@ -288,6 +341,19 @@ export default function VirtualFitter() {
             <button className="vf-btn" onClick={onResetOriginal} type="button">
               Volver al estado original
             </button>
+
+            {/* --- NUEVO: botón agregar outfit --- */}
+            <button
+              className="vf-btn vf-btn-primary"
+              type="button"
+              onClick={addOutfitToCart}
+              disabled={adding || selectedProducts.length === 0}
+              title={selectedProducts.length === 0 ? "Elegí al menos 1 prenda" : "Agregar outfit al carrito"}
+              style={{ marginLeft: 8 }}
+            >
+              {adding ? "Agregando..." : "Agregar outfit al carrito"}
+            </button>
+            {addMsg && <span className="vf-hint" style={{ marginLeft: 8 }}>{addMsg}</span>}
           </div>
         </header>
 
