@@ -58,7 +58,7 @@ function Productos({ categoryId = null }) {
           const finalPrice = hasDiscount ? priceValue * (1 - discountValue) : priceValue;
 
           return (
-            <div key={p.productId} className="producto-card">
+            <div key={p.id} className="producto-card">
               <img src={p.base64img} alt={p.name} />
               <h3>{p.name}</h3>
                 <div className="price-block">
@@ -74,7 +74,7 @@ function Productos({ categoryId = null }) {
                   </>
                 )}
               </div>
-              <Link to={`/product/${p.productId}`} className="detail-btn">Ver más</Link>
+              <Link to={`/product/${p.id}`} className="detail-btn">Ver más</Link>
             </div>
           );
         })}
