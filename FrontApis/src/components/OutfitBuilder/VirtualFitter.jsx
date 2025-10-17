@@ -6,9 +6,9 @@ const BASE_URL = import.meta.env.VITE_API_URL;
 
 /** Calibración por capa (defaults) */
 const LAYER_DEFAULTS = {
-  top:    { scale: 0.17, x: 1.2, y: -3.5, z: 30 },
-  bottom: { scale: 0.40, x: 0.8, y: 17.5, z: 20 },
-  coat:   { scale: 0.24, x: 1.0, y: -4.5, z: 40 },
+  top:    { scale: 0.17, x: 1.2,  y: -3.5, z: 30 },
+  bottom: { scale: 0.40, x: 0.8,  y: 17.5, z: 20 },
+  coat:   { scale: 0.24, x: 1.0,  y: -4.5, z: 40 },
 };
 
 /** Mapeo de categorías lógicas */
@@ -49,9 +49,9 @@ export default function VirtualFitter() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
 
-  const [cal, setCal] = useState(LAYER_DEFAULTS);        // calibración global por capa
-  const [overrides, setOverrides] = useState(getOverridesFromLS); // ajustes por producto
-  const [editKey, setEditKey] = useState("top");         // capa activa para ediciones
+  const [cal, setCal] = useState(LAYER_DEFAULTS);
+  const [overrides, setOverrides] = useState(getOverridesFromLS);
+  const [editKey, setEditKey] = useState("top");
 
   // ---- helpers ----
   const bucketize = (all) => {
@@ -118,16 +118,64 @@ export default function VirtualFitter() {
     saveOverridesToLS(updated);
   };
 
-  // atajos de teclado
+  // === ESCALA ===
+  // cambia escala relativa (delta) para la prenda activa
+  const tweakScale = (key, delta) => {
+    const cur = { top: currentTop, bottom: currentBottom, coat: currentCoat }[key];
+    if (!cur) return;
+    const base = cal[key];
+    const prev = overrides[cur.id] || {};
+    const currentScale = prev.scale ?? base.scale;
+    const nextScale = Math.min(1.5, Math.max(0.05, currentScale + delta)); // límites
+    const next = {
+      x: (prev.x ?? base.x),
+      y: (prev.y ?? base.y),
+      scale: nextScale,
+    };
+    const updated = { ...overrides, [cur.id]: next };
+    setOverrides(updated);
+    saveOverridesToLS(updated);
+  };
+
+  // fija escala absoluta (para slider)
+  const setScaleAbs = (key, value) => {
+    const cur = { top: currentTop, bottom: currentBottom, coat: currentCoat }[key];
+    if (!cur) return;
+    const base = cal[key];
+    const prev = overrides[cur.id] || {};
+    const clamped = Math.min(1.5, Math.max(0.05, value));
+    const next = {
+      x: (prev.x ?? base.x),
+      y: (prev.y ?? base.y),
+      scale: clamped,
+    };
+    const updated = { ...overrides, [cur.id]: next };
+    setOverrides(updated);
+    saveOverridesToLS(updated);
+  };
+
+  // atajos de teclado (mover + escalar)
   useEffect(() => {
     const onKey = (e) => {
-      if (!["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) return;
-      e.preventDefault();
-      const step = e.shiftKey ? 1 : 0.5;
-      if (e.key === "ArrowUp")    nudge(editKey, 0, -step);
-      if (e.key === "ArrowDown")  nudge(editKey, 0,  step);
-      if (e.key === "ArrowLeft")  nudge(editKey, -step, 0);
-      if (e.key === "ArrowRight") nudge(editKey,  step, 0);
+      // mover
+      if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.key)) {
+        e.preventDefault();
+        const step = e.shiftKey ? 1 : 0.5;
+        if (e.key === "ArrowUp")    nudge(editKey, 0, -step);
+        if (e.key === "ArrowDown")  nudge(editKey, 0,  step);
+        if (e.key === "ArrowLeft")  nudge(editKey, -step, 0);
+        if (e.key === "ArrowRight") nudge(editKey,  step, 0);
+        return;
+      }
+      // escalar: + / -   (en muchos teclados "+" viene como "=" sin shift)
+      if (e.key === "+" || e.key === "=") {
+        e.preventDefault();
+        tweakScale(editKey, e.shiftKey ? 0.02 : 0.01);
+      }
+      if (e.key === "-") {
+        e.preventDefault();
+        tweakScale(editKey, e.shiftKey ? -0.02 : -0.01);
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -154,6 +202,12 @@ export default function VirtualFitter() {
     localStorage.removeItem("vf_overrides");
   };
 
+  // estado derivado para UI de escala de la capa activa
+  const activeProd = editKey === "top" ? currentTop : editKey === "bottom" ? currentBottom : currentCoat;
+  const activeBase = cal[editKey];
+  const activeOv   = activeProd ? overrides[activeProd.id] : null;
+  const activeScale = activeOv?.scale ?? activeBase.scale;
+
   if (loading) return <div className="vf-loading">Cargando prendas…</div>;
   if (err)      return <div className="vf-error">Error: {err}</div>;
 
@@ -176,6 +230,44 @@ export default function VirtualFitter() {
                 <option value="bottom">Prenda inferior</option>
                 <option value="coat">Abrigo</option>
               </select>
+            </div>
+
+            {/* Controles de tamaño */}
+            <div className="vf-scale-group">
+              <label className="vf-label">Tamaño</label>
+              <div className="vf-scale-controls">
+                <button
+                  className="vf-btn"
+                  type="button"
+                  disabled={!activeProd}
+                  onClick={() => tweakScale(editKey, -0.02)}
+                  title="Achicar (−)"
+                >−</button>
+
+                <input
+                  className="vf-range"
+                  type="range"
+                  min="0.05"
+                  max="1.5"
+                  step="0.005"
+                  value={Number(activeScale ?? 0.1)}
+                  disabled={!activeProd}
+                  onChange={(e) => setScaleAbs(editKey, parseFloat(e.target.value))}
+                  style={{ width: 160, verticalAlign: 'middle' }}
+                />
+
+                <button
+                  className="vf-btn"
+                  type="button"
+                  disabled={!activeProd}
+                  onClick={() => tweakScale(editKey, +0.02)}
+                  title="Agrandar (+)"
+                >+</button>
+
+                <span className="vf-scale-readout">
+                  {activeProd ? `${(activeScale*100).toFixed(0)}%` : '—'}
+                </span>
+              </div>
             </div>
 
             <button className="vf-btn" onClick={onResetOriginal} type="button">
@@ -211,7 +303,14 @@ export default function VirtualFitter() {
           </aside>
 
           {/* ESCENARIO */}
-          <section className="vf-stage vf-card">
+          <section
+            className="vf-stage vf-card"
+            onWheel={(e) => {
+              if (!activeProd) return;
+              const delta = e.deltaY > 0 ? -0.01 : 0.01; // sensibilidad
+              tweakScale(editKey, delta);
+            }}
+          >
             <img className="vf-mannequin" src={mannequin} alt="Maniquí" />
 
             {currentBottom && (

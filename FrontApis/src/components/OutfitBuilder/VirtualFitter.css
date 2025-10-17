@@ -168,6 +168,7 @@
   padding: .72rem 2.5rem .72rem 1rem;
   border-radius: 10px;
   border: 1px solid var(--line);
+  color-scheme: dark;
   background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
   color: var(--text);
   font-size: .95rem;
@@ -175,6 +176,11 @@
   outline: none;
   transition: border-color .2s ease, box-shadow .2s ease;
 }
+.vf-select option{
+  background: var(--bg);
+  color: var(--text);
+}
+
 .vf-select:focus{
   border-color: var(--line-strong);
   box-shadow: 0 0 0 4px rgba(255,255,255,0.07);
@@ -208,6 +214,10 @@
   background: rgba(255,255,255,0.06);
 }
 .vf-btn:active{ transform: translateY(1px); }
+
+.vf-scale-controls { display:flex; align-items:center; gap:8px; }
+.vf-scale-readout { min-width:3ch; text-align:right; opacity:.8; }
+.vf-range { accent-color: var(--accent, #00e2ff); }
 
 /* Responsive */
 @media (max-width: 1024px){
