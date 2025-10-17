@@ -6,7 +6,7 @@ import { EMPTY_PRODUCT } from "../constants/product";
 import ProductList from "../components/Panels/ProductList";
 import { getCurrentUser } from "../services/authService";
 
-function SellerView() {
+const SellerView = () => {
   const [productForm, setProductForm] = useState({ ...EMPTY_PRODUCT });
   const [categories, setCategories] = useState([]);
   const [status, setStatus] = useState(null);
@@ -16,12 +16,14 @@ function SellerView() {
   const [isLoadingProducts, setIsLoadingProducts] = useState(true);
   const [selectedProductId, setSelectedProductId] = useState(null);
 
+  // Muestra una notificación temporal en UI
   const notify = (type, message) => {
     setStatus({ type, message });
     window.clearTimeout(notify.timeoutId);
     notify.timeoutId = window.setTimeout(() => setStatus(null), 5000);
   };
 
+  // Resetea el formulario a vacío y cancela edición (propaga a ProductForm)
   const resetProductForm = () => {
     setProductForm({ ...EMPTY_PRODUCT });
     setSelectedProductId(null);
@@ -65,6 +67,7 @@ function SellerView() {
         return;
       }
 
+       // Filtra productos que pertenezcan al usuario actual (varios posibles nombres de campo)
       const filteredProducts = parsedProducts.filter((product) => {
         const creatorId =
           product?.creator_id ?? product?.creatorId ?? product?.creatorID;
@@ -87,17 +90,19 @@ function SellerView() {
     }
   };
 
+  // Carga inicial de categorías y productos
   useEffect(() => {
     fetchCategories();
     fetchSellerProducts();
 
     return () => {
       if (notify.timeoutId) {
-        window.clearTimeout(notify.timeoutId);
+        window.clearTimeout(notify.timeoutId); // limpia timeouts al desmontar
       }
     };
   }, []);
 
+  // Maneja cambios de inputs del formulario (Propaga a productForm)
   const handleProductChange = (event) => {
     const { name, value } = event.target;
     setProductForm((prev) => ({
@@ -106,6 +111,7 @@ function SellerView() {
     }));
   };
 
+  // Logica de envio del formulario (propaga a ProductForm)
   const handleProductSubmit = async (event) => {
     event.preventDefault();
     if (isSubmitting) return;
@@ -153,6 +159,7 @@ function SellerView() {
         return;
       }
 
+      // Payload normalizado para la API
       const payload = {
         name: trimmedName,
         description: productForm.description,
@@ -165,6 +172,7 @@ function SellerView() {
         creator_id: currentUser.id,
       };
 
+      // Decide si crear o actualizar según selectedProductId
       if (selectedProductId) {
         await updateProduct(selectedProductId, payload);
         notify("success", "Producto actualizado correctamente");
@@ -182,6 +190,7 @@ function SellerView() {
     }
   };
 
+  // Determina si el submit debe estar deshabilitado
   const isSubmitDisabled = useMemo(
     () =>
       isSubmitting ||
@@ -194,7 +203,8 @@ function SellerView() {
     [isSubmitting, isLoadingCategories, productForm]
   );
 
-    const handleEditProduct = (formValues, productId) => {
+  // Prepara el formulario para editar un producto (propaga a ProductList)
+  const handleEditProduct = (formValues, productId) => {
     setSelectedProductId(productId ?? null);
 
     const normalizedCategoryValue =
@@ -229,6 +239,7 @@ function SellerView() {
     setProductForm({ ...EMPTY_PRODUCT, ...normalizedForm });
   };
 
+  // Elimina producto por id (propaga a ProductList)
   const handleDeleteProduct = async (id) => {
     if (!id || isSubmitting) return;
     const confirmed = window.confirm("¿Eliminar este producto?");
@@ -250,6 +261,7 @@ function SellerView() {
     }
   };
 
+  // Refresca categorías y productos 
   const handleRefresh = () => {
     if (isLoadingCategories || isSubmitting || isLoadingProducts) {
       return;

@@ -1,5 +1,6 @@
 import { toDisplayValue, toNumberOrEmpty } from "../../helpers/valueConverter";
 
+/* Resuelve la etiqueta de categoría para mostrar en la lista. Prioriza categoryId, busca en categories y cae en campos alternativos. */
 const resolveCategoryLabel = (product, categories) => {
   const categoryIdValue =
     product.categoryId ?? null;
@@ -7,7 +8,6 @@ const resolveCategoryLabel = (product, categories) => {
   if (categoryIdValue === null || categoryIdValue === undefined) {
     return (
       product.category?.description ||
-      product.category_description ||
       categoryIdValue ||
       ""
     );
@@ -19,18 +19,18 @@ const resolveCategoryLabel = (product, categories) => {
 
   return (
     match?.description ||
-    product.category?.description ||
-    product.category_description ||
     `ID ${categoryIdValue}`
   );
 };
 
+/* Devuelve una etiqueta legible para el descuento (p.ej. "15%" o "Sin descuento") */
 const getDiscountLabel = (product) => {
   const discountValue = Number(product.discount ?? 0);
   const hasDiscount = Number.isFinite(discountValue) && discountValue > 0;
   return hasDiscount ? `${(discountValue * 100).toFixed(0)}%` : "Sin descuento";
 };
 
+/* Mapea un producto recibido desde la API a la forma esperada por el formulario */
 const mapProductToForm = (product) => ({
   name: toDisplayValue(product?.name),
   description: toDisplayValue(product?.description),
@@ -47,7 +47,7 @@ const mapProductToForm = (product) => ({
   ),
 });
 
-function ProductList({ products, categories, onEdit, onDelete }) {
+const ProductList = ({ products, categories, onEdit, onDelete }) => {
   const canEdit = typeof onEdit === "function";
   const canDelete = typeof onDelete === "function";
   const hasActions = canEdit || canDelete;

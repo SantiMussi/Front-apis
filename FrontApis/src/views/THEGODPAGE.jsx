@@ -35,12 +35,14 @@ function THEGODPAGE() {
   const [initialLoad, setInitialLoad] = useState(true);
   const [updatingUserId, setUpdatingUserId] = useState(null);
 
+  // muestra notificaciones temporales en pantalla
   const notify = (type, message) => {
       setStatus({ type, message });
       window.clearTimeout(notify.timeoutId);
       notify.timeoutId = window.setTimeout(() => setStatus(null), 5000);
     };
 
+  // carga productos desde la API
   const loadProducts = async () => {
     try {
       const data = await getProducts();
@@ -52,6 +54,7 @@ function THEGODPAGE() {
     }
   };
 
+  // carga categorías desde la API
   const loadCategories = async () => {
     try {
       const data = await getCategories();
@@ -63,6 +66,7 @@ function THEGODPAGE() {
     }
   };
 
+   // cambia de forma optimista el rol de usuario
   const handleUserRoleChange = async (user, newRole) => {
     const normalizedRole = (newRole || "").trim().toUpperCase();
 
@@ -94,6 +98,7 @@ function THEGODPAGE() {
       await updateUser(user.id, { role: normalizedRole });
       notify("success", "Rol actualizado correctamente");
     } catch (error) {
+      // revertir en caso de error
       setUsers((prevUsers) =>
         prevUsers.map((item) =>
           item.id === user.id
@@ -113,6 +118,7 @@ function THEGODPAGE() {
     }
   };
 
+  // carga usuarios
   const loadUsers = async () => {
     try {
       const data = await getUsers();
@@ -125,6 +131,7 @@ function THEGODPAGE() {
     }
   };
 
+  // bootstrap inicial: carga productos, categorías y usuarios
   useEffect(() => {
     const bootstrap = async () => {
       setLoading(true);
@@ -133,9 +140,9 @@ function THEGODPAGE() {
       setInitialLoad(false);
     };
 
-    bootstrap();
+    bootstrap(); // ejecutar carga inicial
 
-    
+    // limpiar timeouts cuando el componente se desmonta
     return () => {
       if (notify.timeoutId) {
         window.clearTimeout(notify.timeoutId);
@@ -143,6 +150,7 @@ function THEGODPAGE() {
     };
   }, []);
 
+  // decide si ocultar usuarios ADMIN según rol del actual
   const shouldHideAdminUsers = hasRole("ADMIN");
 
   const visibleUsers = users.filter((user) => {
@@ -150,11 +158,13 @@ function THEGODPAGE() {
     return !(shouldHideAdminUsers && roleValue === "ADMIN");
   });
 
+  // resetea el formulario de producto (propaga a ProductForm)
   const resetProductForm = () => {
     setProductForm(EMPTY_PRODUCT);
     setSelectedProductId(null);
   };
 
+  // maneja cambios en inputs del formulario de producto
   const handleProductChange = (event) => {
     const { name, value } = event.target;
     setProductForm((prev) => ({
@@ -163,6 +173,7 @@ function THEGODPAGE() {
     }));
   };
 
+  // envío del formulario de producto (crear o actualizar)
   const handleProductSubmit = async (event) => {
     event.preventDefault();
     setLoading(true);
@@ -215,6 +226,7 @@ function THEGODPAGE() {
         return;
       }
 
+      // payload normalizado para la API
       const payload = {
         name: trimmedName,
         description: productForm.description,
@@ -243,11 +255,13 @@ function THEGODPAGE() {
     }
   };
 
+  // prepara el formulario para editar un producto (se propaga a ProductList)
   const handleEditProduct = (formValues, productId) => {
     setSelectedProductId(productId ?? null);
     setProductForm(formValues);
   };
 
+  // elimina un producto (se propaga a ProductList)
   const handleDeleteProduct = async (id) => {
     if (!id) return;
     const confirmed = window.confirm("¿Eliminar este producto?");
@@ -268,6 +282,7 @@ function THEGODPAGE() {
     }
   };
 
+  // maneja cambios del formulario de categoría 
   const handleCategoryChange = (event) => {
     const { name, value } = event.target;
     setCategoryForm((prev) => ({
@@ -276,6 +291,7 @@ function THEGODPAGE() {
     }));
   };
 
+  // crea una nueva categoría
   const handleCategorySubmit = async (event) => {
     event.preventDefault();
     const trimmedDescription = categoryForm.description.trim();
@@ -297,6 +313,7 @@ function THEGODPAGE() {
     }
   };
 
+  // recarga todo (productos, categorías, usuarios)
   const refreshAll = () => {
     setLoading(true);
     Promise.all([loadProducts(), loadCategories(), loadUsers()])

@@ -1,6 +1,7 @@
 import { SIZE_OPTIONS } from "../../constants/product";
 import { useEffect, useState} from 'react'
 
+/* convierte / limita valores para el campo de descuento */
 function clamp01(n){
   if(n=== "" || n === null || n === undefined) return "";
   const x = Number(n);
@@ -8,7 +9,7 @@ function clamp01(n){
   return Math.min(1, Math.max(0,x));
 }
 
-function ProductForm({
+const ProductForm = ({
   title,
   product,
   categories,
@@ -23,16 +24,20 @@ function ProductForm({
   expectedWidth,
   expectedHeight,
   onImageValidationError,
-}) {
+}) => {
 
+   // previewUrl contiene la vista previa de la imagen (base64 o url)
   const [previewUrl, setPreviewUrl] = useState(
     product?.image_preview_url ?? product?.base64img ?? null
   );
 
+  // sincroniza la preview cuando cambia el producto entrante
   useEffect(() => {
     setPreviewUrl(product?.image_preview_url ?? product?.base64img ?? null);
   }, [product]);
   
+
+  // Maneja el cambio del input discount y lo normaliza entre 0 y 1
   const handleDiscountChange = (e)=> {
     const clamped = clamp01(e.target.value);
     onChange({
@@ -40,6 +45,7 @@ function ProductForm({
     })
   }
 
+  // asegura que el descuento no quede vacío y esté validado
   const handleDiscountBlur = (e) => {
     const clamped = clamp01(e.target.value === "" ? 0 : e.target.value)
     onChange({
@@ -102,6 +108,17 @@ function ProductForm({
       e.target.value = "";
     };
   };
+
+    /* Helpers */
+  function validateImageDimensions(dataUrl){
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve({width: img.naturalWidth, height: img.naturalHeight});
+      
+      img.onerror = reject;
+      img.src = dataUrl;
+    });
+  }
 
 
   return (
@@ -253,17 +270,5 @@ function ProductForm({
     </form>
   );
 }
-
-/* Helpers */
-function validateImageDimensions(dataUrl){
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve({width: img.naturalWidth, height: img.naturalHeight});
-    
-    img.onerror = reject;
-    img.src = dataUrl;
-    })
-}
-
 
 export default ProductForm;
