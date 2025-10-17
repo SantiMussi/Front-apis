@@ -3,6 +3,7 @@ const CartItem = ({item, onQuantityChange, onRemove}) => {
   const { id, name, size, price, originalPrice, quantity, image } = item;
   const hasDiscount = originalPrice && originalPrice > price;
   const subtotal = price * quantity;
+  const discountRate = hasDiscount ? 1 - price / originalPrice : 0;
 
   return (
     <article className="cart-item">
@@ -26,13 +27,21 @@ const CartItem = ({item, onQuantityChange, onRemove}) => {
           <span>Talle {size}</span> {/* mostrar talle del producto */}
         </p>
         <div className="cart-item__footer">
-          <div className="cart-item__price">
-            <span className="cart-item__price-current">${subtotal.toLocaleString()}</span> {/* mostrar precio total */}
+          <div className="cart-item__price price-block">
+            <span className="cart-item__price-current price-current">
+              ${subtotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </span>
+            {/* mostrar precio total */}
             {hasDiscount && (
-              <span className="cart-item__price-original">${(originalPrice * quantity).toLocaleString()} {/* mostrar precio unitario original si hay descuento */}</span> 
+              <span className="cart-item__price-original price-original">
+                ${(originalPrice * quantity).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                {/* mostrar precio unitario original si hay descuento */}
+              </span>
             )}
             {hasDiscount && (
-              <span className="cart-item__price-tag">-{Math.round(((originalPrice - price) / originalPrice) * 100)}% {/* mostrar etiqueta de descuento */}</span>
+              <span className="cart-item__price-tag price-tag">
+                -{Math.round(discountRate * 100)}% {/* mostrar etiqueta de descuento */}
+              </span>
             )}
           </div>
           <div className="cart-item__quantity">

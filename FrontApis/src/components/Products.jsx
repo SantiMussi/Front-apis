@@ -40,35 +40,46 @@ function Productos({ categoryId = null }) {
         setProductos([]);
       })
       .finally(() => setLoading(false));
-  }, [categoryId, page, BASE_URL]);
+  }, [categoryId, BASE_URL]);
 
   if (loading) return (
     <div className="loading"><div className="spinner"></div><p>Cargando productos...</p></div>
   );
 
   const list = Array.isArray(productos) ? productos : [];
+  
   return (
     <section className="productos">
       <div className="productos-grid">
         {list.map((p) => {
+          const priceValue = Number(p.price ?? 0);
+          const discountValue = Number(p.discount ?? 0);
+          const hasDiscount = Number.isFinite(discountValue) && discountValue > 0;
+          const finalPrice = hasDiscount ? priceValue * (1 - discountValue) : priceValue;
+
           return (
             <div key={p.productId} className="producto-card">
               <img src={p.base64img} alt={p.name} />
               <h3>{p.name}</h3>
-              <span>${p.price}</span>
+                <div className="price-block">
+                <span className="price-current">
+                  ${finalPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+                {hasDiscount && (
+                  <>
+                    <span className="price-original">
+                      ${priceValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </span>
+                    <span className="price-tag">-{Math.round(discountValue * 100)}%</span>
+                  </>
+                )}
+              </div>
               <Link to={`/product/${p.productId}`} className="detail-btn">Ver más</Link>
             </div>
           );
         })}
         {list.length === 0 && (<div className="no-product">No hay productos en esta categoría.</div>)}
       </div>
-      {totalPages > 1 && (
-        <div className="pagination">
-          <button disabled={page <= 0} onClick={() => setPage(p => p - 1)}>◀</button>
-          <span>{page + 1} / {totalPages}</span>
-          <button disabled={page + 1 >= totalPages} onClick={() => setPage(p => p + 1)}>▶</button>
-        </div>
-      )}
     </section>
   );
 }
