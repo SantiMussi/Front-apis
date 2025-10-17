@@ -47,16 +47,33 @@ function Productos({ categoryId = null }) {
   );
 
   const list = Array.isArray(productos) ? productos : [];
-  console.log(productos)
+  
   return (
     <section className="productos">
       <div className="productos-grid">
         {list.map((p) => {
+          const priceValue = Number(p.price ?? 0);
+          const discountValue = Number(p.discount ?? 0);
+          const hasDiscount = Number.isFinite(discountValue) && discountValue > 0;
+          const finalPrice = hasDiscount ? priceValue * (1 - discountValue) : priceValue;
+
           return (
             <div key={p.productId} className="producto-card">
               <img src={p.base64img} alt={p.name} />
               <h3>{p.name}</h3>
-              <span>${p.price}</span>
+                <div className="price-block">
+                <span className="price-current">
+                  ${finalPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+                {hasDiscount && (
+                  <>
+                    <span className="price-original">
+                      ${priceValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </span>
+                    <span className="price-tag">-{Math.round(discountValue * 100)}%</span>
+                  </>
+                )}
+              </div>
               <Link to={`/product/${p.productId}`} className="detail-btn">Ver más</Link>
             </div>
           );

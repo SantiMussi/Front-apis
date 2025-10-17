@@ -60,55 +60,64 @@ const ProductDetail = () => {
     };
 
     const isOutOfStock = typeof product?.stock === "number" ? product.stock <= 0 : false;
-
+    const priceValue = Number(product?.price ?? 0);
+    const discountValue = Number(product?.discount ?? 0);
+    const hasDiscount = Number.isFinite(discountValue) && discountValue > 0;
+    const finalPrice = hasDiscount ? priceValue * (1 - discountValue) : priceValue;
 
     return (
-    <div className="product-detail">
-      <button className="back-button" onClick={() => navigate(-1)}>← Volver</button>
-      <h2>{product.name}</h2>
-      <img src={product.base64img} alt={product.name} />
-      <p className="description">{product.description}</p>
+      <div className="product-detail">
+        <button className="back-button" onClick={() => navigate(-1)}>← Volver</button>
+        <h2>{product.name}</h2>
+        <img src={product.base64img} alt={product.name} />
+        <p className="description">{product.description}</p>
 
-      {/* Tiene descuento */}
-      {(product.discount > 0 && <p>Precio: ${(product.price - (product.price * product.discount).toFixed(2))}</p>) ||
-
-      product.discount === 0 && <p>Precio: ${product.price}</p>
-      
-
-      }
-      <p className="stock">Stock disponible: {product.stock}</p>
+        <div className="price-block product-detail__price">
+          <span className="price-current">
+            ${finalPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </span>
+          {hasDiscount && (
+            <>
+              <span className="price-original">
+                ${priceValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
+              <span className="price-tag">-{Math.round(discountValue * 100)}%</span>
+            </>
+          )}
+        </div>
+        <p className="stock">Stock disponible: {product.stock}</p>
         <div className="cart-action-bar">
-            <div className="quantity-control" aria-label="Selector de cantidad">
-                <button
-                    type="button"
-                    className="quantity-button"
-                    onClick={decreaseQuantity}
-                    aria-label="Disminuir cantidad"
-                >
-                    -
-                </button>
-                <span className="quantity-display" aria-live="polite">{quantity}</span>
-                <button
-                    type="button"
-                    className="quantity-button"
-                    onClick={increaseQuantity}
-                    aria-label="Aumentar cantidad"
-                    disabled={
-                        typeof product.stock === "number"
-                            ? quantity >= product.stock
-                            : false
-                    }
-                >
-                    +
-                </button>
-            </div>
+        <div className="quantity-control" aria-label="Selector de cantidad">
             <button
-                type="button"
-                className="add-to-cart-button"
-                disabled={isOutOfStock}
+              type="button"
+              className="quantity-button"
+              onClick={decreaseQuantity}
+              aria-label="Disminuir cantidad"
             >
-                Agregar al carrito
+              -
             </button>
+                        <span className="quantity-display" aria-live="polite">{quantity}</span>
+            <button
+              type="button"
+              className="quantity-button"
+              onClick={increaseQuantity}
+              aria-label="Aumentar cantidad"
+              disabled={
+                typeof product.stock === "number"
+                  ? quantity >= product.stock
+                  : false
+              }
+            >
+              +
+            </button>
+          </div>
+          <button
+            type="button"
+            className="add-to-cart-button"
+            disabled={isOutOfStock}
+          >
+            Agregar al carrito
+          </button>
         </div>
     </div>
   );

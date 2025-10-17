@@ -368,11 +368,43 @@ nav{
   display: block;
 }
 
-.producto-card span{
-  display: block;
-  font-size: 1.1rem;
+.producto-card .price-block{
   margin: 0.9rem 0;
 }
+
+.price-block{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.price-current{
+  font-size: 1.1rem;
+  letter-spacing: var(--ls-xs);
+}
+
+.price-original{
+  color: var(--text-muted);
+  text-decoration: line-through;
+  font-size: 0.85rem;
+}
+
+.price-tag{
+  color: #6affb8;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+}
+
+.product-detail__price{
+  margin: 1.5rem 0;
+}
+
+.product-detail__price .price-current{
+  font-size: 1.5rem;
+}
+
 
 .detail-btn {
   display: inline-block;
