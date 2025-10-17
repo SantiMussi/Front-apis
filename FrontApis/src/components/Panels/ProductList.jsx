@@ -47,6 +47,40 @@ const mapProductToForm = (product) => ({
   ),
 });
 
+const resolveProductImage = (product) => {
+  const base64Candidate =
+    product.base64img ??
+    product.imgBase64 ??
+    product.image_url ??
+    product.imageUrlBase64 ??
+    product.imageBase64 ??
+    null;
+
+  if (typeof base64Candidate === "string" && base64Candidate.length > 0) {
+    if (/^(data:|https?:)/i.test(base64Candidate)) {
+      return base64Candidate;
+    }
+
+    const sanitized = base64Candidate.replace(/\s+/g, "");
+    const isLikelyBase64 =
+      sanitized.length > 40 && /^[A-Za-z0-9+/=]+$/.test(sanitized);
+    if (isLikelyBase64) {
+      return `data:image/png;base64,${sanitized}`;
+    }
+    return base64Candidate;
+  }
+
+  return (
+    product.image_preview_url ??
+    product.previewImage ??
+    product.imagePreview ??
+    product.image ??
+    product.imageUrl ??
+    product.thumbnail ??
+    null
+  );
+};
+
 const ProductList = ({ products, categories, onEdit, onDelete }) => {
   const canEdit = typeof onEdit === "function";
   const canDelete = typeof onDelete === "function";
@@ -56,13 +90,25 @@ const ProductList = ({ products, categories, onEdit, onDelete }) => {
     <div className="admin-list">
       {products.map((product) => {
         const categoryLabel = resolveCategoryLabel(product, categories);
+        const imageSource = resolveProductImage(product);
+        const productLabel = product.name || product.title || `Producto #${product.id}`;
+
         return (
           <article
             key={product.id || product.name || product.title}
-            className="admin-item"
+            className="admin-item with-preview"
           >
+            <div className="admin-item-visual" aria-hidden={!imageSource}>
+              <div className="vf-mini">
+                {imageSource ? (
+                  <img src={imageSource} alt={`Vista previa de ${productLabel}`} />
+                ) : (
+                  <div className="vf-mini-empty">Sin imagen</div>
+                )}
+              </div>
+            </div>
             <div className="admin-item-main">
-              <h3>{product.name || product.title || `Producto #${product.id}`}</h3>
+              <h3>{productLabel}</h3>
               <p className="admin-item-meta">
                 ID: {product.id ?? "-"} · Precio: ${product.price ?? "-"} · Stock: {" "}
                 {product.stock ?? "-"}
@@ -75,6 +121,9 @@ const ProductList = ({ products, categories, onEdit, onDelete }) => {
               )}
               {categoryLabel && (
                 <p className="admin-item-meta">Categoría: {categoryLabel}</p>
+              )}
+              {product.creatorId && (
+                <p className="admin-item-meta">Publicado por usuario con ID: {product.creatorId}</p>
               )}
             </div>
             {hasActions && (

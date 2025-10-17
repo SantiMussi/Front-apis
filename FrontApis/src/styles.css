@@ -895,6 +895,54 @@ nav{
   background: rgba(10,10,10,0.6);
 }
 
+.admin-item.with-preview {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1.2rem;
+}
+
+.admin-item-visual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 60px;
+}
+
+.admin-item.with-preview .admin-item-actions {
+  justify-self: end;
+}
+
+/* Reuso del layout miniatura de VisualFitter */
+.vf-mini {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.vf-mini img,
+.vf-mini-empty {
+  width: 52px;
+  height: 52px;
+  border-radius: 8px;
+}
+
+.vf-mini img {
+  object-fit: contain;
+  border: 1px solid var(--line);
+  padding: 0.25rem;
+  background: rgba(255,255,255,0.02);
+}
+
+.vf-mini-empty {
+  display: grid;
+  place-items: center;
+  border: 1px dashed var(--line);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  letter-spacing: var(--ls-xs);
+}
+
 .admin-item-main h3 {
   font-size: 1.1rem;
   margin-bottom: 0.4rem;
