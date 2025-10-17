@@ -135,46 +135,6 @@ nav{
 .icon{ cursor: pointer; transition: transform 0.3s ease; }
 .icon:hover{ transform: scale(1.1); }
 
-/* hero */
-.hero {
-  position: relative;
-  min-height: 100svh;
-  margin: 0;
-  overflow: hidden;
-  background: radial-gradient(circle at 50% 20%, #111 0%, #0d0d0d 40%, rgba(0,0,0,0) 75%);
-}
-.hero::after{
-  content: "";
-  position: absolute;
-  left: 0; right: 0; bottom: -1px;
-  height: 140px;
-  pointer-events: none;
-  background: linear-gradient(to bottom, rgba(10,10,10,0) 0%, var(--bg) 100%);
-}
-
-.hero-content{
-  text-align: center;
-  z-index: var(--z-content);
-  animation: fadeInUp 1s ease;
-}
-
-.hero h1{
-  font-size: 6rem;
-  font-weight: 300;
-  letter-spacing: var(--ls-lg);
-  margin-bottom: 1rem;
-  background: linear-gradient(45deg, #98f3ff, #274046);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.hero p{
-  font-size: 1.2rem;
-  letter-spacing: var(--ls-md);
-  color: var(--text-muted);
-  margin-bottom: 3rem;
-}
 
 /* CTA*/
 .cta-button{

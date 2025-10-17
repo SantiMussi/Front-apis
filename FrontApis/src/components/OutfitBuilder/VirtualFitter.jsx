@@ -1,23 +1,23 @@
 import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import mannequin from "../../assets/mannequin.png";
-import {hasRole} from "../../services/authService"
+import { hasRole } from "../../services/authService";
 import "./VirtualFitter.css";
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 
 /** Calibración por capa (defaults) */
 const LAYER_DEFAULTS = {
-  top:    { scale: 0.17, x: 1.2,  y: -3.5, z: 30 },
-  bottom: { scale: 0.40, x: 0.8,  y: 17.5, z: 20 },
-  coat:   { scale: 0.24, x: 1.0,  y: -4.5, z: 40 },
+  top: { scale: 0.17, x: 1.2, y: -3.5, z: 30 },
+  bottom: { scale: 0.40, x: 0.8, y: 17.5, z: 20 },
+  coat: { scale: 0.24, x: 1.0, y: -4.5, z: 40 },
 };
 
 /** Mapeo de categorías lógicas */
 const CATEGORIES = [
-  { key: "top",    label: "Prenda superior", apiValues: ["Remera"] },
+  { key: "top", label: "Prenda superior", apiValues: ["Remera"] },
   { key: "bottom", label: "Prenda inferior", apiValues: ["Pantalon", "Short", "Jean"] },
-  { key: "coat",   label: "Abrigo",          apiValues: ["Abrigo", "Polar", "Hoodie"] },
+  { key: "coat", label: "Abrigo", apiValues: ["Abrigo", "Polar", "Hoodie"] },
 ];
 
 /** LS helpers */
@@ -45,10 +45,9 @@ function mapProduct(p) {
 }
 
 export default function VirtualFitter() {
-  //estado
+  // estado
   const [itemsByCat, setItemsByCat] = useState({ top: [], bottom: [], coat: [] });
-  // Soportamos -1 para “ninguna prenda”
-  const [indexes, setIndexes] = useState({ top: -1, bottom: -1, coat: -1 });
+  const [indexes, setIndexes] = useState({ top: -1, bottom: -1, coat: -1 }); // -1 = ninguna
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
 
@@ -60,11 +59,11 @@ export default function VirtualFitter() {
   const [overrides, setOverrides] = useState(getOverridesFromLS);
   const [editKey, setEditKey] = useState("top");
 
-  //estado para agregar al carrito 
+  // estado para agregar al carrito
   const [adding, setAdding] = useState(false);
   const [addMsg, setAddMsg] = useState("");
 
-  //helpers
+  // helpers
   const bucketize = (all) => {
     const out = { top: [], bottom: [], coat: [] };
     const isIn = (name, list) =>
@@ -99,6 +98,7 @@ export default function VirtualFitter() {
     return () => { mounted = false; };
   }, []);
 
+  // preselección por ?productId
   useEffect(() => {
     if (!preselectId) return;
     if (appliedPreselectIdRef.current === preselectId) return;
@@ -114,14 +114,10 @@ export default function VirtualFitter() {
       }
     });
 
-    if (Object.keys(updates).length === 0) {
-      return;
-    }
+    if (Object.keys(updates).length === 0) return;
 
     setIndexes((prev) => ({ ...prev, ...updates }));
-    if (firstKey) {
-      setEditKey(firstKey);
-    }
+    if (firstKey) setEditKey(firstKey);
     appliedPreselectIdRef.current = preselectId;
   }, [preselectId, itemsByCat]);
 
@@ -129,7 +125,6 @@ export default function VirtualFitter() {
   const currentBottom = useMemo(() => (indexes.bottom >= 0 ? itemsByCat.bottom[indexes.bottom] : null), [itemsByCat.bottom, indexes.bottom]);
   const currentCoat   = useMemo(() => (indexes.coat   >= 0 ? itemsByCat.coat[indexes.coat]     : null), [itemsByCat.coat, indexes.coat]);
 
-  //productos seleccionados (para el carrito)
   const selectedProducts = useMemo(() => {
     return [currentTop, currentBottom, currentCoat].filter(Boolean);
   }, [currentTop, currentBottom, currentCoat]);
@@ -163,7 +158,7 @@ export default function VirtualFitter() {
     saveOverridesToLS(updated);
   };
 
-  //ESCALA
+  // ESCALA
   const tweakScale = (key, delta) => {
     const cur = { top: currentTop, bottom: currentBottom, coat: currentCoat }[key];
     if (!cur) return;
@@ -192,11 +187,14 @@ export default function VirtualFitter() {
   // atajos de teclado (mover + escalar)
   useEffect(() => {
     const onKey = (e) => {
-      if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.key)) {
+      if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
         e.preventDefault();
         const step = e.shiftKey ? 1 : 0.5;
-        nudge(editKey, (e.key === "ArrowLeft" ? -step : e.key === "ArrowRight" ? step : 0),
-                      (e.key === "ArrowUp"   ? -step : e.key === "ArrowDown"  ? step : 0));
+        nudge(
+          editKey,
+          (e.key === "ArrowLeft" ? -step : e.key === "ArrowRight" ? step : 0),
+          (e.key === "ArrowUp" ? -step : e.key === "ArrowDown" ? step : 0)
+        );
         return;
       }
       if (e.key === "+" || e.key === "=") { e.preventDefault(); tweakScale(editKey, e.shiftKey ? 0.02 : 0.01); }
@@ -228,12 +226,42 @@ export default function VirtualFitter() {
   };
 
   // estado derivado para UI de escala de la capa activa
-  const activeProd = editKey === "top" ? currentTop : editKey === "bottom" ? currentBottom : currentCoat;
-  const activeBase = cal[editKey];
-  const activeOv   = activeProd ? overrides[activeProd.id] : null;
+  const activeProd  = editKey === "top" ? currentTop : editKey === "bottom" ? currentBottom : currentCoat;
+  const activeBase  = cal[editKey];
+  const activeOv    = activeProd ? overrides[activeProd.id] : null;
   const activeScale = activeOv?.scale ?? activeBase.scale;
 
-  // --- NUEVO: handler agregar outfit al carrito ---
+  // --- helpers UI (press & hold + slider fill) ---
+  const holdRef = useRef({ t: null, f: null });
+
+  function startHold(e, fn) {
+    if (!activeProd) return;
+    fn(); // primer tick inmediato
+    holdRef.current.f = fn;
+    holdRef.current.t = setInterval(() => {
+      holdRef.current?.f && holdRef.current.f();
+    }, e.shiftKey ? 35 : 60); // acelerado con Shift
+  }
+  function stopHold() {
+    if (holdRef.current.t) clearInterval(holdRef.current.t);
+    holdRef.current.t = null;
+    holdRef.current.f = null;
+  }
+
+  function updateRangeFill(el) {
+    const min = parseFloat(el.min), max = parseFloat(el.max), val = parseFloat(el.value);
+    const pct = ((val - min) / (max - min)) * 100;
+    el.style.setProperty('--fill', `${pct}%`);
+    const bubble = el.parentElement?.querySelector('.vf-bubble');
+    if (bubble) bubble.style.setProperty('--x', `${pct}%`);
+  }
+
+  useEffect(() => {
+    const input = document.querySelector('.vf-range.pro');
+    if (input) updateRangeFill(input);
+  }, [activeScale, activeProd]);
+
+  // --- agregar outfit al carrito ---
   async function addOutfitToCart() {
     setAddMsg("");
     if (selectedProducts.length === 0) {
@@ -242,16 +270,12 @@ export default function VirtualFitter() {
     }
     setAdding(true);
     try {
-      // payload: lista de { productId, qty }
       const items = selectedProducts.map(p => ({ productId: p.id, qty: 1 }));
-
-      // token (ajustá el key si en tu app se guarda distinto)
       const token =
         localStorage.getItem("token") ||
         localStorage.getItem("authToken") ||
         localStorage.getItem("jwt");
 
-      // endpoint sugerido: /cart/items (ajustalo si tu backend usa otro)
       const res = await fetch(`${BASE_URL}/cart/items`, {
         method: "POST",
         headers: {
@@ -262,7 +286,6 @@ export default function VirtualFitter() {
       });
 
       if (!res.ok) {
-        // fallback local (backend not ready)
         const pending = JSON.parse(localStorage.getItem("pending_cart_outfit") || "[]");
         pending.push({ ts: Date.now(), items });
         localStorage.setItem("pending_cart_outfit", JSON.stringify(pending));
@@ -275,6 +298,7 @@ export default function VirtualFitter() {
     }
   }
 
+  // early returns (sin hooks después!)
   if (loading) return <div className="vf-loading">Cargando prendas…</div>;
   if (err)      return <div className="vf-error">Error: {err}</div>;
 
@@ -299,40 +323,119 @@ export default function VirtualFitter() {
               </select>
             </div>
 
-            {/* Controles de tamaño */}
+            {/* Controles de tamaño (PRO) */}
             <div className="vf-scale-group">
               <label className="vf-label">Tamaño</label>
-              <div className="vf-scale-controls">
+
+              <div className="vf-scale-controls pro">
+                {/* Botón menos (press & hold) */}
                 <button
-                  className="vf-btn"
+                  className="vf-icon-btn"
                   type="button"
                   disabled={!activeProd}
-                  onClick={() => tweakScale(editKey, -0.02)}
-                  title="Achicar (−)"
-                >−</button>
+                  onMouseDown={(e) => startHold(e, () => tweakScale(editKey, -0.01))}
+                  onMouseUp={stopHold}
+                  onMouseLeave={stopHold}
+                  title="Achicar (mantener para continuo) [ - ]"
+                  aria-label="Achicar"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <rect x="5" y="11" width="14" height="2" rx="1" />
+                  </svg>
+                </button>
 
-                <input
-                  className="vf-range"
-                  type="range"
-                  min="0.05"
-                  max="1.5"
-                  step="0.005"
-                  value={Number(activeProd ? activeScale : activeBase.scale)}
-                  disabled={!activeProd}
-                  onChange={(e) => setScaleAbs(editKey, parseFloat(e.target.value))}
-                  style={{ width: 160, verticalAlign: 'middle' }}
-                />
+                {/* Slider + burbuja */}
+                <div className="vf-range-wrap">
+                  <input
+                    className="vf-range pro"
+                    type="range"
+                    min="0.05"
+                    max="1.5"
+                    step="0.005"
+                    value={Number(activeProd ? activeScale : activeBase.scale)}
+                    disabled={!activeProd}
+                    onChange={(e) => setScaleAbs(editKey, parseFloat(e.target.value))}
+                    onInput={(e) => updateRangeFill(e.currentTarget)}
+                    // onDoubleClick={() => activeProd && setScaleAbs(editKey, activeBase.scale)} // opcional reset por doble click
+                  />
+                  <span className="vf-bubble" data-unit="%">
+                    {activeProd ? Math.round(activeScale * 100) : '—'}
+                  </span>
+                </div>
 
+                {/* Botón más (press & hold) */}
                 <button
-                  className="vf-btn"
+                  className="vf-icon-btn"
                   type="button"
                   disabled={!activeProd}
-                  onClick={() => tweakScale(editKey, +0.02)}
-                  title="Agrandar (+)"
-                >+</button>
+                  onMouseDown={(e) => startHold(e, () => tweakScale(editKey, +0.01))}
+                  onMouseUp={stopHold}
+                  onMouseLeave={stopHold}
+                  title="Agrandar (mantener para continuo) [ + ]"
+                  aria-label="Agrandar"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <rect x="11" y="5" width="2" height="14" rx="1" />
+                    <rect x="5" y="11" width="14" height="2" rx="1" />
+                  </svg>
+                </button>
 
-                <span className="vf-scale-readout">
-                  {activeProd ? `${(activeScale*100).toFixed(0)}%` : '—'}
+                {/* Input fino en % */}
+                <div className="vf-percent">
+                  <input
+                    type="number"
+                    min={5}
+                    max={150}
+                    step={1}
+                    disabled={!activeProd}
+                    value={activeProd ? Math.round(activeScale * 100) : ""}
+                    onChange={(e) => {
+                      const v = Math.min(150, Math.max(5, Number(e.target.value || 0)));
+                      setScaleAbs(editKey, v / 100);
+                    }}
+                  />
+                  <span>%</span>
+                </div>
+
+                {/* Presets S / M / L */}
+                <div className="vf-presets" role="group" aria-label="Presets de tamaño">
+                  <button
+                    className="vf-chip"
+                    type="button"
+                    disabled={!activeProd}
+                    onClick={() => setScaleAbs(editKey, Math.max(0.08, (activeBase.scale * 0.8)))}
+                    title="Chico (80% del base)"
+                  >S</button>
+                  <button
+                    className="vf-chip"
+                    type="button"
+                    disabled={!activeProd}
+                    onClick={() => setScaleAbs(editKey, activeBase.scale)}
+                    title="Medio (base)"
+                  >M</button>
+                  <button
+                    className="vf-chip"
+                    type="button"
+                    disabled={!activeProd}
+                    onClick={() => setScaleAbs(editKey, Math.min(1.5, (activeBase.scale * 1.2)))}
+                    title="Grande (120% del base)"
+                  >L</button>
+                </div>
+
+                {/* Reset tamaño solo de la prenda activa */}
+                <button
+                  className="vf-btn vf-btn-ghost"
+                  type="button"
+                  disabled={!activeProd}
+                  onClick={() => setScaleAbs(editKey, activeBase.scale)}
+                  title="Resetear al tamaño base"
+                >
+                  Reset
+                </button>
+
+                {/* Hint de teclado */}
+                <span className="vf-hint small">
+                  Tips: rueda = ±1%, Shift+± = ±2%, flechas = mover prenda
                 </span>
               </div>
             </div>
@@ -341,20 +444,19 @@ export default function VirtualFitter() {
               Volver al estado original
             </button>
 
-            { (hasRole('USER')) &&
-            <button
-              className="vf-btn vf-btn-primary vf-btn-cart"
-              type="button"
-              onClick={addOutfitToCart}
-              disabled={adding || selectedProducts.length === 0}
-              title={selectedProducts.length === 0 ? "Elegí al menos 1 prenda" : "Agregar outfit al carrito"}
-              style={{ marginLeft: 8 }}
-            >
-              {adding ? "Agregando..." : "Agregar outfit al carrito"}
-            </button>
+            {(hasRole('USER')) &&
+              <button
+                className="vf-btn vf-btn-primary vf-btn-cart"
+                type="button"
+                onClick={addOutfitToCart}
+                disabled={adding || selectedProducts.length === 0}
+                title={selectedProducts.length === 0 ? "Elegí al menos 1 prenda" : "Agregar outfit al carrito"}
+                style={{ marginLeft: 8 }}
+              >
+                {adding ? "Agregando..." : "Agregar outfit al carrito"}
+              </button>
             }
             {addMsg && <span className="vf-hint" style={{ marginLeft: 8 }}>{addMsg}</span>}
-
           </div>
         </header>
 
