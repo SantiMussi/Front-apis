@@ -47,7 +47,6 @@ function Productos({ categoryId = null }) {
   );
 
   const list = Array.isArray(productos) ? productos : [];
-  console.log(productos)
   return (
     <section className="productos">
       <div className="productos-grid">

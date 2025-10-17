@@ -19,7 +19,6 @@ export async function getProducts(){
 //Crear producto
 
 export async function createProduct(product){
-    console.log(product)
     const response = await fetch(`${BASE_URL}/product`, {
         method: 'POST',
         headers: {

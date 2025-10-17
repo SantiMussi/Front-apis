@@ -50,13 +50,13 @@ function ProductList({ products, categories, onEdit, onDelete }) {
         const categoryLabel = resolveCategoryLabel(product, categories);
         return (
           <article
-            key={product.productId || product.name || product.title}
+            key={product.id || product.name || product.title}
             className="admin-item"
           >
             <div className="admin-item-main">
-              <h3>{product.name || product.title || `Producto #${product.productId}`}</h3>
+              <h3>{product.name || product.title || `Producto #${product.id}`}</h3>
               <p className="admin-item-meta">
-                ID: {product.productId ?? "-"} · Precio: ${product.price ?? "-"} · Stock: {" "}
+                ID: {product.id ?? "-"} · Precio: ${product.price ?? "-"} · Stock: {" "}
                 {product.stock ?? "-"}
               </p>
               <p className="admin-item-meta">
@@ -73,14 +73,14 @@ function ProductList({ products, categories, onEdit, onDelete }) {
               <button
                 type="button"
                 className="admin-button"
-                onClick={() => onEdit(mapProductToForm(product), product.productId)}
+                onClick={() => onEdit(mapProductToForm(product), product.id)}
               >
                 Editar
               </button>
               <button
                 type="button"
                 className="admin-button danger"
-                onClick={() => onDelete(product.productId)}
+                onClick={() => onDelete(product.id)}
               >
                 Eliminar
               </button>
