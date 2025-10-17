@@ -1,0 +1,77 @@
+.hero {
+  position: relative;
+  height: 90vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: radial-gradient(circle at 50% 20%, #111 0%, #000 100%);
+  overflow: hidden;
+}
+
+.hero-content {
+  z-index: 2;
+  color: var(--text);
+}
+
+.hero-title {
+  font-size: 4rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+.hero-subtitle {
+  font-size: 1.2rem;
+  color: #bbb;
+  margin-top: 10px;
+  margin-bottom: 30px;
+}
+
+.cta-button {
+  background: var(--accent);
+  border: none;
+  color: black;
+  padding: 12px 30px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cta-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px var(--accent);
+}
+
+.hero::after{
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: -1px;
+  height: 140px;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgba(10,10,10,0) 0%, var(--bg) 100%);
+}
+
+.hero-content{
+  text-align: center;
+  z-index: var(--z-content);
+  animation: fadeInUp 1s ease;
+}
+
+.hero h1{
+  font-size: 6rem;
+  font-weight: 300;
+  letter-spacing: var(--ls-lg);
+  margin-bottom: 1rem;
+  background: linear-gradient(45deg, #98f3ff, #21d3ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero p{
+  font-size: 1.2rem;
+  letter-spacing: var(--ls-md);
+  color: var(--text-muted);
+  margin-bottom: 3rem;
+}
+
