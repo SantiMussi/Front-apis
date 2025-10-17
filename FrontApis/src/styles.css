@@ -501,6 +501,79 @@ nav{
   box-shadow: 0 10px 40px rgba(255,255,255,0.12);
 }
 
+.product-detail .cart-action-bar {
+  display: inline-flex;
+  justify-content: center;
+  align-items: stretch;
+  margin-top: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #1a1a1a;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+.product-detail .quantity-control {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0 1.5rem;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.product-detail .quantity-button {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.75rem 0.5rem;
+  transition: color 0.2s ease;
+}
+
+.product-detail .quantity-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.product-detail .quantity-button:hover:not(:disabled) {
+  color: var(--accent, #f0d078);
+}
+
+.product-detail .quantity-display {
+  min-width: 1.5rem;
+  text-align: center;
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+.product-detail .add-to-cart-button {
+  border: none;
+  background: #000;
+  color: #fff;
+  padding: 0 2.75rem;
+  text-transform: uppercase;
+  letter-spacing: var(--ls-sm);
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.3s ease;
+}
+
+.product-detail .add-to-cart-button:hover:not(:disabled) {
+  background: #222;
+  transform: translateY(-2px);
+}
+
+.product-detail .add-to-cart-button:disabled {
+  background: #333;
+  cursor: not-allowed;
+}
+
+
 /*categories*/
 .indumentaria-page{ padding-top: calc(var(--nav-h) + 16px); }
 
