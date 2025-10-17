@@ -1,5 +1,5 @@
-import { createRef, useEffect, useMemo, useState } from "react";
-import { createProduct, getCategories, getProducts } from "../services/adminService";
+import { useEffect, useMemo, useState } from "react";
+import { createProduct, getCategories, getProducts, updateProduct, deleteProduct } from "../services/adminService";
 import ProductForm from "../components/Panels/ProductForm";
 import StatusAlert from "../components/Panels/StatusAlert";
 import { EMPTY_PRODUCT } from "../constants/product";
@@ -7,13 +7,14 @@ import ProductList from "../components/Panels/ProductList";
 import { getCurrentUser } from "../services/authService";
 
 function SellerView() {
-  const [productForm, setProductForm] = useState(EMPTY_PRODUCT);
+  const [productForm, setProductForm] = useState({ ...EMPTY_PRODUCT });
   const [categories, setCategories] = useState([]);
   const [status, setStatus] = useState(null);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sellerProducts, setSellerProducts] = useState([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState(true);
+  const [selectedProductId, setSelectedProductId] = useState(null);
 
   const notify = (type, message) => {
     setStatus({ type, message });
@@ -22,7 +23,8 @@ function SellerView() {
   };
 
   const resetProductForm = () => {
-    setProductForm(EMPTY_PRODUCT);
+    setProductForm({ ...EMPTY_PRODUCT });
+    setSelectedProductId(null);
   };
 
   const fetchCategories = async () => {
@@ -145,6 +147,12 @@ function SellerView() {
         return;
       }
 
+      const currentUser = await getCurrentUser();
+      if (!currentUser?.id) {
+        notify("error", "No se pudo identificar al usuario actual");
+        return;
+      }
+
       const payload = {
         name: trimmedName,
         description: productForm.description,
@@ -154,12 +162,16 @@ function SellerView() {
         stock: stockValue,
         categoryId: categoryValue,
         base64img: productForm.base64img || null,
-        creator_id: (await getCurrentUser())?.id || null,
+        creator_id: currentUser.id,
       };
 
-      await createProduct(payload);
-      console.log("Producto creado:", payload);
-      notify("success", "Producto cargado correctamente");
+      if (selectedProductId) {
+        await updateProduct(selectedProductId, payload);
+        notify("success", "Producto actualizado correctamente");
+      } else {
+        await createProduct(payload);
+        notify("success", "Producto cargado correctamente");
+      }
       await fetchSellerProducts();
       resetProductForm();
     } catch (error) {
@@ -182,6 +194,62 @@ function SellerView() {
     [isSubmitting, isLoadingCategories, productForm]
   );
 
+    const handleEditProduct = (formValues, productId) => {
+    setSelectedProductId(productId ?? null);
+
+    const normalizedCategoryValue =
+      formValues.categoryId === undefined || formValues.categoryId === null
+        ? ""
+        : String(formValues.categoryId);
+
+    const normalizedForm = {
+      ...formValues,
+      price:
+        formValues.price === undefined || formValues.price === null
+          ? ""
+          : formValues.price,
+      discount:
+        formValues.discount === undefined || formValues.discount === null
+          ? ""
+          : formValues.discount,
+      stock:
+        formValues.stock === undefined || formValues.stock === null
+          ? ""
+          : formValues.stock,
+      categoryId: normalizedCategoryValue,
+      category_id: normalizedCategoryValue,
+      base64img: formValues.base64img || "",
+      image_preview_url:
+        formValues.image_preview_url ||
+        formValues.image_url ||
+        formValues.base64img ||
+        null,
+    };
+
+    setProductForm({ ...EMPTY_PRODUCT, ...normalizedForm });
+  };
+
+  const handleDeleteProduct = async (id) => {
+    if (!id || isSubmitting) return;
+    const confirmed = window.confirm("¿Eliminar este producto?");
+    if (!confirmed) return;
+
+    setIsSubmitting(true);
+    try {
+      await deleteProduct(id);
+      notify("success", "Producto eliminado correctamente");
+      await fetchSellerProducts();
+      if (selectedProductId === id) {
+        resetProductForm();
+      }
+    } catch (error) {
+      console.error(error);
+      notify("error", error.message || "No se pudo eliminar el producto");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleRefresh = () => {
     if (isLoadingCategories || isSubmitting || isLoadingProducts) {
       return;
@@ -189,6 +257,8 @@ function SellerView() {
     fetchCategories();
     fetchSellerProducts();
   };
+
+  const isEditing = Boolean(selectedProductId);
 
   return (
     <div className="admin-page">
@@ -224,16 +294,16 @@ function SellerView() {
             <span>{categories.length} categorías disponibles</span>
           </div>
           <ProductForm
-            title="Datos del producto"
+            title={isEditing ? "Editar producto" : "Datos del producto"}
             product={productForm}
             categories={categories}
             onChange={handleProductChange}
             onSubmit={handleProductSubmit}
-            submitLabel={isSubmitting ? "Cargando..." : "Cargar producto"}
+            submitLabel={isSubmitting ? "Cargando..." : isEditing ? "Actualizar producto" : "Cargar producto"}
             isSubmitting={isSubmitting}
             isSubmitDisabled={isSubmitDisabled}
             onCancel={resetProductForm}
-            cancelLabel="Limpiar formulario"
+            cancelLabel={isEditing ? "Cancelar edición" : "Limpiar formulario"}
           />
         </div>
       </section>
@@ -250,6 +320,8 @@ function SellerView() {
             <ProductList
               products={sellerProducts}
               categories={categories}
+              onEdit={handleEditProduct}
+              onDelete={handleDeleteProduct}
             />
           )}
         </div>

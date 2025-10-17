@@ -40,7 +40,11 @@ const mapProductToForm = (product) => ({
   stock: toNumberOrEmpty(product?.stock),
   categoryId: toNumberOrEmpty(product?.categoryId),
   image_url: toDisplayValue(product?.base64img),
-  creator_id: toNumberOrEmpty(product?.creator_id),
+  creator_id: toNumberOrEmpty(product?.creatorId),
+  base64img: toDisplayValue(product?.base64img),
+  image_preview_url: toDisplayValue(
+    product?.image_preview_url || product?.base64img || product?.imageUrl
+  ),
 });
 
 function ProductList({ products, categories, onEdit, onDelete }) {

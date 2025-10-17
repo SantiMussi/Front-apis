@@ -5,6 +5,7 @@ export const EMPTY_PRODUCT = {
   discount: "",
   size: "",
   stock: "",
+  categoryId: "",
   category_id: "",
   base64img: "",
   image_preview_url: null,

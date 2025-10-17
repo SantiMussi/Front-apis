@@ -1,5 +1,5 @@
 import { SIZE_OPTIONS } from "../../constants/product";
-import {useState} from 'react'
+import { useEffect, useState} from 'react'
 
 function clamp01(n){
   if(n=== "" || n === null || n === undefined) return "";
@@ -24,8 +24,15 @@ function ProductForm({
   expectedHeight,
   onImageValidationError,
 }) {
-  const [previewUrl, setPreviewUrl] = useState(product?.image_preview_url ?? null);
 
+  const [previewUrl, setPreviewUrl] = useState(
+    product?.image_preview_url ?? product?.base64img ?? null
+  );
+
+  useEffect(() => {
+    setPreviewUrl(product?.image_preview_url ?? product?.base64img ?? null);
+  }, [product]);
+  
   const handleDiscountChange = (e)=> {
     const clamped = clamp01(e.target.value);
     onChange({
