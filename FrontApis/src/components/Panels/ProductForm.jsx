@@ -25,6 +25,8 @@ function ProductForm({
   onImageValidationError,
 }) {
 
+  const isCreating = !product?.id;
+
   const [previewUrl, setPreviewUrl] = useState(
     product?.image_preview_url ?? product?.base64img ?? null
   );
@@ -51,7 +53,7 @@ function ProductForm({
   const handleImageChange = async (e) => {
     const file = e.target.files?.[0] || null;
     if(!file){
-      onChange({ target: {name: 'base64img'}, value: ''})
+      onChange({ target: {name: 'base64img', value: ''}})
       setPreviewUrl(null);
       return
     }
@@ -103,7 +105,23 @@ function ProductForm({
     };
   };
 
+  //Envuelve el submit para exigir imagen solo en la creacion
+  const handleSubmit = () => {
+      if(!isCreating){
+        const hasImg = (product?.base64img && String(product.base64img).length > 0) || (previewUrl && String(previewUrl).length >0);
 
+        if(!hasImg){
+          e.preventDefault();
+          onImageValidationError?.(
+            "Debes seleccionar una imagen para crear el producto"
+          );
+          return;
+        }
+      }
+      //Delegamos al submit real del padre
+      onSubmit?.(e);
+  }
+  
   return (
     <form className="admin-form" onSubmit={onSubmit}>
       {title && <h3>{title}</h3>}
@@ -163,6 +181,7 @@ function ProductForm({
             id="fileselect"
             accept="image/png, image/jpeg"
             onChange={handleImageChange}
+            required={isCreating && !previewUrl}
           />
           {expectedWidth || expectedHeight ? (
             <small>
