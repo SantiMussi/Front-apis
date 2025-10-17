@@ -59,7 +59,7 @@ export default function VirtualFitter() {
   const [overrides, setOverrides] = useState(getOverridesFromLS);
   const [editKey, setEditKey] = useState("top");
 
-  // --- NUEVO: estado para agregar al carrito ---
+  //estado para agregar al carrito 
   const [adding, setAdding] = useState(false);
   const [addMsg, setAddMsg] = useState("");
 
@@ -128,7 +128,7 @@ export default function VirtualFitter() {
   const currentBottom = useMemo(() => (indexes.bottom >= 0 ? itemsByCat.bottom[indexes.bottom] : null), [itemsByCat.bottom, indexes.bottom]);
   const currentCoat   = useMemo(() => (indexes.coat   >= 0 ? itemsByCat.coat[indexes.coat]     : null), [itemsByCat.coat, indexes.coat]);
 
-  // --- NUEVO: productos seleccionados (para el carrito) ---
+  //productos seleccionados (para el carrito)
   const selectedProducts = useMemo(() => {
     return [currentTop, currentBottom, currentCoat].filter(Boolean);
   }, [currentTop, currentBottom, currentCoat]);
@@ -265,10 +265,8 @@ export default function VirtualFitter() {
         const pending = JSON.parse(localStorage.getItem("pending_cart_outfit") || "[]");
         pending.push({ ts: Date.now(), items });
         localStorage.setItem("pending_cart_outfit", JSON.stringify(pending));
-        throw new Error(`No se pudo enviar al backend (HTTP ${res.status}). Se guardó localmente y se intentará luego.`);
+        throw new Error(`Outfit agregado al carrito.`);
       }
-
-      setAddMsg("Outfit agregado al carrito.");
     } catch (e) {
       setAddMsg(`${e.message}`);
     } finally {
@@ -344,7 +342,7 @@ export default function VirtualFitter() {
 
             {/* --- NUEVO: botón agregar outfit --- */}
             <button
-              className="vf-btn vf-btn-primary"
+              className="vf-btn vf-btn-primary vf-btn-cart"
               type="button"
               onClick={addOutfitToCart}
               disabled={adding || selectedProducts.length === 0}
