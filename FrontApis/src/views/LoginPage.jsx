@@ -10,6 +10,11 @@ const LoginPage = () => {
 
   return (
     <div className="page-container">
+        <div className="bg-shapes">
+            <div className="shape"></div>
+            <div className="shape"></div>
+            <div className="shape"></div>
+        </div>
       {justRegistered && (
         <p className="success-message">
           Cuenta creada correctamente, iniciá sesión.

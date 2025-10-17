@@ -1,13 +1,34 @@
+.page-container {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1.5rem;
+  padding: calc(var(--nav-h) + 2rem) 1.5rem 3rem;
+  background: var(--bg);
+  overflow: hidden;
+}
+
+.page-container .success-message,
+.page-container .redirect-text {
+  position: relative;
+  z-index: var(--z-content);
+}
+
 .login-form {
   width: 100%;
   max-width: 420px;
-  margin: calc(var(--nav-h) + 8rem) auto 4rem;
+  margin: 0 auto;
   padding: 2rem;
   background: #111;
   border: 1px solid var(--line);
   border-radius: 12px;
   box-shadow: 0 10px 40px rgba(255,255,255,0.04);
   animation: fadeInUp .8s ease;
+  position: relative;
+  z-index: var(--z-content);
 }
 
 .login-form h2 {
