@@ -1,3 +1,7 @@
+import { authHeader } from "./authService";
+
+const BASE_URL = import.meta.env.VITE_API_URL 
+
 // Funciones CRUD cupones
 
 export async function getCoupons(){
@@ -49,3 +53,50 @@ export async function getOrderById(id){
     return response.json();
 }
 
+export async function getOrdersByUser(userId){
+    const response = await fetch(`${BASE_URL}/users/${userId}/orders`, {
+        headers: authHeader()
+    });
+    if(!response.ok) throw new Error('Error al obtener ordenes del usuario con ID ' + userId);
+    return response.json();
+}
+
+export async function purchaseOrder({ userId, items, couponCode}){
+    const payload = {
+        userId,
+        productIds: items.map(item => item.id),
+        quantities: items.map(item => item.quantity),
+    };
+
+    if(couponCode){
+        payload.couponCode = couponCode;
+    }
+
+    const response = await fetch(`${BASE_URL}/product/purchase`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            ...authHeader()
+        },
+        body: JSON.stringify(payload)
+    });
+
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => null);
+    const message = "Error al procesar la compra: " + (errorBody?.message || response.status);
+    throw new Error(message);
+  }
+
+  return response.json();
+}
+
+
+// TEMP FUNCTION
+
+export async function getProductById(id){
+    const response = await fetch(`${BASE_URL}/product/${id}`, {
+        headers: authHeader()
+    });
+    if(!response.ok) throw new Error('Error al obtener producto con ID ' + id);
+    return response.json();
+}

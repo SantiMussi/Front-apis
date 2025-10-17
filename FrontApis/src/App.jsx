@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Navbar from "./components/Navbar";
 import ProductDetail from "./views/ProductDetail";
 import CartView from "./views/CartView";
+import CheckoutView from './views/CheckoutView/CheckoutView';
 import Indumentaria from "./views/Indumentaria"
 import "./styles.css";
 import MainPage from './views/MainPage';
@@ -20,6 +21,7 @@ function App() {
       <Routes>
         <Route path="/" element={<MainPage />} />
         <Route path="/cart" element={<CartView />} />
+        <Route path="/checkout" element={<CheckoutView />} />
         <Route path="/indumentaria" element={<Indumentaria />} />
         <Route path="/product/:id" element={<ProductDetail />} />
         <Route path="/virtual-fitter" element={<VirtualFitter />}/>

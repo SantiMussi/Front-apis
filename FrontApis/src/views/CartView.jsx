@@ -1,70 +1,15 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { getProductById } from "../services/checkoutService";
 import CartItem from "../components/Cart/CartItem";
 import "../components/Cart/cart.css";
 
-const demoProducts = [
-  {
-    id: 1,
-    name: "Chaqueta Urban Tech",
-    brand: "Nightfall",
-    color: "Negro carbón",
-    size: "M",
-    price: 189.99,
-    originalPrice: 229.99,
-    quantity: 1,
-    image: "https://images.unsplash.com/photo-1542293787938-4d2226c10e9a?auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    id: 2,
-    name: "Zapatilla Prism Runner",
-    brand: "Axis",
-    color: "Blanco ártico",
-    size: "42",
-    price: 129.5,
-    originalPrice: 149.5,
-    quantity: 2,
-    image: "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    id: 3,
-    name: "Jogger Gravity Fit",
-    brand: "Pulse",
-    color: "Gris titanio",
-    size: "L",
-    price: 89.0,
-    originalPrice: 89.0,
-    quantity: 1,
-    image: "https://images.unsplash.com/photo-1575468717532-77cd571a17ce?auto=format&fit=crop&w=800&q=80",
-  },
-];
-
-const shippingOptions = [
-  {
-    id: "express",
-    title: "Envío Express",
-    eta: "24-48 hs",
-    description: "Entrega prioritaria en centros urbanos",
-    price: 14.99,
-  },
-  {
-    id: "standard",
-    title: "Envío Standard",
-    eta: "3-5 días",
-    description: "Envío regular con seguimiento",
-    price: 6.5,
-  },
-  {
-    id: "pickup",
-    title: "Retiro en tienda",
-    eta: "Disponible en 2 hs",
-    description: "Retirá gratis por nuestra tienda",
-    price: 0,
-  },
-];
+const demoProduct = await getProductById(1); // Producto de ejemplo
+demoProduct.quantity = 2; // Cantidad de ejemplo
 
 const CartView = () => {
-  const [items, setItems] = useState(demoProducts);
-  const [selectedShipping, setSelectedShipping] = useState(shippingOptions[0]);
+  const [items, setItems] = useState([demoProduct]);
+  const navigate = useNavigate();
 
   /* maneja el cambio de cantidad de un artículo en el carrito. Se lo pasa como prop al cartItem */
   const handleQuantityChange = (id, nextQuantity) => {
@@ -97,8 +42,15 @@ const CartView = () => {
     );
   }, [items]);
 
-  const shippingCost = selectedShipping.price;
-  const total = subtotal + shippingCost;
+  const estimatedTotal = subtotal;
+
+  const handleProceedToCheckout = () => {
+    navigate("/checkout", {
+      state: {
+        items,
+      },
+    });
+  };
 
   return (
     <main className="cart-page">
@@ -111,7 +63,7 @@ const CartView = () => {
       </header>
 
       <section className="cart-layout container">
-        <div>
+        <div className="cart-content">
           <div className="cart-card">
             <div className="cart-items__header">
               <h2>Productos</h2>
@@ -124,63 +76,34 @@ const CartView = () => {
                 <CartItem
                   key={item.id}
                   item={item}
+                  quantity={1}
                   onQuantityChange={handleQuantityChange}
                   onRemove={handleRemove}
                 />
               ))
             )}
           </div>
-        </div>
-
-        <aside className="cart-summary">
-          <h2>Resumen</h2>
-
-          <div className="summary-row">
-            <span>Subtotal</span>
-            <span>${subtotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-          </div>
-
-          {savings > 0 && (
-            <div className="summary-row savings">
-              <span>Ahorros</span>
-              <span className="savings-tag">- ${savings.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+          <div className="cart-actions">
+            <div className="cart-actions__info">
+              <h2 className="cart-actions__title">¿Listo para finalizar?</h2>
+              <p className="cart-actions__description">
+                Revisá los detalles de tus productos antes de pasar al checkout. Allí vas a poder elegir el método de envío y pago.
+              </p>
+              <p className="cart-actions__summary">
+                Tenés {totalItems} {totalItems === 1 ? "artículo" : "artículos"} con un subtotal estimado de ${estimatedTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}.
+              </p>  
             </div>
-          )}
-
-          <div className="shipping-options">
-            {shippingOptions.map((option) => {
-              const isActive = option.id === selectedShipping.id;
-              return (
-                <button
-                  key={option.id}
-                  type="button"
-                  className={`shipping-option ${isActive ? "active" : ""}`}
-                  onClick={() => setSelectedShipping(option)}
-                >
-                  <div className="shipping-option__info">
-                    <span className="shipping-option__title">{option.title}</span>
-                    <span className="shipping-option__meta">{option.description} · {option.eta}</span>
-                  </div>
-                  <span>{option.price === 0 ? "Gratis" : `$${option.price.toFixed(2)}`}</span>
-                </button>
-              );
-            })}
+            <button
+              className="cart-checkout cart-actions__button"
+              type="button"
+              onClick={handleProceedToCheckout}
+              disabled={items.length === 0}
+            >
+              Ir al checkout
+            </button>
+            <p className="cart-note">Los productos se guardan durante 60 minutos.</p>
           </div>
-
-          <div className="summary-row">
-            <span>Envío</span>
-            <span>{shippingCost === 0 ? "Sin cargo" : `$${shippingCost.toFixed(2)}`}</span>
-          </div>
-
-          <div className="summary-row total">
-            <span>Total</span>
-            <span>${total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-          </div>
-
-          <button className="cart-checkout" type="button">Finalizar compra</button>
-
-          <p className="cart-note">Los productos se guardan durante 60 minutos. Podrás seleccionar el método de pago en el siguiente paso.</p>
-        </aside>
+        </div>
       </section>
     </main>
   );
