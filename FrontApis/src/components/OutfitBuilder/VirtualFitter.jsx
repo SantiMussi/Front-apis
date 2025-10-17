@@ -43,9 +43,10 @@ function mapProduct(p) {
 }
 
 export default function VirtualFitter() {
-  // ---- estado ----
+  //estado
   const [itemsByCat, setItemsByCat] = useState({ top: [], bottom: [], coat: [] });
-  const [indexes, setIndexes] = useState({ top: 0, bottom: 0, coat: 0 });
+  // Soportamos -1 para “ninguna prenda”
+  const [indexes, setIndexes] = useState({ top: -1, bottom: -1, coat: -1 });
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
 
@@ -53,7 +54,7 @@ export default function VirtualFitter() {
   const [overrides, setOverrides] = useState(getOverridesFromLS);
   const [editKey, setEditKey] = useState("top");
 
-  // ---- helpers ----
+  //helpers
   const bucketize = (all) => {
     const out = { top: [], bottom: [], coat: [] };
     const isIn = (name, list) =>
@@ -88,17 +89,20 @@ export default function VirtualFitter() {
     return () => { mounted = false; };
   }, []);
 
-  const currentTop    = useMemo(() => itemsByCat.top[indexes.top] || null,       [itemsByCat.top, indexes.top]);
-  const currentBottom = useMemo(() => itemsByCat.bottom[indexes.bottom] || null, [itemsByCat.bottom, indexes.bottom]);
-  const currentCoat   = useMemo(() => itemsByCat.coat[indexes.coat] || null,     [itemsByCat.coat, indexes.coat]);
+  const currentTop    = useMemo(() => (indexes.top    >= 0 ? itemsByCat.top[indexes.top]       : null), [itemsByCat.top, indexes.top]);
+  const currentBottom = useMemo(() => (indexes.bottom >= 0 ? itemsByCat.bottom[indexes.bottom] : null), [itemsByCat.bottom, indexes.bottom]);
+  const currentCoat   = useMemo(() => (indexes.coat   >= 0 ? itemsByCat.coat[indexes.coat]     : null), [itemsByCat.coat, indexes.coat]);
 
+  // ciclo que incluye ninguna (-1)
   const cycle = useCallback((key, dir = 1) => {
     setIndexes((prev) => {
       const list = itemsByCat[key] || [];
-      if (list.length === 0) return prev;
       const len = list.length;
-      const nextIndex = ((prev[key] ?? 0) + dir + len) % len;
-      return { ...prev, [key]: nextIndex };
+      const order = [-1, ...Array.from({ length: len }, (_, i) => i)];
+      const cur = prev[key] ?? -1;
+      const idx = Math.max(0, order.indexOf(cur));
+      const next = order[(idx + dir + order.length) % order.length];
+      return { ...prev, [key]: next };
     });
   }, [itemsByCat]);
 
@@ -118,37 +122,27 @@ export default function VirtualFitter() {
     saveOverridesToLS(updated);
   };
 
-  // === ESCALA ===
-  // cambia escala relativa (delta) para la prenda activa
+  //ESCALA
   const tweakScale = (key, delta) => {
     const cur = { top: currentTop, bottom: currentBottom, coat: currentCoat }[key];
     if (!cur) return;
     const base = cal[key];
     const prev = overrides[cur.id] || {};
     const currentScale = prev.scale ?? base.scale;
-    const nextScale = Math.min(1.5, Math.max(0.05, currentScale + delta)); // límites
-    const next = {
-      x: (prev.x ?? base.x),
-      y: (prev.y ?? base.y),
-      scale: nextScale,
-    };
+    const nextScale = Math.min(1.5, Math.max(0.05, currentScale + delta));
+    const next = { x: (prev.x ?? base.x), y: (prev.y ?? base.y), scale: nextScale };
     const updated = { ...overrides, [cur.id]: next };
     setOverrides(updated);
     saveOverridesToLS(updated);
   };
 
-  // fija escala absoluta (para slider)
   const setScaleAbs = (key, value) => {
     const cur = { top: currentTop, bottom: currentBottom, coat: currentCoat }[key];
     if (!cur) return;
     const base = cal[key];
     const prev = overrides[cur.id] || {};
     const clamped = Math.min(1.5, Math.max(0.05, value));
-    const next = {
-      x: (prev.x ?? base.x),
-      y: (prev.y ?? base.y),
-      scale: clamped,
-    };
+    const next = { x: (prev.x ?? base.x), y: (prev.y ?? base.y), scale: clamped };
     const updated = { ...overrides, [cur.id]: next };
     setOverrides(updated);
     saveOverridesToLS(updated);
@@ -157,25 +151,15 @@ export default function VirtualFitter() {
   // atajos de teclado (mover + escalar)
   useEffect(() => {
     const onKey = (e) => {
-      // mover
       if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.key)) {
         e.preventDefault();
         const step = e.shiftKey ? 1 : 0.5;
-        if (e.key === "ArrowUp")    nudge(editKey, 0, -step);
-        if (e.key === "ArrowDown")  nudge(editKey, 0,  step);
-        if (e.key === "ArrowLeft")  nudge(editKey, -step, 0);
-        if (e.key === "ArrowRight") nudge(editKey,  step, 0);
+        nudge(editKey, (e.key === "ArrowLeft" ? -step : e.key === "ArrowRight" ? step : 0),
+                      (e.key === "ArrowUp"   ? -step : e.key === "ArrowDown"  ? step : 0));
         return;
       }
-      // escalar: + / -   (en muchos teclados "+" viene como "=" sin shift)
-      if (e.key === "+" || e.key === "=") {
-        e.preventDefault();
-        tweakScale(editKey, e.shiftKey ? 0.02 : 0.01);
-      }
-      if (e.key === "-") {
-        e.preventDefault();
-        tweakScale(editKey, e.shiftKey ? -0.02 : -0.01);
-      }
+      if (e.key === "+" || e.key === "=") { e.preventDefault(); tweakScale(editKey, e.shiftKey ? 0.02 : 0.01); }
+      if (e.key === "-") { e.preventDefault(); tweakScale(editKey, e.shiftKey ? -0.02 : -0.01); }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -196,7 +180,7 @@ export default function VirtualFitter() {
 
   // reset total
   const onResetOriginal = () => {
-    setIndexes({ top: 0, bottom: 0, coat: 0 });
+    setIndexes({ top: -1, bottom: -1, coat: -1 });
     setCal(LAYER_DEFAULTS);
     setOverrides({});
     localStorage.removeItem("vf_overrides");
@@ -250,7 +234,7 @@ export default function VirtualFitter() {
                   min="0.05"
                   max="1.5"
                   step="0.005"
-                  value={Number(activeScale ?? 0.1)}
+                  value={Number(activeProd ? activeScale : activeBase.scale)}
                   disabled={!activeProd}
                   onChange={(e) => setScaleAbs(editKey, parseFloat(e.target.value))}
                   style={{ width: 160, verticalAlign: 'middle' }}
@@ -282,20 +266,32 @@ export default function VirtualFitter() {
             {CATEGORIES.map((cat) => {
               const list = itemsByCat[cat.key] || [];
               const has = list.length > 0;
-              const current = has ? list[indexes[cat.key] % list.length] : null;
+              const idx = indexes[cat.key];
+              const current = idx >= 0 && has ? list[idx % list.length] : null;
 
               return (
                 <div key={cat.key} className="vf-control-row">
                   <div className="vf-control-label">{cat.label}</div>
 
                   <div className="vf-arrows">
-                    <button className="vf-arrow" onClick={() => cycle(cat.key, -1)} disabled={!has}>◀</button>
-                    <div className="vf-current-name">{current?.name || "Sin productos"}</div>
-                    <button className="vf-arrow" onClick={() => cycle(cat.key, 1)} disabled={!has}>▶</button>
+                    <button className="vf-arrow" onClick={() => cycle(cat.key, -1)} disabled={!has && idx !== -1}>◀</button>
+                    <div className="vf-current-name">{current?.name || "Ninguna"}</div>
+                    <button className="vf-arrow" onClick={() => cycle(cat.key, 1)} disabled={!has && idx !== -1}>▶</button>
                   </div>
 
                   <div className="vf-mini">
-                    {has ? <img src={current.image} alt={current.name} /> : <div className="vf-mini-empty">—</div>}
+                    {current ? <img src={current.image} alt={current.name} /> : <div className="vf-mini-empty">—</div>}
+                  </div>
+
+                  <div className="vf-row-actions">
+                    <button
+                      className="vf-btn vf-btn-secondary"
+                      type="button"
+                      onClick={() => setIndexes(prev => ({ ...prev, [cat.key]: -1 }))}
+                      title="Quitar prenda de esta capa"
+                    >
+                      Quitar
+                    </button>
                   </div>
                 </div>
               );
@@ -307,7 +303,7 @@ export default function VirtualFitter() {
             className="vf-stage vf-card"
             onWheel={(e) => {
               if (!activeProd) return;
-              const delta = e.deltaY > 0 ? -0.01 : 0.01; // sensibilidad
+              const delta = e.deltaY > 0 ? -0.01 : 0.01;
               tweakScale(editKey, delta);
             }}
           >
