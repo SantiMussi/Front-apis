@@ -914,6 +914,22 @@ nav{
   justify-self: end;
 }
 
+.admin-btn.edit{
+  background: #00e1ff52;
+  color: white;
+  font-weight: 600;
+  border:none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background .3s ease;
+}
+
+.admin-btn.edit:hover{
+  background: #00FFFF;
+  color: black;
+}
+
 /* Reuso del layout miniatura de VisualFitter */
 .vf-mini {
   display: flex;

@@ -7,6 +7,13 @@ const CategoryList = ({ categories }) => {
             <h3>{category.description || `Categoría #${category.id}`}</h3>
             <p className="admin-item-meta">ID: {category.id ?? "-"}</p>
           </div>
+          <div className="admin-item-actions">
+            <button
+            className="admin-btn edit"
+            onClick={() => onEdit(category)}>
+              Editar
+            </button>
+          </div>
         </li>
       ))}
       {categories.length === 0 && (
