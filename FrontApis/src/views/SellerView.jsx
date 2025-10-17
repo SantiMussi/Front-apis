@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
-import { createProduct, getCategories } from "../services/adminService";
+import { createRef, useEffect, useMemo, useState } from "react";
+import { createProduct, getCategories, getProducts } from "../services/adminService";
 import ProductForm from "../components/Panels/ProductForm";
 import StatusAlert from "../components/Panels/StatusAlert";
 import { EMPTY_PRODUCT } from "../constants/product";
+import ProductList from "../components/Panels/ProductList";
+import { getCurrentUser } from "../services/authService";
 
 function SellerView() {
   const [productForm, setProductForm] = useState(EMPTY_PRODUCT);
@@ -10,6 +12,8 @@ function SellerView() {
   const [status, setStatus] = useState(null);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [sellerProducts, setSellerProducts] = useState([]);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
 
   const notify = (type, message) => {
     setStatus({ type, message });
@@ -36,8 +40,54 @@ function SellerView() {
     }
   };
 
+  const fetchSellerProducts = async () => {
+    setIsLoadingProducts(true);
+    try {
+      const [currentUser, productsResponse] = await Promise.all([
+        getCurrentUser(),
+        getProducts(),
+      ]);
+
+      const parsedProducts = Array.isArray(productsResponse)
+        ? productsResponse
+        : productsResponse?.content || [];
+
+      const currentUserId = currentUser?.id;
+
+      if (!currentUserId) {
+        notify(
+          "error",
+          "No se pudo identificar al usuario actual para listar sus productos"
+        );
+        setSellerProducts([]);
+        return;
+      }
+
+      const filteredProducts = parsedProducts.filter((product) => {
+        const creatorId =
+          product?.creator_id ?? product?.creatorId ?? product?.creatorID;
+        if (creatorId === undefined || creatorId === null) {
+          return false;
+        }
+        return String(creatorId) === String(currentUserId);
+      });
+
+      setSellerProducts(filteredProducts);
+    } catch (error) {
+      console.error(error);
+      notify(
+        "error",
+        error.message || "No se pudieron cargar los productos del vendedor"
+      );
+      setSellerProducts([]);
+    } finally {
+      setIsLoadingProducts(false);
+    }
+  };
+
   useEffect(() => {
     fetchCategories();
+    fetchSellerProducts();
 
     return () => {
       if (notify.timeoutId) {
@@ -89,7 +139,7 @@ function SellerView() {
         return;
       }
 
-      const categoryValue = Number.parseInt(productForm.category_id, 10);
+      const categoryValue = Number.parseInt(productForm.categoryId, 10);
       if (Number.isNaN(categoryValue)) {
         notify("error", "Seleccioná una categoría válida");
         return;
@@ -102,12 +152,15 @@ function SellerView() {
         discount: discountValue,
         size: productForm.size ? productForm.size.toUpperCase() : null,
         stock: stockValue,
-        category_id: categoryValue,
-        image_url: productForm.image_url || null,
+        categoryId: categoryValue,
+        base64img: productForm.base64img || null,
+        creator_id: (await getCurrentUser())?.id || null,
       };
 
       await createProduct(payload);
+      console.log("Producto creado:", payload);
       notify("success", "Producto cargado correctamente");
+      await fetchSellerProducts();
       resetProductForm();
     } catch (error) {
       console.error(error);
@@ -125,9 +178,17 @@ function SellerView() {
       !productForm.price ||
       !productForm.stock ||
       !productForm.size ||
-      !productForm.category_id,
+      !productForm.categoryId,
     [isSubmitting, isLoadingCategories, productForm]
   );
+
+  const handleRefresh = () => {
+    if (isLoadingCategories || isSubmitting || isLoadingProducts) {
+      return;
+    }
+    fetchCategories();
+    fetchSellerProducts();
+  };
 
   return (
     <div className="admin-page">
@@ -141,10 +202,12 @@ function SellerView() {
         <button
           type="button"
           className="admin-refresh"
-          onClick={fetchCategories}
-          disabled={isLoadingCategories || isSubmitting}
+          onClick={handleRefresh}
+          disabled={
+            isLoadingCategories || isSubmitting || isLoadingProducts
+          }
         >
-          Actualizar categorías
+          Actualizar datos
         </button>
       </header>
 
@@ -172,6 +235,23 @@ function SellerView() {
             onCancel={resetProductForm}
             cancelLabel="Limpiar formulario"
           />
+        </div>
+      </section>
+
+      <section className="admin-section">
+        <div className="admin-card">
+          <div className="admin-card-header">
+            <h2>Mis productos publicados</h2>
+            <span>{sellerProducts.length} productos encontrados</span>
+          </div>
+          {isLoadingProducts ? (
+            <div className="admin-loading">Cargando productos...</div>
+          ) : (
+            <ProductList
+              products={sellerProducts}
+              categories={categories}
+            />
+          )}
         </div>
       </section>
     </div>

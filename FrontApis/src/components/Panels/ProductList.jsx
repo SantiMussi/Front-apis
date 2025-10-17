@@ -44,6 +44,10 @@ const mapProductToForm = (product) => ({
 });
 
 function ProductList({ products, categories, onEdit, onDelete }) {
+  const canEdit = typeof onEdit === "function";
+  const canDelete = typeof onDelete === "function";
+  const hasActions = canEdit || canDelete;
+
   return (
     <div className="admin-list">
       {products.map((product) => {
@@ -69,22 +73,28 @@ function ProductList({ products, categories, onEdit, onDelete }) {
                 <p className="admin-item-meta">Categoría: {categoryLabel}</p>
               )}
             </div>
-            <div className="admin-item-actions">
-              <button
-                type="button"
-                className="admin-button"
-                onClick={() => onEdit(mapProductToForm(product), product.id)}
-              >
-                Editar
-              </button>
-              <button
-                type="button"
-                className="admin-button danger"
-                onClick={() => onDelete(product.id)}
-              >
-                Eliminar
-              </button>
-            </div>
+            {hasActions && (
+              <div className="admin-item-actions">
+                {canEdit && (
+                  <button
+                    type="button"
+                    className="admin-button"
+                    onClick={() => onEdit(mapProductToForm(product), product.id)}
+                  >
+                    Editar
+                  </button>
+                )}
+                {canDelete && (
+                  <button
+                    type="button"
+                    className="admin-button danger"
+                    onClick={() => onDelete(product.id)}
+                  >
+                    Eliminar
+                  </button>
+                )}
+              </div>
+            )}
           </article>
         );
       })}
