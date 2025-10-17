@@ -1,19 +1,14 @@
 /* ========== Probador Virtual (match con estilo general) ========== */
 
-/* Página del probador: compensa la navbar fija y centra vertical/horizontal */
 .vf-page {
   padding-top: calc(var(--nav-h) + 16px);
   min-height: calc(100vh - var(--nav-h) - 16px);
   display: flex;
-  align-items: center;           /* centra vertical */
+  align-items: center;
 }
 
-.vf-shell.container {
-  /* ya hereda max-width y padding de .container */
-  width: 100%;
-}
+.vf-shell.container { width: 100%; }
 
-/* Tarjetas/columnas con mismo estilo que cards del sitio */
 .vf-card {
   border: 1px solid var(--line);
   background: rgba(255,255,255,0.02);
@@ -22,10 +17,7 @@
   box-shadow: 0 10px 40px rgba(255,255,255,0.04);
 }
 
-/* Título y subtítulo con tu tipografía y espaciados */
-.vf-header {
-  margin-bottom: 1rem;
-}
+.vf-header { margin-bottom: 1rem; }
 .vf-title {
   font-size: clamp(1.5rem, 1rem + 1.2vw, 2rem);
   font-weight: 300;
@@ -35,13 +27,8 @@
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
-.vf-subtitle {
-  color: var(--text-muted);
-  letter-spacing: var(--ls-xs);
-  margin-top: .25rem;
-}
+.vf-subtitle { color: var(--text-muted); letter-spacing: var(--ls-xs); margin-top: .25rem; }
 
-/* Grid principal: controles a la izquierda, escenario a la derecha */
 .vf-grid {
   display: grid;
   grid-template-columns: 1.05fr 1.6fr;
@@ -49,7 +36,6 @@
   align-items: stretch;
 }
 
-/* Controles (lista de filas) */
 .vf-controls .vf-control-row {
   display: grid;
   grid-template-columns: 1fr auto;
@@ -67,7 +53,6 @@
   letter-spacing: .04em;
 }
 
-/* Flechas y nombre actual, con estilo de botones del sitio */
 .vf-arrows { display: flex; align-items: center; gap: .5rem; }
 .vf-arrow {
   background: transparent;
@@ -79,10 +64,7 @@
   cursor: pointer;
   transition: transform .06s ease, border-color .2s ease, box-shadow .2s ease;
 }
-.vf-arrow:hover {
-  border-color: var(--line-strong);
-  box-shadow: 0 10px 40px rgba(255,255,255,0.12);
-}
+.vf-arrow:hover { border-color: var(--line-strong); box-shadow: 0 10px 40px rgba(255,255,255,0.12); }
 .vf-arrow:disabled { opacity: .4; cursor: not-allowed; }
 
 .vf-current-name {
@@ -91,12 +73,10 @@
   font-size: .98rem; color: #fff;
 }
 
-/* Mini preview */
 .vf-mini { display: flex; align-items: center; justify-content: flex-end; }
 .vf-mini img,
 .vf-mini-empty {
-  width: 52px; height: 52px;
-  border-radius: 8px;
+  width: 52px; height: 52px; border-radius: 8px;
 }
 .vf-mini img {
   object-fit: contain;
@@ -110,45 +90,49 @@
   color: var(--text-muted);
 }
 
-/* Escenario con estética del sitio */
 .vf-stage.vf-card {
   position: relative;
   min-height: 560px;
   overflow: hidden;
-  /* mismo tipo de fondos suaves */
+  border-radius: 12px; /* opcional, para que corte con bordes suaves */
   background:
     radial-gradient(1200px 420px at 50% 105%, rgba(255,255,255,0.06), transparent 50%),
     linear-gradient(180deg, rgba(255,255,255,0.03), transparent 40%);
 }
 
-/* Maniquí centrado horizontal, pegado al piso visual */
-.vf-mannequin {
+.vf-stage.vf-card::before {
+  content: "";
   position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: -10px;
-  width: 64%;
-  max-width: 480px;
-  opacity: .9;
+  inset: 0;
   pointer-events: none;
-  user-select: none;
-  filter: drop-shadow(0 12px 24px rgba(0,0,0,.55));
+  box-shadow: 0 0 80px rgba(0,0,0,0.6) inset;
+  z-index: 1;
+}
+/* Maniquí */
+.vf-mannequin{
+  display: block;
+  width: 56%;
+  margin: 0 auto;
+  filter: drop-shadow(0 8px 24px rgba(0,0,0,.45));
+  z-index: 10;
+  position: relative;
 }
 
-/* Capas de ropa (mismo tamaño/posición que el maniquí) */
-.vf-layer {
+/* Capas */
+.vf-layer{
   position: absolute;
   left: 50%;
-  transform: translateX(-50%);
-  bottom: -10px;
-  width: 64%;
-  max-width: 480px;
-  image-rendering: auto;
+  top: 50%;
+  transform-origin: center center;
   pointer-events: none;
+  will-change: transform;
+  max-width: none;
+  image-rendering: auto;
 }
-.vf-layer-bottom { z-index: 3; }
-.vf-layer-top    { z-index: 4; }
-.vf-layer-coat   { z-index: 5; }
+
+.vf-layer-top   { z-index: 30; }
+.vf-layer-bottom{ z-index: 20; }
+.vf-layer-coat  { z-index: 40; }
 
 /* Estados */
 .vf-loading, .vf-error {
@@ -157,6 +141,73 @@
   min-height: 420px;
 }
 .vf-error { color: #ff8a8a; }
+
+/* Toolbar */
+.vf-toolbar{
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem;
+  align-items: center;
+  margin-top: .75rem;
+}
+
+.vf-label{
+  font-size: .9rem;
+  color: var(--text-muted);
+}
+
+/* Select lindo */
+.vf-select-wrap{
+  position: relative;
+  display: inline-block;
+}
+.vf-select{
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding: .72rem 2.5rem .72rem 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  color: var(--text);
+  font-size: .95rem;
+  line-height: 1;
+  outline: none;
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+.vf-select:focus{
+  border-color: var(--line-strong);
+  box-shadow: 0 0 0 4px rgba(255,255,255,0.07);
+}
+/* flecha */
+.vf-select-wrap::after{
+  content: "▾";
+  position: absolute;
+  right: .8rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: .9rem;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+/* Botón principal */
+.vf-btn{
+  padding: .72rem 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,0.04);
+  color: var(--text);
+  font-size: .95rem;
+  cursor: pointer;
+  transition: transform .06s ease, border-color .2s ease, box-shadow .2s ease, background .2s ease;
+}
+.vf-btn:hover{
+  border-color: var(--line-strong);
+  box-shadow: 0 10px 40px rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.06);
+}
+.vf-btn:active{ transform: translateY(1px); }
 
 /* Responsive */
 @media (max-width: 1024px){
