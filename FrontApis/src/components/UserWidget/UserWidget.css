@@ -12,8 +12,22 @@
     border-radius: 999px;
     display: grid;
     place-items: center;
+    pointer-events: auto;
     position: relative;
     transition: transform .15s ease, box-shadow .2s ease, filter .2s ease;
+}
+
+.user-icon:before,
+.user-icon::after {
+    pointer-events: none;
+}
+
+.user-icon-inner {
+    width: 88%;
+    height: 88%;
+    border-radius: inherit;
+    overflow: hidden;
+    display: block;
 }
 
 .user-icon:before {
@@ -46,9 +60,9 @@
         inset 0 0 0 2px rgba(255, 255, 255, .02) 0 8px 24px rgba(0, 0, 0, .35);
 }
 
-.user-icon:hover {
-    transform: translateY(-1px) scale(1.03);
-    filter: drop-shadow(0 8px 18px rgba(0, 0, 0, .35));
+.user-icon:hover{
+  transform: translateY(-1px) scale(1.03);
+  filter: drop-shadow(0 8px 18px rgba(0,0,0,.35));
 }
 
 .user-role-dot {
@@ -63,114 +77,142 @@
 }
 
 /* colores por rol */
-.user-role-dot.user  { background: #2ecc71; }           /* USER verde */
-.user-role-dot.seller{ background: #f1c40f; }           /* SELLER amarillo */
-.user-role-dot.admin { background: #cc2e2e; }      /* ADMIN rojo */
+.user-role-dot.user {
+    background: #2ecc71;
+}
+
+/* USER verde */
+.user-role-dot.seller {
+    background: #f1c40f;
+}
+
+/* SELLER amarillo */
+.user-role-dot.admin {
+    background: #cc2e2e;
+}
+
+/* ADMIN rojo */
 
 
 
 /* DROPDOWN*/
-.user-dropdown{
-  position: absolute;
-  top: calc(100% + 12px);
-  right: 0;
-  min-width: 220px;
-  padding: 10px;
-  border-radius: 14px;
-  border: 1px solid color-mix(in srgb, var(--line) 75%, transparent);
-  background:
-    linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
-  backdrop-filter: blur(10px) saturate(120%);
-  box-shadow: 0 20px 40px rgba(0,0,0,.45);
-  display:flex;
-  flex-direction: column;
-  z-index: 999999;
-  animation: popIn .14s ease-out;
+.user-dropdown {
+    position: absolute;
+    top: calc(100% + 12px);
+    right: 0;
+    min-width: 220px;
+    padding: 10px;
+    border-radius: 14px;
+    border: 1px solid color-mix(in srgb, var(--line) 75%, transparent);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, .05), rgba(255, 255, 255, .02));
+    backdrop-filter: blur(10px) saturate(120%);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, .45);
+    display: flex;
+    flex-direction: column;
+    z-index: 999999;
+    animation: popIn .14s ease-out;
 }
 
-.user-dropdown::before{
-  content:"";
-  position:absolute;
-  top:-8px;
-  right: 18px;
-  width: 14px;
-  height: 14px;
-  transform: rotate(45deg);
-  background: inherit;
-  border-left: 1px solid color-mix(in srgb, var(--line) 75%, transparent);
-  border-top: 1px solid color-mix(in srgb, var(--line) 75%, transparent);
-  filter: drop-shadow(0 -2px 2px rgba(0,0,0,.05));
+.user-dropdown::before {
+    content: "";
+    position: absolute;
+    top: -8px;
+    right: 18px;
+    width: 14px;
+    height: 14px;
+    transform: rotate(45deg);
+    background: inherit;
+    border-left: 1px solid color-mix(in srgb, var(--line) 75%, transparent);
+    border-top: 1px solid color-mix(in srgb, var(--line) 75%, transparent);
+    filter: drop-shadow(0 -2px 2px rgba(0, 0, 0, .05));
 }
 
 /* items */
 .user-dropdown a,
-.user-dropdown button{
-  color: var(--text);
-  text-decoration: none;
-  background: none;
-  border: none;
-  text-align: left;
-  padding: 10px 12px;
-  border-radius: 10px;
-  cursor: pointer;
-  font: inherit;
-  transition: background .15s ease, transform .05s ease;
+.user-dropdown button {
+    color: var(--text);
+    text-decoration: none;
+    background: none;
+    border: none;
+    text-align: left;
+    padding: 10px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    font: inherit;
+    transition: background .15s ease, transform .05s ease;
 }
 
 .user-dropdown a:hover,
-.user-dropdown button:hover{
-  background: rgba(255,255,255,.08);
+.user-dropdown button:hover {
+    background: rgba(255, 255, 255, .08);
 }
 
 .user-dropdown a:active,
-.user-dropdown button:active{
-  transform: scale(.98);
+.user-dropdown button:active {
+    transform: scale(.98);
 }
 
 .user-avatar {
-    width: 88%;
-    height: 88%;
+    width: 100%;
+    height: 100%;
     object-fit: cover;
-    border-radius: 50%;
     display: block;
+    border-radius: 0;
 }
 
-.menu-sep{
-  height:1px;
-  margin:8px 4px;
-  background: linear-gradient(90deg,
-    transparent, color-mix(in srgb, var(--line) 60%, transparent), transparent);
+.menu-sep {
+    height: 1px;
+    margin: 8px 4px;
+    background: linear-gradient(90deg,
+            transparent, color-mix(in srgb, var(--line) 60%, transparent), transparent);
 }
 
-.cart-link{
-  width: 64px;
-  height: 64px;
-  display:grid;
-  place-items:center;
-  text-decoration:none;
-  color: var(--text);
-  border-radius: 14px;
-  border:1px solid var(--line);
-  transition: transform .15s ease, background .15s ease, border-color .15s ease;
+.cart-link {
+    width: 64px;
+    height: 64px;
+    display: grid;
+    place-items: center;
+    text-decoration: none;
+    color: var(--text);
+    border-radius: 14px;
+    border: 1px solid var(--line);
+    transition: transform .15s ease, background .15s ease, border-color .15s ease;
 }
-.cart-link:hover{
-  transform: translateY(-1px);
-  background: rgba(255,255,255,.06);
-  border-color: var(--line-strong);
+
+.cart-link:hover {
+    transform: translateY(-1px);
+    background: rgba(255, 255, 255, .06);
+    border-color: var(--line-strong);
 }
 
 
 /* Animaciones */
-@keyframes spin{
-  to{ transform: rotate(360deg); }
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
 }
-@keyframes popIn{
-  from{ opacity:0; transform: translateY(-6px) scale(.98); }
-  to  { opacity:1; transform: translateY(0)    scale(1); }
+
+@keyframes popIn {
+    from {
+        opacity: 0;
+        transform: translateY(-6px) scale(.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
 /* Resp. chica: que no desborde */
-@media (max-width: 480px){
-  .user-icon{ --size: 66px; }
-  .user-dropdown{ min-width: 190px; }
+@media (max-width: 480px) {
+    .user-icon {
+        --size: 66px;
+    }
+
+    .user-dropdown {
+        min-width: 190px;
+    }
 }
