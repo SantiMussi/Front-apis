@@ -8,7 +8,7 @@ function clamp01(n){
   return Math.min(1, Math.max(0,x));
 }
 
-function ProductForm({
+const ProductForm = ({
   title,
   product,
   categories,
@@ -23,7 +23,7 @@ function ProductForm({
   expectedWidth,
   expectedHeight,
   onImageValidationError,
-}) {
+}) => {
 
   const isCreating = !product?.id;
 
