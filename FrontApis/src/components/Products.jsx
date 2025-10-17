@@ -40,13 +40,14 @@ function Productos({ categoryId = null }) {
         setProductos([]);
       })
       .finally(() => setLoading(false));
-  }, [categoryId, page, BASE_URL]);
+  }, [categoryId, BASE_URL]);
 
   if (loading) return (
     <div className="loading"><div className="spinner"></div><p>Cargando productos...</p></div>
   );
 
   const list = Array.isArray(productos) ? productos : [];
+  console.log(productos)
   return (
     <section className="productos">
       <div className="productos-grid">
@@ -62,13 +63,6 @@ function Productos({ categoryId = null }) {
         })}
         {list.length === 0 && (<div className="no-product">No hay productos en esta categoría.</div>)}
       </div>
-      {totalPages > 1 && (
-        <div className="pagination">
-          <button disabled={page <= 0} onClick={() => setPage(p => p - 1)}>◀</button>
-          <span>{page + 1} / {totalPages}</span>
-          <button disabled={page + 1 >= totalPages} onClick={() => setPage(p => p + 1)}>▶</button>
-        </div>
-      )}
     </section>
   );
 }
