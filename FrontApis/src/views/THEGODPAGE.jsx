@@ -201,7 +201,7 @@ function THEGODPAGE() {
         return;
       }
 
-      const categoryValue = Number.parseInt(productForm.category_id, 10);
+      const categoryValue = Number.parseInt(productForm.categoryId, 10);
       if (Number.isNaN(categoryValue)) {
         notify("error", "Seleccioná una categoría válida");
         setLoading(false);
@@ -222,7 +222,7 @@ function THEGODPAGE() {
         discount: discountValue,
         size: productForm.size ? productForm.size.toUpperCase() : null,
         stock: stockValue,
-        category_id: categoryValue,
+        categoryId: categoryValue,
         base64img: productForm.base64img || null,
         creator_id: currentUser.id,
       };

@@ -66,8 +66,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 60px;
+  height: 60px;
   border: 1px solid var(--line);
   border-radius: 10px;
   text-decoration: none;

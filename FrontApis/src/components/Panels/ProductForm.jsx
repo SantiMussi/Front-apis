@@ -210,8 +210,8 @@ function ProductForm({
           Categoría
           <select
             className="admin-select"
-            name="category_id"
-            value={product.category_id}
+            name="categoryId"
+            value={product.categoryId}
             onChange={onChange}
             required
           >

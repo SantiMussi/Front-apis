@@ -2,7 +2,7 @@ import { toDisplayValue, toNumberOrEmpty } from "../../helpers/valueConverter";
 
 const resolveCategoryLabel = (product, categories) => {
   const categoryIdValue =
-    product.category_id ?? product.categoryId ?? product.category?.id ?? null;
+    product.categoryId ?? product.categoryId ?? product.category?.id ?? null;
 
   if (categoryIdValue === null || categoryIdValue === undefined) {
     return (
@@ -38,7 +38,7 @@ const mapProductToForm = (product) => ({
   discount: toNumberOrEmpty(product?.discount),
   size: (toDisplayValue(product?.size) || "").toUpperCase(),
   stock: toNumberOrEmpty(product?.stock),
-  category_id: toNumberOrEmpty(product?.category_id),
+  categoryId: toNumberOrEmpty(product?.categoryId),
   image_url: toDisplayValue(product?.base64img),
   creator_id: toNumberOrEmpty(product?.creator_id),
 });
