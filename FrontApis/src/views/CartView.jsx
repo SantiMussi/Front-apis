@@ -57,7 +57,7 @@ const shippingOptions = [
     id: "pickup",
     title: "Retiro en tienda",
     eta: "Disponible en 2 hs",
-    description: "Retirá gratis por nuestro flagship",
+    description: "Retirá gratis por nuestra tienda",
     price: 0,
   },
 ];
@@ -109,9 +109,6 @@ const CartView = () => {
         </div>
       </header>
 
-      {/* -------------------------------------------- */}
-
-      {/* Contenedor de productos */}
       <section className="cart-layout container">
         <div>
           <div className="cart-card">
@@ -134,7 +131,6 @@ const CartView = () => {
           </div>
         </div>
 
-        {/* Contenedor de resumen */}
         <aside className="cart-summary">
           <h2>Resumen</h2>
 

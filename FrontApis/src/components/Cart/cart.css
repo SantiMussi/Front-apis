@@ -253,7 +253,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.75rem 1rem;
+  padding: 0.75rem 0.5rem;
   border: 1px solid var(--line);
   cursor: pointer;
   transition: border-color 0.3s ease, background 0.3s ease;
@@ -262,12 +262,14 @@
 .shipping-option.active {
   border-color: var(--line-strong);
   background: rgba(255, 255, 255, 0.06);
+  color: #fff;
 }
 
 .shipping-option__info {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+  margin-right: 10px;
 }
 
 .shipping-option__title {
