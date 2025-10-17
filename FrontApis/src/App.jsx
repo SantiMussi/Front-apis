@@ -11,7 +11,7 @@ import RegisterPage from './views/RegisterPage'
 import RequireRole from './components/RequireRole';
 import SellerView from './views/SellerView';
 import THEGODPAGE from './views/THEGODPAGE';
-
+import Footer from "./components/Footer/Footer"
 
 function App() {
   return (
@@ -44,6 +44,7 @@ function App() {
           }/>
       </Routes>
       
+      <Footer/>
     </BrowserRouter>
   );
 }
