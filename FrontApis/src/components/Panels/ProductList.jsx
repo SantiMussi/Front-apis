@@ -2,7 +2,7 @@ import { toDisplayValue, toNumberOrEmpty } from "../../helpers/valueConverter";
 
 const resolveCategoryLabel = (product, categories) => {
   const categoryIdValue =
-    product.categoryId ?? product.categoryId ?? product.category?.id ?? null;
+    product.categoryId ?? null;
 
   if (categoryIdValue === null || categoryIdValue === undefined) {
     return (
@@ -50,13 +50,13 @@ function ProductList({ products, categories, onEdit, onDelete }) {
         const categoryLabel = resolveCategoryLabel(product, categories);
         return (
           <article
-            key={product.id || product.name || product.title}
+            key={product.productId || product.name || product.title}
             className="admin-item"
           >
             <div className="admin-item-main">
-              <h3>{product.name || product.title || `Producto #${product.id}`}</h3>
+              <h3>{product.name || product.title || `Producto #${product.productId}`}</h3>
               <p className="admin-item-meta">
-                ID: {product.id ?? "-"} · Precio: ${product.price ?? "-"} · Stock: {" "}
+                ID: {product.productId ?? "-"} · Precio: ${product.price ?? "-"} · Stock: {" "}
                 {product.stock ?? "-"}
               </p>
               <p className="admin-item-meta">
@@ -73,14 +73,14 @@ function ProductList({ products, categories, onEdit, onDelete }) {
               <button
                 type="button"
                 className="admin-button"
-                onClick={() => onEdit(mapProductToForm(product), product.id)}
+                onClick={() => onEdit(mapProductToForm(product), product.productId)}
               >
                 Editar
               </button>
               <button
                 type="button"
                 className="admin-button danger"
-                onClick={() => onDelete(product.id)}
+                onClick={() => onDelete(product.productId)}
               >
                 Eliminar
               </button>

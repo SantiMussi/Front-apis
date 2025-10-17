@@ -44,6 +44,7 @@ function THEGODPAGE() {
   const loadProducts = async () => {
     try {
       const data = await getProducts();
+      console.log(data);
       setProducts(Array.isArray(data) ? data : data?.content || []);
     } catch (error) {
       console.error(error);

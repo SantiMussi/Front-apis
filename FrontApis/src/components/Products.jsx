@@ -21,8 +21,6 @@ function Productos({ categoryId = null }) {
       if (!res.ok) throw new Error(await res.text());
       const data = await res.json();
 
-      console.log(data)
-
       const items = Array.isArray(data?.content) ? data.content : [];
       setProductos(items);
     };
