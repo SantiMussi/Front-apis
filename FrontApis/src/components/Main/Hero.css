@@ -28,7 +28,7 @@
 }
 
 .cta-button {
-  background: var(--accent);
+  background: white;
   border: none;
   color: black;
   padding: 12px 30px;
@@ -62,7 +62,7 @@
   font-weight: 300;
   letter-spacing: var(--ls-lg);
   margin-bottom: 1rem;
-  background: linear-gradient(45deg, #98f3ff, #21d3ff);
+  background: linear-gradient(45deg, #ffffff, #4e4e4e);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
