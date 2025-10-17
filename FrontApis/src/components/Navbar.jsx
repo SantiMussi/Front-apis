@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { hasRole, isLoggedIn, getRole, onAuthChange, logout, getCurrentUser, setRole } from '../services/authService'
-import UserWidget from "../components/UserWidget.jsx"
-import './UserWidget.css'
+import UserWidget from "./UserWidget/UserWidget.jsx"
+import './UserWidget/UserWidget.css'
 
 export default function Navbar() {
   const navigate = useNavigate();

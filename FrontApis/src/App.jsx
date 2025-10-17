@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Navbar from "./components/Navbar";
 import ProductDetail from "./views/ProductDetail";
-import Cart from "./views/Cart";
+import CartView from "./views/CartView";
 import Indumentaria from "./views/Indumentaria"
 import "./styles.css";
 import MainPage from './views/MainPage';
@@ -19,7 +19,7 @@ function App() {
       <Navbar />
       <Routes>
         <Route path="/" element={<MainPage />} />
-        <Route path="/cart" element={<Cart />} />
+        <Route path="/cart" element={<CartView />} />
         <Route path="/indumentaria" element={<Indumentaria />} />
         <Route path="/product/:id" element={<ProductDetail />} />
         <Route path="/virtual-fitter" element={<VirtualFitter />}/>

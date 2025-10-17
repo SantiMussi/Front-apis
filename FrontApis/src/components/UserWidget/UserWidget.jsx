@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom'
-import { logout, isLoggedIn, hasRole } from '../services/authService'
+import { logout, isLoggedIn, hasRole } from '../../services/authService'
 import './UserWidget.css'
 
 export default function UserWidget({ onLogout }) {
