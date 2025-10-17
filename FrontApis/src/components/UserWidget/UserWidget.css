@@ -1,86 +1,176 @@
-.user-widget{
+.user-widget {
     position: relative;
     display: inline-block;
+    isolation: isolate;
 }
 
-.user-icon{
-    font-size: 24px;
+.user-icon {
+    --size: 76px;
+    width: var(--size);
+    height: var(--size);
     cursor: pointer;
-    border: 1px solid var(--line);
-    border-radius: 50%;
-    width: 60px;
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: transparent;
-    color: var(--text);
-    transition: background 0.2s ease;
+    border-radius: 999px;
+    display: grid;
+    place-items: center;
+    position: relative;
+    transition: transform .15s ease, box-shadow .2s ease, filter .2s ease;
 }
 
-.user-icon:hover{
-    background: rgba(255, 255, 255, 0.08);
-}
-
-.user-dropdown{
+.user-icon:before {
+    content: "";
     position: absolute;
-    top: 45px;
-    right: 0;
-    background: var(--bg);
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.4);
-    min-width: 160px;
-    padding: 8px;
-    z-index: 9999999999999999999999;
-    display: flex;
-    flex-direction: column;
-    animation: fadeIn 0.15s ease;
+    inset: -2px;
+    border-radius: inherit;
+    background:
+        conic-gradient(from 0deg,
+            var(--accent), 0%,
+            transparent 18%,
+            var(--accent) 36%,
+            transparent 54%,
+            var(--accent) 72%,
+            transparent 90%,
+            var(--accent) 100%);
+    filter: blur(6px) saturate(120%);
+    opacity: .35;
+    z-index: -1;
+    animation: spin 3.5s linear infinite;
 }
 
-.user-dropdown a, .user-dropdown button {
-    color: var(--text);
-    text-decoration: none;
-    background: none;
-    border: none;
-    text-align: left;
-    padding: 8px 10px;
-    border-radius: 6px;
-    cursor: pointer;
-    font: inherit;
-    transition: background 0.15s ease;
+.user-icon::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    border: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+    box-shadow:
+        inset 0 0 0 2px rgba(255, 255, 255, .02) 0 8px 24px rgba(0, 0, 0, .35);
 }
 
-.user-dropdown a:hover, .user-dropdown button:hover{
-    background: rgba(255,255,255,0.08)
+.user-icon:hover {
+    transform: translateY(-1px) scale(1.03);
+    filter: drop-shadow(0 8px 18px rgba(0, 0, 0, .35));
+}
+
+.user-role-dot {
+    position: absolute;
+    right: 2px;
+    bottom: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 999px;
+    border: 2px solid var(--bg);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, .4);
+}
+
+/* colores por rol */
+.user-role-dot.user  { background: #2ecc71; }           /* USER verde */
+.user-role-dot.seller{ background: #f1c40f; }           /* SELLER amarillo */
+.user-role-dot.admin { background: #cc2e2e; }      /* ADMIN rojo */
+
+
+
+/* DROPDOWN*/
+.user-dropdown{
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  min-width: 220px;
+  padding: 10px;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--line) 75%, transparent);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+  backdrop-filter: blur(10px) saturate(120%);
+  box-shadow: 0 20px 40px rgba(0,0,0,.45);
+  display:flex;
+  flex-direction: column;
+  z-index: 999999;
+  animation: popIn .14s ease-out;
+}
+
+.user-dropdown::before{
+  content:"";
+  position:absolute;
+  top:-8px;
+  right: 18px;
+  width: 14px;
+  height: 14px;
+  transform: rotate(45deg);
+  background: inherit;
+  border-left: 1px solid color-mix(in srgb, var(--line) 75%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--line) 75%, transparent);
+  filter: drop-shadow(0 -2px 2px rgba(0,0,0,.05));
+}
+
+/* items */
+.user-dropdown a,
+.user-dropdown button{
+  color: var(--text);
+  text-decoration: none;
+  background: none;
+  border: none;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  font: inherit;
+  transition: background .15s ease, transform .05s ease;
+}
+
+.user-dropdown a:hover,
+.user-dropdown button:hover{
+  background: rgba(255,255,255,.08);
+}
+
+.user-dropdown a:active,
+.user-dropdown button:active{
+  transform: scale(.98);
 }
 
 .user-avatar {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 50%;
+    width: 88%;
+    height: 88%;
+    object-fit: cover;
+    border-radius: 50%;
+    display: block;
 }
 
-.cart-link {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 60px;
-  height: 60px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  text-decoration: none;
+.menu-sep{
+  height:1px;
+  margin:8px 4px;
+  background: linear-gradient(90deg,
+    transparent, color-mix(in srgb, var(--line) 60%, transparent), transparent);
+}
+
+.cart-link{
+  width: 64px;
+  height: 64px;
+  display:grid;
+  place-items:center;
+  text-decoration:none;
   color: var(--text);
-  transition: background 0.15s ease, border-color 0.15s ease;
+  border-radius: 14px;
+  border:1px solid var(--line);
+  transition: transform .15s ease, background .15s ease, border-color .15s ease;
 }
-
-.cart-link:hover {
-  background: rgba(255,255,255,0.06);
+.cart-link:hover{
+  transform: translateY(-1px);
+  background: rgba(255,255,255,.06);
   border-color: var(--line-strong);
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-5px); }
-    to { opacity: 1; transform: translateY(0); }
+
+/* Animaciones */
+@keyframes spin{
+  to{ transform: rotate(360deg); }
+}
+@keyframes popIn{
+  from{ opacity:0; transform: translateY(-6px) scale(.98); }
+  to  { opacity:1; transform: translateY(0)    scale(1); }
+}
+
+/* Resp. chica: que no desborde */
+@media (max-width: 480px){
+  .user-icon{ --size: 66px; }
+  .user-dropdown{ min-width: 190px; }
 }
