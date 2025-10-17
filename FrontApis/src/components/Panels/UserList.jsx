@@ -1,9 +1,10 @@
 import { ROLE_OPTIONS } from "../../constants/user";
 
+/* Formatea el nombre para mostrar en la lista de usuarios */
 const formatDisplayName = (user) =>
   [user.first_name, user.last_name].filter(Boolean).join(" ").trim();
 
-function UserList({ users, onRoleChange, updatingUserId, roleOptions = ROLE_OPTIONS }) {
+const UserList = ({ users, onRoleChange, updatingUserId, roleOptions = ROLE_OPTIONS }) => {
   return (
     <div className="admin-list users">
       {users.map((user) => {

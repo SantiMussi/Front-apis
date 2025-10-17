@@ -80,6 +80,7 @@ const CartView = () => {
     setItems((prev) => prev.filter((item) => item.id !== id));
   };
 
+  /* calcula subtotal, ahorros y total de artículos en el carrito */
   const { subtotal, savings, totalItems } = useMemo(() => { /* usamos memo para optimizar el cálculo de totales */
     return items.reduce(
       (acc, item) => {

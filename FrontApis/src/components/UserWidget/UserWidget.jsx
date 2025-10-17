@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom'
 import { logout, isLoggedIn, hasRole } from '../../services/authService'
 import './UserWidget.css'
+import userAvatar from '../../assets/user-avatar.png'
+
 
 export default function UserWidget({ onLogout }) {
     const [open, setOpen] = useState(false);
@@ -42,7 +44,7 @@ export default function UserWidget({ onLogout }) {
                 onClick={handleToggle}
             >
                 <img
-                    src="src/assets/user-avatar.png"
+                    src={userAvatar}
                     alt="usuario"
                     className="user-avatar"
                 />
