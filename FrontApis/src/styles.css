@@ -537,16 +537,32 @@ nav{
   box-shadow: 0 10px 40px rgba(255,255,255,0.12);
 }
 
+.product-detail__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  margin-top: 2rem;
+  width: 100%;
+}
+
 .product-detail .cart-action-bar {
   display: inline-flex;
   justify-content: center;
   align-items: stretch;
-  margin-top: 2rem;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 8px;
   overflow: hidden;
   background: #1a1a1a;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+.product-detail__actions .cart-action-bar {
+  margin-top: 0;
+  width: 100%;
+  max-width: 420px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .product-detail .quantity-control {
@@ -609,6 +625,40 @@ nav{
   cursor: not-allowed;
 }
 
+.product-detail .virtual-fitter-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 420px;
+  padding: 0 2.75rem;
+  min-height: 3.25rem;
+  border: none;
+  border-radius: 8px;
+  background: #fff;
+  color: #000;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: var(--ls-sm);
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.25s ease, color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.product-detail .virtual-fitter-button:hover {
+  background: #f5f5f5;
+  color: #000;
+  transform: translateY(-2px);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.28);
+}
+
+.product-detail .virtual-fitter-button:active {
+  transform: translateY(0);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
+}
 
 /*categories*/
 .indumentaria-page{ padding-top: calc(var(--nav-h) + 16px); }

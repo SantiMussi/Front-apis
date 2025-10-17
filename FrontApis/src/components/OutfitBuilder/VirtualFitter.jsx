@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useState, useCallback, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import mannequin from "../../assets/mannequin.png";
 import "./VirtualFitter.css";
 
@@ -50,6 +51,10 @@ export default function VirtualFitter() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
 
+  const [searchParams] = useSearchParams();
+  const preselectId = searchParams.get("productId");
+  const appliedPreselectIdRef = useRef(null);
+
   const [cal, setCal] = useState(LAYER_DEFAULTS);
   const [overrides, setOverrides] = useState(getOverridesFromLS);
   const [editKey, setEditKey] = useState("top");
@@ -88,6 +93,32 @@ export default function VirtualFitter() {
     })();
     return () => { mounted = false; };
   }, []);
+
+  useEffect(() => {
+    if (!preselectId) return;
+    if (appliedPreselectIdRef.current === preselectId) return;
+
+    const updates = {};
+    let firstKey = null;
+
+    Object.entries(itemsByCat).forEach(([key, list]) => {
+      const idx = list.findIndex((item) => String(item.id) === preselectId);
+      if (idx !== -1) {
+        updates[key] = idx;
+        if (!firstKey) firstKey = key;
+      }
+    });
+
+    if (Object.keys(updates).length === 0) {
+      return;
+    }
+
+    setIndexes((prev) => ({ ...prev, ...updates }));
+    if (firstKey) {
+      setEditKey(firstKey);
+    }
+    appliedPreselectIdRef.current = preselectId;
+  }, [preselectId, itemsByCat]);
 
   const currentTop    = useMemo(() => (indexes.top    >= 0 ? itemsByCat.top[indexes.top]       : null), [itemsByCat.top, indexes.top]);
   const currentBottom = useMemo(() => (indexes.bottom >= 0 ? itemsByCat.bottom[indexes.bottom] : null), [itemsByCat.bottom, indexes.bottom]);

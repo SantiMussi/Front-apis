@@ -1,6 +1,5 @@
-import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 const ProductDetail = () => {
   const navigate = useNavigate();
@@ -10,7 +9,10 @@ const ProductDetail = () => {
   const [quantity, setQuantity] = useState(1);
   const BASE_URL = import.meta.env.VITE_API_URL;
 
-  useEffect(() => {
+    const resolveProductId = (item) =>
+        item?.id ?? item?.productId ?? item?.code ?? item?.productID ?? item?.sku ?? null;
+
+    useEffect(() => {
     const fetchProduct = async () => {
       try {
         const response = await fetch(`${BASE_URL}/product/${id}`);
@@ -65,27 +67,39 @@ const ProductDetail = () => {
     const hasDiscount = Number.isFinite(discountValue) && discountValue > 0;
     const finalPrice = hasDiscount ? priceValue * (1 - discountValue) : priceValue;
 
-    return (
-      <div className="product-detail">
-        <button className="back-button" onClick={() => navigate(-1)}>← Volver</button>
-        <h2>{product.name}</h2>
-        <img src={product.base64img} alt={product.name} />
-        <p className="description">{product.description}</p>
+    const handleOpenVirtualFitter = () => {
+        if (!product) return;
+        const productId = resolveProductId(product);
+        if (productId == null) {
+            navigate("/virtual-fitter");
+            return;
+        }
 
-        <div className="price-block product-detail__price">
-          <span className="price-current">
-            ${finalPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </span>
-          {hasDiscount && (
-            <>
-              <span className="price-original">
-                ${priceValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </span>
-              <span className="price-tag">-{Math.round(discountValue * 100)}%</span>
-            </>
-          )}
-        </div>
-        <p className="stock">Stock disponible: {product.stock}</p>
+        navigate(`/virtual-fitter?productId=${encodeURIComponent(productId)}`);
+    };
+
+    return (
+        <div className="product-detail">
+            <button className="back-button" onClick={() => navigate(-1)}>← Volver</button>
+            <h2>{product.name}</h2>
+            <img src={product.base64img} alt={product.name} />
+            <p className="description">{product.description}</p>
+
+            <div className="price-block product-detail__price">
+        <span className="price-current">
+          ${finalPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+        </span>
+                {hasDiscount && (
+                    <>
+            <span className="price-original">
+              ${priceValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </span>
+                        <span className="price-tag">-{Math.round(discountValue * 100)}%</span>
+                    </>
+                )}
+            </div>
+            <p className="stock">Stock disponible: {product.stock}</p>
+            <div className="product-detail__actions">
         <div className="cart-action-bar">
         <div className="quantity-control" aria-label="Selector de cantidad">
             <button
@@ -119,6 +133,14 @@ const ProductDetail = () => {
             Agregar al carrito
           </button>
         </div>
+                <button
+                    type="button"
+                    className="virtual-fitter-button"
+                    onClick={handleOpenVirtualFitter}
+                >
+                    Probar en el probador virtual
+                </button>
+            </div>
     </div>
   );
 };
