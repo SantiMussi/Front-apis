@@ -51,10 +51,38 @@ const paymentMethods = [
 ];
 
 const formatCurrency = (value) =>
-  `$${value.toLocaleString(undefined, {
+  `$${Number(value ?? 0).toLocaleString(undefined, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`;
+
+const resolveItemPricing = (item) => {
+  const priceValue = Number(item?.price ?? 0);
+  const originalPriceValue = Number(item?.originalPrice ?? priceValue);
+  const discountValue = Number(item?.discount ?? 0);
+  const hasDiscountFromDiscount = Number.isFinite(discountValue) && discountValue > 0;
+
+  let unitPrice = priceValue;
+  let compareAtPrice = originalPriceValue;
+
+  if (hasDiscountFromDiscount) {
+    compareAtPrice = priceValue;
+    unitPrice = priceValue * (1 - discountValue);
+  } else if (originalPriceValue > priceValue) {
+    unitPrice = priceValue;
+    compareAtPrice = originalPriceValue;
+  }
+
+  const hasDiscount = compareAtPrice > unitPrice && compareAtPrice > 0;
+  const discountRate = hasDiscount && compareAtPrice !== 0 ? 1 - unitPrice / compareAtPrice : 0;
+
+  return {
+    unitPrice,
+    compareAtPrice: hasDiscount ? compareAtPrice : unitPrice,
+    hasDiscount,
+    discountRate,
+  };
+};
 
 const normalizeBase64Image = (value) => {
   if (!value) return null;
@@ -62,7 +90,7 @@ const normalizeBase64Image = (value) => {
 };
 
 const CheckoutView = () => {
-const navigate = useNavigate();
+  const navigate = useNavigate();
   const location = useLocation();
   const [items] = useState(() => location.state?.items ?? []);
   const [selectedShipping, setSelectedShipping] = useState(shippingOptions[0]);
@@ -84,6 +112,39 @@ const navigate = useNavigate();
   }, []);
 
   useEffect(() => {
+    // Ajusta el ancho base de .shipping-option__info según el texto más largo
+    const updateShippingInfoWidth = () => {
+      const els = document.querySelectorAll(".shipping-option__info");
+      let max = 0;
+      els.forEach((el) => {
+        // usar scrollWidth para incluir contenido que pueda envolver
+        const w = Math.ceil(el.scrollWidth);
+        if (w > max) max = w;
+      });
+      // añadir un pequeño padding para evitar cortes exactos
+      if (max > 0) {
+        document.documentElement.style.setProperty(
+          "--shipping-info-width",
+          `${max + 8}px`
+        );
+      } else {
+        document.documentElement.style.removeProperty("--shipping-info-width");
+      }
+    };
+
+    // calcular al montar y cuando cambie el tamaño de ventana
+    updateShippingInfoWidth();
+    window.addEventListener("resize", updateShippingInfoWidth);
+    // si hay cambios dinámicos en el DOM, reintentar después de 100ms
+    const t = setTimeout(updateShippingInfoWidth, 100);
+
+    return () => {
+      window.removeEventListener("resize", updateShippingInfoWidth);
+      clearTimeout(t);
+    };
+  }, []); 
+
+  useEffect(() => {
     if (location.state?.couponCode) {
       setCouponCode(location.state.couponCode);
     }
@@ -92,16 +153,15 @@ const navigate = useNavigate();
   const { subtotal, savings, totalItems } = useMemo(() => {
     return items.reduce(
       (acc, item) => {
-        const lineSubtotal = item.price * item.quantity;
-        const lineSavings = Math.max(
-          0,
-          (item.originalPrice ?? item.price) - item.price
-        );
+        const quantity = Number(item.quantity ?? 1) || 1;
+        const { unitPrice, compareAtPrice, hasDiscount } = resolveItemPricing(item);
+        const lineSubtotal = unitPrice * quantity;
+        const lineSavings = hasDiscount ? (compareAtPrice - unitPrice) * quantity : 0;
 
         return {
           subtotal: acc.subtotal + lineSubtotal,
-          savings: acc.savings + lineSavings * item.quantity,
-          totalItems: acc.totalItems + item.quantity,
+          savings: acc.savings + lineSavings,
+          totalItems: acc.totalItems + quantity,
         };
       },
       { subtotal: 0, savings: 0, totalItems: 0 }
@@ -193,11 +253,13 @@ const navigate = useNavigate();
     navigate("/cart");
   };
 
+  console.log(items)
+
   return (
     <main className="checkout-page">
       <header className="checkout-hero">
         <div className="container">
-          <p>Checkout seguro</p>
+          <p>Checkout</p>
           <h1>Confirmá tu compra</h1>
           <p>
             {orderResult
@@ -311,6 +373,8 @@ const navigate = useNavigate();
                     >
                       <div>
                         <span className="payment-option__title">{method.title}</span>
+                      </div>
+                      <div>
                         <span className="payment-option__meta">{method.description}</span>
                       </div>
                       <span className="payment-option__radio" aria-hidden>
@@ -357,24 +421,48 @@ const navigate = useNavigate();
           <aside className="checkout-summary">
             <h2>Resumen</h2>
             <ul className="checkout-items">
-              {items.map((item) => (
-                <li key={item.id} className="checkout-item">
-                  <div>
-                    <p className="checkout-item__title">{item.name}</p>
-                    <span className="checkout-item__meta">Cantidad: {item.quantity}</span>
-                  </div>
-                  <span className="checkout-item__price">
-                    {formatCurrency(item.price * item.quantity)}
-                  </span>
-                  <div className="vf-mini">
-                    {normalizeBase64Image(item.base64img) ? (
-                      <img src={normalizeBase64Image(item.base64img)} alt={`Vista previa de ${item.name}`} />
-                    ) : (
-                      <div className="vf-mini-empty">Sin imagen</div>
-                    )}
-                  </div>
-                </li>
-              ))}
+              {items.map((item) => {
+                const quantity = Number(item.quantity ?? 1) || 1;
+                const { unitPrice, compareAtPrice, hasDiscount, discountRate } =
+                  resolveItemPricing(item);
+                const previewImage = normalizeBase64Image(
+                  item.base64img ?? item.base64Img
+                );
+
+                return (
+                  <li key={item.id} className="checkout-item">
+                    <div className="checkout-item__info">
+                      <p className="checkout-item__title">{item.name}</p>
+                      <span className="checkout-item__meta">Cantidad: {quantity}</span>
+                    </div>
+                    <div className="checkout-item__pricing">
+                      {hasDiscount && (
+                        <span className="checkout-item__price-original">
+                          {formatCurrency(compareAtPrice * quantity)}
+                        </span>
+                      )}
+                      <span className="checkout-item__price-final">
+                        {formatCurrency(unitPrice * quantity)}
+                      </span>
+                      {hasDiscount && (
+                        <span className="checkout-item__discount-tag">
+                          Ahorro {Math.round(discountRate * 100)}%
+                        </span>
+                      )}
+                    </div>
+                    <div className="vf-mini">
+                      {previewImage ? (
+                        <img
+                          src={previewImage}
+                          alt={`Vista previa de ${item.name}`}
+                        />
+                      ) : (
+                        <div className="vf-mini-empty">Sin imagen</div>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
 
             <div className="checkout-selection">
@@ -382,16 +470,16 @@ const navigate = useNavigate();
               <span>Pago: {selectedPayment.title}</span>
             </div>
 
-            <div className="summary-row">
-              <span>Subtotal</span>
-              <span>{formatCurrency(subtotal)}</span>
-            </div>
             {savings > 0 && (
               <div className="summary-row savings">
                 <span>Ahorros</span>
                 <span className="savings-tag">- {formatCurrency(savings)}</span>
               </div>
             )}
+            <div className="summary-row">
+              <span>Subtotal</span>
+              <span>{formatCurrency(subtotal)}</span>
+            </div>
             <div className="summary-row">
               <span>Envío ({selectedShipping.title})</span>
               <span>

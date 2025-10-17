@@ -76,6 +76,22 @@
   color: var(--text);
 }
 
+.cart-actions__summary-pricing {
+  display: inline-flex;
+  justify-content: flex-start;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-left: 0.25rem;
+}
+
+.cart-actions__summary-pricing .price-current {
+  font-size: 1rem;
+}
+
+.cart-actions__summary-pricing .price-original {
+  font-size: 0.85rem;
+}
+
 .cart-actions__button {
   align-self: flex-end;
   width: auto;
