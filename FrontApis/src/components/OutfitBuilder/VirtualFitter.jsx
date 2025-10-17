@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import mannequin from "../../assets/mannequin.png";
+import {hasRole} from "../../services/authService"
 import "./VirtualFitter.css";
 
 const BASE_URL = import.meta.env.VITE_API_URL;
@@ -340,7 +341,7 @@ export default function VirtualFitter() {
               Volver al estado original
             </button>
 
-            {/* --- NUEVO: botón agregar outfit --- */}
+            { (hasRole('USER')) &&
             <button
               className="vf-btn vf-btn-primary vf-btn-cart"
               type="button"
@@ -351,7 +352,9 @@ export default function VirtualFitter() {
             >
               {adding ? "Agregando..." : "Agregar outfit al carrito"}
             </button>
+            }
             {addMsg && <span className="vf-hint" style={{ marginLeft: 8 }}>{addMsg}</span>}
+
           </div>
         </header>
 
