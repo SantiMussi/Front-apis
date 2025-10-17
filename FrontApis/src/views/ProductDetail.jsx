@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { hasRole } from "../services/authService"
 
 const ProductDetail = () => {
   const navigate = useNavigate();
@@ -9,10 +10,10 @@ const ProductDetail = () => {
   const [quantity, setQuantity] = useState(1);
   const BASE_URL = import.meta.env.VITE_API_URL;
 
-    const resolveProductId = (item) =>
-        item?.id ?? item?.productId ?? item?.code ?? item?.productID ?? item?.sku ?? null;
+  const resolveProductId = (item) =>
+    item?.id ?? item?.productId ?? item?.code ?? item?.productID ?? item?.sku ?? null;
 
-    useEffect(() => {
+  useEffect(() => {
     const fetchProduct = async () => {
       try {
         const response = await fetch(`${BASE_URL}/product/${id}`);
@@ -29,7 +30,7 @@ const ProductDetail = () => {
     fetchProduct();
   }, [id, BASE_URL]);
 
-    if (loading) {
+  if (loading) {
     return (
       <div className="loading">
         <div className="spinner"></div>
@@ -42,105 +43,109 @@ const ProductDetail = () => {
     return <div className="error">Producto no encontrado</div>;
   }
 
-    const decreaseQuantity = () => {
-        const minQuantity =
-            typeof product?.stock === "number" && product.stock <= 0 ? 0 : 1;
+  const decreaseQuantity = () => {
+    const minQuantity =
+      typeof product?.stock === "number" && product.stock <= 0 ? 0 : 1;
 
-        setQuantity((prevQuantity) => Math.max(minQuantity, prevQuantity - 1));
-    };
+    setQuantity((prevQuantity) => Math.max(minQuantity, prevQuantity - 1));
+  };
 
-    const increaseQuantity = () => {
-        if (!product) return;
+  const increaseQuantity = () => {
+    if (!product) return;
 
-        setQuantity((prevQuantity) => {
-            if (typeof product.stock !== "number") {
-                return prevQuantity + 1;
-            }
+    setQuantity((prevQuantity) => {
+      if (typeof product.stock !== "number") {
+        return prevQuantity + 1;
+      }
 
-            return Math.min(product.stock, prevQuantity + 1);
-        });
-    };
+      return Math.min(product.stock, prevQuantity + 1);
+    });
+  };
 
-    const isOutOfStock = typeof product?.stock === "number" ? product.stock <= 0 : false;
-    const priceValue = Number(product?.price ?? 0);
-    const discountValue = Number(product?.discount ?? 0);
-    const hasDiscount = Number.isFinite(discountValue) && discountValue > 0;
-    const finalPrice = hasDiscount ? priceValue * (1 - discountValue) : priceValue;
+  const isOutOfStock = typeof product?.stock === "number" ? product.stock <= 0 : false;
+  const priceValue = Number(product?.price ?? 0);
+  const discountValue = Number(product?.discount ?? 0);
+  const hasDiscount = Number.isFinite(discountValue) && discountValue > 0;
+  const finalPrice = hasDiscount ? priceValue * (1 - discountValue) : priceValue;
 
-    const handleOpenVirtualFitter = () => {
-        if (!product) return;
-        const productId = resolveProductId(product);
-        if (productId == null) {
-            navigate("/virtual-fitter");
-            return;
-        }
+  const handleOpenVirtualFitter = () => {
+    if (!product) return;
+    const productId = resolveProductId(product);
+    if (productId == null) {
+      navigate("/virtual-fitter");
+      return;
+    }
 
-        navigate(`/virtual-fitter?productId=${encodeURIComponent(productId)}`);
-    };
+    navigate(`/virtual-fitter?productId=${encodeURIComponent(productId)}`);
+  };
 
-    return (
-        <div className="product-detail">
-            <button className="back-button" onClick={() => navigate(-1)}>← Volver</button>
-            <h2>{product.name}</h2>
-            <img src={product.base64img} alt={product.name} />
-            <p className="description">{product.description}</p>
+  return (
+    <div className="product-detail">
+      <button className="back-button" onClick={() => navigate(-1)}>← Volver</button>
+      <h2>{product.name}</h2>
+      <img src={product.base64img} alt={product.name} />
+      <p className="description">{product.description}</p>
 
-            <div className="price-block product-detail__price">
+      <div className="price-block product-detail__price">
         <span className="price-current">
           ${finalPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </span>
-                {hasDiscount && (
-                    <>
+        {hasDiscount && (
+          <>
             <span className="price-original">
               ${priceValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
-                        <span className="price-tag">-{Math.round(discountValue * 100)}%</span>
-                    </>
-                )}
-            </div>
-            <p className="stock">Stock disponible: {product.stock}</p>
-            <div className="product-detail__actions">
-        <div className="cart-action-bar">
-        <div className="quantity-control" aria-label="Selector de cantidad">
-            <button
-              type="button"
-              className="quantity-button"
-              onClick={decreaseQuantity}
-              aria-label="Disminuir cantidad"
-            >
-              -
-            </button>
-                        <span className="quantity-display" aria-live="polite">{quantity}</span>
-            <button
-              type="button"
-              className="quantity-button"
-              onClick={increaseQuantity}
-              aria-label="Aumentar cantidad"
-              disabled={
-                typeof product.stock === "number"
-                  ? quantity >= product.stock
-                  : false
-              }
-            >
-              +
-            </button>
-          </div>
-          <button
-            type="button"
-            className="add-to-cart-button"
-            disabled={isOutOfStock}
-          >
-            Agregar al carrito
-          </button>
-        </div>
-                <button
+            <span className="price-tag">-{Math.round(discountValue * 100)}%</span>
+          </>
+        )}
+      </div>
+      <p className="stock">Stock disponible: {product.stock}</p>
+      <div className="product-detail__actions">
+        {hasRole('USER') && (
+            <>
+              <div className="cart-action-bar">
+                <div className="quantity-control" aria-label="Selector de cantidad">
+                  <button
                     type="button"
-                    className="virtual-fitter-button"
-                    onClick={handleOpenVirtualFitter}
+                    className="quantity-button"
+                    onClick={decreaseQuantity}
+                    aria-label="Disminuir cantidad"
+                  >
+                    -
+                  </button>
+                  <span className="quantity-display" aria-live="polite">{quantity}</span>
+                  <button
+                    type="button"
+                    className="quantity-button"
+                    onClick={increaseQuantity}
+                    aria-label="Aumentar cantidad"
+                    disabled={
+                      typeof product.stock === "number"
+                        ? quantity >= product.stock
+                        : false
+                    }
+                  >
+                    +
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  className="add-to-cart-button"
+                  disabled={isOutOfStock}
                 >
-                    Probar en el probador virtual
+                  Agregar al carrito
                 </button>
             </div>
+             </>)
+             }
+        <button
+          type="button"
+          className="virtual-fitter-button"
+          onClick={handleOpenVirtualFitter}
+        >
+          Probar en el probador virtual
+        </button>
+      </div>
     </div>
   );
 };
