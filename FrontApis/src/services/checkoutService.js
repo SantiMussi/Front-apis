@@ -82,6 +82,13 @@ export async function getOrdersByUser(userId, { page, size } = {}) {
 
 }
 
+export async function getUserOrders({page=0, size=10} = {}) {
+    const res = await fetch(`${BASE_URL}/users/me/orders?page=${page}&size=${size}`, {
+        headers: authHeader()
+    });
+    if(!res.ok) throw new Error('Error al obtener las ordenes del usuario actual');
+    return res.json();
+}
 export async function purchaseOrder({ userId, items, couponCode}){
     const payload = {
         userId,

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getCurrentUser, isLoggedIn, onAuthChange } from "../../services/authService";
-import { getOrdersByUser } from "../../services/checkoutService";
+import { getOrdersByUser, getUserOrders } from "../../services/checkoutService";
 import OrderCard from "../../components/OrderComponents/OrderCard";
 import { normalizePage } from "../../helpers/orderHelpers";
 import "./Orders.css";
@@ -41,7 +41,7 @@ export default function OrdersPage() {
                 throw new Error("No pudimos identificar al usuario autenticado.");
             }
 
-            const data = await getOrdersByUser(userId, { page, size });
+            const data = await getUserOrders(userId, { page, size });
             const normalized = normalizePage(data);
             setOrders(normalized.items);
             setTotalPages(normalized.totalPages || 1);
