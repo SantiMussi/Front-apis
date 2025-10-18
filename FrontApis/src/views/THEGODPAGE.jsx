@@ -7,6 +7,7 @@ import ProductForm from "../components/Panels/ProductForm";
 import CategoryList from "../components/Panels/CategoryList";
 import UserList from "../components/Panels/UserList";
 import StatusAlert from "../components/Panels/StatusAlert";
+import CouponPanel from "../components/Panels/CouponPanel";
 import { normalizeUserRecord } from "../helpers/userAdmin";
 
 const EMPTY_CATEGORY = { description: "" };
@@ -455,96 +456,14 @@ function THEGODPAGE() {
             </div>
           </div>
         </section>
-
-        <section className="admin-section">
-          <div className="admin-card">
-            <div className="admin-card-header">
-              <h2>Cupones</h2>
-              <span>{coupons.length} disponibles</span>
-            </div>
-            {coupons.length > 0 ? (
-              <div className="admin-list">
-                {coupons.map((coupon) => (
-                  <article
-                    key={coupon.id ?? coupon.code}
-                    className="admin-item"
-                  >
-                    <div className="admin-item-main">
-                      <h3>{coupon.code || `Cupón ${coupon.id ?? "-"}`}</h3>
-                      <p className="admin-item-meta">
-                        ID: {coupon.id ?? "-"} ·
-                        Descuento:{" "}
-                        {typeof coupon.discount === "number"
-                          ? `${(coupon.discount * 100).toFixed(0)}%`
-                          : coupon.discount ?? "-"}{" "}
-                        · Expira: {coupon.expirationDate ?? "-"}
-                      </p>
-                    </div>
-
-                    <div className="admin-item-actions">
-                      <button
-                        type="button"
-                        className="admin-button danger"
-                        onClick={() => handleCouponDelete(coupon.id)}
-                        disabled={loading}
-                      >
-                        Eliminar
-                      </button>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            ) : (
-              <p className="admin-empty">No hay cupones registrados.</p>
-            )}
-
-            <form className="admin-form" onSubmit={handleCouponSubmit}>
-              <h3>Nuevo cupón</h3>
-              <label>
-                Código
-                <input
-                  type="text"
-                  name="code"
-                  value={couponForm.code}
-                  onChange={handleCouponChange}
-                  placeholder="Ej: TEST"
-                  required
-                />
-              </label>
-              <label>
-                Descuento
-                <input
-                  type="number"
-                  name="discount"
-                  value={couponForm.discount}
-                  onChange={handleCouponChange}
-                  placeholder="0.2"
-                  min="0"
-                  max="1"
-                  step="0.01"
-                  required
-                />
-              </label>
-              <label>
-                Fecha de expiración
-                <input
-                  type="date"
-                  name="expirationDate"
-                  value={couponForm.expirationDate}
-                  onChange={handleCouponChange}
-                  required
-                />
-              </label>
-              <button
-                type="submit"
-                className="admin-button primary"
-                disabled={loading}
-              >
-                Crear cupón
-              </button>
-            </form>
-          </div>
-        </section>
+        <CouponPanel
+          coupons={coupons}
+          couponForm={couponForm}
+          onChange={handleCouponChange}
+          onSubmit={handleCouponSubmit}
+          onDelete={handleCouponDelete}
+          loading={loading}
+        />
         <section className="admin-section">
           <div className="admin-card">
             <div className="admin-card-header">
