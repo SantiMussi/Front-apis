@@ -39,7 +39,7 @@ const resolveItemPricing = (item) => {
 };
 
 const demoProduct1 = await getProductById(1)
-const demoProduct2 = await getProductById(2)
+const demoProduct2 = await getProductById(3)
 demoProduct1.quantity = 2; // Cantidad de ejemplo
 demoProduct2.quantity = 1; // Cantidad de ejemplo
 
