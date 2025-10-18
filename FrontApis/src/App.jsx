@@ -14,6 +14,8 @@ import SellerView from './views/SellerView';
 import THEGODPAGE from './views/THEGODPAGE';
 import Footer from "./components/Footer/Footer"
 import Orders from "./views/Order/Orders"
+import NotFoundView from './views/NotFoundView';
+
 import Terms from "./components/Footer/Terms.jsx";
 import Privacy from "./components/Footer/Privacy.jsx";
 function App() {
@@ -74,12 +76,10 @@ function App() {
             </RequireRole>
           } />
 
-
+          <Route path="*" element={<NotFoundView />} />
       </Routes>
 
       <Footer />
-
-
     </BrowserRouter>
   );
 }
