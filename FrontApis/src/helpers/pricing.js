@@ -1,3 +1,5 @@
+/* Funcion para formatear numero como cadena monetaria */
+
 export const formatCurrency = (
   value,
   {
@@ -11,6 +13,10 @@ export const formatCurrency = (
     minimumFractionDigits,
     maximumFractionDigits,
   })}`;
+
+
+// Calcula el precio unitario real, el precio de comparacion, si existe descuento y la tasa de descuento de un item dado
+// Usado en componentes que tienen productos y necesitan mostrar evolucion de precios
 
 export const resolveItemPricing = (item) => {
   const priceValue = Number(item?.price ?? 0);

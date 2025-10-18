@@ -50,7 +50,7 @@ const paymentMethods = [
 
 const CheckoutView = () => {
   const navigate = useNavigate();
-  const location = useLocation();
+  const location = useLocation(); // useLocation para que el programa guarde de donde venimos (ruta)
   const [items] = useState(() => location.state?.items ?? []);
   const [selectedShipping, setSelectedShipping] = useState(shippingOptions[0]);
   const [selectedPayment, setSelectedPayment] = useState(paymentMethods[0]);
@@ -103,6 +103,7 @@ const CheckoutView = () => {
     };
   }, []); 
 
+  // 
   useEffect(() => {
     if (location.state?.couponCode) {
       setCouponCode(location.state.couponCode);
@@ -131,6 +132,7 @@ const CheckoutView = () => {
   const couponDiscount = appliedCoupon ? subtotal * (appliedCoupon.discount ?? 0) : 0;
   const total = Math.max(subtotal - couponDiscount + shippingCost, 0);
 
+  // logica de aplicacion de cupones
   const handleApplyCoupon = async (event) => {
     event.preventDefault();
     if (!couponCode.trim()) {
@@ -163,12 +165,14 @@ const CheckoutView = () => {
     }
   };
 
+  // logica de eliminacion de cupon
   const handleRemoveCoupon = () => {
     setAppliedCoupon(null);
     setCouponCode("");
     setCouponError("");
   };
 
+  // logica de confirmacion de compra
   const handleConfirmPurchase = async () => {
     if (items.length === 0) {
       setCheckoutError("Tu carrito está vacío. Volvé a la tienda para agregar productos.");

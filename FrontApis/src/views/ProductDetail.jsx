@@ -11,8 +11,6 @@ const ProductDetail = () => {
   const [quantity, setQuantity] = useState(1);
   const BASE_URL = import.meta.env.VITE_API_URL;
 
-  const resolveProductId = (item) =>
-    item?.id ?? item?.productId ?? item?.code ?? item?.productID ?? item?.sku ?? null;
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -68,7 +66,7 @@ const ProductDetail = () => {
 
   const handleOpenVirtualFitter = () => {
     if (!product) return;
-    const productId = resolveProductId(product);
+    const productId = product.id;
     if (productId == null) {
       navigate("/virtual-fitter");
       return;

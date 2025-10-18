@@ -69,8 +69,7 @@ const SellerView = () => {
 
        // Filtra productos que pertenezcan al usuario actual (varios posibles nombres de campo)
       const filteredProducts = parsedProducts.filter((product) => {
-        const creatorId =
-          product?.creator_id ?? product?.creatorId ?? product?.creatorID;
+        const creatorId = product?.creatorId;
         if (creatorId === undefined || creatorId === null) {
           return false;
         }
@@ -169,7 +168,7 @@ const SellerView = () => {
         stock: stockValue,
         categoryId: categoryValue,
         base64img: productForm.base64img || null,
-        creator_id: currentUser.id,
+        creatorId: currentUser.id,
       };
 
       // Decide si crear o actualizar según selectedProductId
@@ -229,11 +228,7 @@ const SellerView = () => {
       categoryId: normalizedCategoryValue,
       category_id: normalizedCategoryValue,
       base64img: formValues.base64img || "",
-      image_preview_url:
-        formValues.image_preview_url ||
-        formValues.image_url ||
-        formValues.base64img ||
-        null,
+      image_preview_url: formValues.base64img || null,
     };
 
     setProductForm({ ...EMPTY_PRODUCT, ...normalizedForm });

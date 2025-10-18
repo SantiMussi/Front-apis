@@ -1,28 +1,5 @@
 import { toDisplayValue, toNumberOrEmpty } from "../../helpers/valueConverter";
 
-/* Resuelve la etiqueta de categoría para mostrar en la lista. Prioriza categoryId, busca en categories y cae en campos alternativos. */
-const resolveCategoryLabel = (product, categories) => {
-  const categoryIdValue =
-    product.categoryId ?? null;
-
-  if (categoryIdValue === null || categoryIdValue === undefined) {
-    return (
-      product.category?.description ||
-      categoryIdValue ||
-      ""
-    );
-  }
-
-  const match = categories.find(
-    (category) => String(category.id) === String(categoryIdValue)
-  );
-
-  return (
-    match?.description ||
-    `ID ${categoryIdValue}`
-  );
-};
-
 /* Devuelve una etiqueta legible para el descuento (p.ej. "15%" o "Sin descuento") */
 const getDiscountLabel = (product) => {
   const discountValue = Number(product.discount ?? 0);
@@ -47,40 +24,6 @@ const mapProductToForm = (product) => ({
   ),
 });
 
-const resolveProductImage = (product) => {
-  const base64Candidate =
-    product.base64img ??
-    product.imgBase64 ??
-    product.image_url ??
-    product.imageUrlBase64 ??
-    product.imageBase64 ??
-    null;
-
-  if (typeof base64Candidate === "string" && base64Candidate.length > 0) {
-    if (/^(data:|https?:)/i.test(base64Candidate)) {
-      return base64Candidate;
-    }
-
-    const sanitized = base64Candidate.replace(/\s+/g, "");
-    const isLikelyBase64 =
-      sanitized.length > 40 && /^[A-Za-z0-9+/=]+$/.test(sanitized);
-    if (isLikelyBase64) {
-      return `data:image/png;base64,${sanitized}`;
-    }
-    return base64Candidate;
-  }
-
-  return (
-    product.image_preview_url ??
-    product.previewImage ??
-    product.imagePreview ??
-    product.image ??
-    product.imageUrl ??
-    product.thumbnail ??
-    null
-  );
-};
-
 const ProductList = ({ products, categories, onEdit, onDelete }) => {
   const canEdit = typeof onEdit === "function";
   const canDelete = typeof onDelete === "function";
@@ -89,13 +32,13 @@ const ProductList = ({ products, categories, onEdit, onDelete }) => {
   return (
     <div className="admin-list">
       {products.map((product) => {
-        const categoryLabel = resolveCategoryLabel(product, categories);
-        const imageSource = resolveProductImage(product);
+        const categoryLabel = product.categoryName;
+        const imageSource = product.base64img;
         const productLabel = product.name || product.title || `Producto #${product.id}`;
 
         return (
           <article
-            key={product.id || product.name || product.title}
+            key={product.id}
             className="admin-item with-preview"
           >
             <div className="admin-item-visual" aria-hidden={!imageSource}>
