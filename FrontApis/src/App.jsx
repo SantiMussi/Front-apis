@@ -13,29 +13,53 @@ import RequireRole from './components/RequireRole';
 import SellerView from './views/SellerView';
 import THEGODPAGE from './views/THEGODPAGE';
 import Footer from "./components/Footer/Footer"
-
+import Orders from "./views/Order/Orders"
 function App() {
   return (
     <BrowserRouter>
       <Navbar />
       <Routes>
         <Route path="/" element={<MainPage />} />
-        <Route path="/cart" element={<CartView />} />
-        <Route path="/checkout" element={<CheckoutView />} />
+
+        {/* Rutas protegidas para USER */}
+        <Route
+          path="/orders"
+          element={
+            <RequireRole roles={['USER']}>
+              <Orders />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/cart"
+          element={
+            <RequireRole roles={['USER']}>
+              <CartView />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/checkout"
+          element={
+            <RequireRole roles={['USER']}>
+              <CheckoutView />
+            </RequireRole>
+          }
+        />
         <Route path="/indumentaria" element={<Indumentaria />} />
         <Route path="/product/:id" element={<ProductDetail />} />
-        <Route path="/virtual-fitter" element={<VirtualFitter />}/>
-        <Route path="/login" element={<LoginPage/>}/>
-        <Route path="/register" element={<RegisterPage/>}/>
+        <Route path="/virtual-fitter" element={<VirtualFitter />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
         {/*Ruta solo para admins */}
-        <Route 
-            path="/admin/*" 
-            element={
-            <RequireRole roles={['ADMIN']}> 
-              <THEGODPAGE/> 
+        <Route
+          path="/admin/*"
+          element={
+            <RequireRole roles={['ADMIN']}>
+              <THEGODPAGE />
             </RequireRole>
-            }
-          />
+          }
+        />
 
         <Route
           path="/seller/*"
@@ -43,10 +67,10 @@ function App() {
             <RequireRole roles={['SELLER']}>
               <SellerView />
             </RequireRole>
-          }/>
+          } />
       </Routes>
-      
-      <Footer/>
+
+      <Footer />
     </BrowserRouter>
   );
 }
