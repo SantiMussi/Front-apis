@@ -53,12 +53,33 @@ export async function getOrderById(id){
     return response.json();
 }
 
-export async function getOrdersByUser(userId){
-    const response = await fetch(`${BASE_URL}/users/${userId}/orders`, {
-        headers: authHeader()
-    });
-    if(!response.ok) throw new Error('Error al obtener ordenes del usuario con ID ' + userId);
-    return response.json();
+export async function getOrdersByUser(userId, { page, size } = {}) {
+    const params = new URLSearchParams();
+    if (typeof page === "number") params.set("page", String(page));
+    if (typeof size === "number") params.set("size", String(size));
+
+    const query = params.toString();
+    const response = await fetch(
+        `${BASE_URL}/users/${userId}/orders${query ? `?${query}` : ""}`,
+        {
+            headers: authHeader(),
+            credentials: "include",
+        }
+    );
+
+    if (response.status === 204) {
+        return [];
+    }
+
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        const message =
+            errorData?.message ||
+            errorData?.error ||
+            `Error al obtener ordenes del usuario con ID ${userId}`;
+        throw new Error(message);
+    }
+
 }
 
 export async function purchaseOrder({ userId, items, couponCode}){
