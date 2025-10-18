@@ -14,6 +14,8 @@ import SellerView from './views/SellerView';
 import THEGODPAGE from './views/THEGODPAGE';
 import Footer from "./components/Footer/Footer"
 import Orders from "./views/Order/Orders"
+import Terms from "./components/Footer/Terms.jsx";
+import Privacy from "./components/Footer/Privacy.jsx";
 function App() {
   return (
     <BrowserRouter>
@@ -51,6 +53,9 @@ function App() {
         <Route path="/virtual-fitter" element={<VirtualFitter />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/terminos" element={<Terms />} />
+        <Route path="/privacidad" element={<Privacy/>} />
+
         {/*Ruta solo para admins */}
         <Route
           path="/admin/*"
@@ -68,9 +73,13 @@ function App() {
               <SellerView />
             </RequireRole>
           } />
+
+
       </Routes>
 
       <Footer />
+
+
     </BrowserRouter>
   );
 }

@@ -1,0 +1,12 @@
+.terminos-page{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    line-height: 1.5;
+    min-height: 100vh;
+    background: var(--bg, #0a0a0a);
+    color: var(--text, #fff);
+    position: relative;
+    overflow: hidden;
+    padding: calc(var(--nav-h) + 2rem) 1.5rem 3rem;
+}

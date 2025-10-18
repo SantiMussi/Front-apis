@@ -4,12 +4,12 @@ import { getProductById } from "../services/checkoutService";
 import CartItem from "../components/Cart/CartItem";
 import "../components/Cart/cart.css";
 import { formatCurrency, resolveItemPricing } from "../helpers/pricing";
-
+/*
 const demoProduct1 = await getProductById(1)
 const demoProduct2 = await getProductById(3)
 demoProduct1.quantity = 2; // Cantidad de ejemplo
 demoProduct2.quantity = 1; // Cantidad de ejemplo
-
+*/
 const CartView = () => {
   const [items, setItems] = useState([demoProduct1, demoProduct2]);
   const navigate = useNavigate();

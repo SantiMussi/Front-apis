@@ -30,7 +30,9 @@ function Productos({ categoryId = null }) {
       const res = await fetch(`${BASE_URL}/categories/${categoryId}`);
       if (!res.ok) throw new Error(await res.text());
       const data = await res.json();
+      console.log(data);
       const items = Array.isArray(data?.product) ? data.product : [];
+      //console.log(items);
       setProductos(items);
     };
 
