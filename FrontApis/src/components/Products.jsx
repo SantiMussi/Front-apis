@@ -60,17 +60,20 @@ function Productos({ categoryId = null }) {
             <div key={p.id} className="producto-card">
               <img src={p.base64img} alt={p.name} />
               <h3>{p.name}</h3>
-                <div className="price-block">
+              <div className="price-block">
+                {/* Precio actual con descuento */}
                 <span className="price-current">
                   ${finalPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
+
+                {/* Si tiene descuento, mostrar original y porcentaje arriba */}
                 {hasDiscount && (
-                  <>
+                  <div className="price-discount-details">
                     <span className="price-original">
                       ${priceValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </span>
                     <span className="price-tag">-{Math.round(discountValue * 100)}%</span>
-                  </>
+                  </div>
                 )}
               </div>
               <Link to={`/product/${p.id}`} className="detail-btn">Ver más</Link>
