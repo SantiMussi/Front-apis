@@ -3,43 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { getProductById } from "../services/checkoutService";
 import CartItem from "../components/Cart/CartItem";
 import "../components/Cart/cart.css";
-
-const formatCurrency = (value) =>
-  `$${Number(value ?? 0).toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
-
-const resolveItemPricing = (item) => {
-  const priceValue = Number(item?.price ?? 0);
-  const originalPriceValue = Number(item?.originalPrice ?? priceValue);
-  const discountValue = Number(item?.discount ?? 0);
-  const hasDiscountFromDiscount = Number.isFinite(discountValue) && discountValue > 0;
-
-  let unitPrice = priceValue;
-  let compareAtPrice = originalPriceValue;
-
-  if (hasDiscountFromDiscount) {
-    compareAtPrice = priceValue;
-    unitPrice = priceValue * (1 - discountValue);
-  } else if (originalPriceValue > priceValue) {
-    unitPrice = priceValue;
-    compareAtPrice = originalPriceValue;
-  }
-
-  const hasDiscount = compareAtPrice > unitPrice && compareAtPrice > 0;
-  const discountRate = hasDiscount && compareAtPrice !== 0 ? 1 - unitPrice / compareAtPrice : 0;
-
-  return {
-    unitPrice,
-    compareAtPrice: hasDiscount ? compareAtPrice : unitPrice,
-    hasDiscount,
-    discountRate,
-  };
-};
+import { formatCurrency, resolveItemPricing } from "../helpers/pricing";
 
 const demoProduct1 = await getProductById(1)
-const demoProduct2 = await getProductById(3)
+const demoProduct2 = await getProductById(2)
 demoProduct1.quantity = 2; // Cantidad de ejemplo
 demoProduct2.quantity = 1; // Cantidad de ejemplo
 
@@ -62,25 +29,29 @@ const CartView = () => {
   };
 
   /* calcula subtotal, ahorros y total de artículos en el carrito */
-  const { subtotal, originalSubtotal, savings, totalItems } = useMemo(() => { /* usamos memo para optimizar el cálculo de totales */
-    return items.reduce(
-      (acc, item) => {
-        const quantity = Number(item.quantity ?? 1) || 1;
-        const { unitPrice, compareAtPrice, hasDiscount } = resolveItemPricing(item);
-        const lineSubtotal = unitPrice * quantity;
-        const lineOriginalSubtotal = compareAtPrice * quantity;
-        const lineSavings = hasDiscount ? (compareAtPrice - unitPrice) * quantity : 0;
+  const { subtotal, originalSubtotal, savings, totalItems } = useMemo(
+    () =>
+      items.reduce(
+        (acc, item) => {
+          const quantity = Number(item.quantity ?? 1) || 1;
+          const { unitPrice, compareAtPrice, hasDiscount } = resolveItemPricing(item);
+          const lineSubtotal = unitPrice * quantity;
+          const lineOriginalSubtotal = compareAtPrice * quantity;
+          const lineSavings = hasDiscount
+            ? (compareAtPrice - unitPrice) * quantity
+            : 0;
 
-        return {
-          subtotal: acc.subtotal + lineSubtotal,
-          originalSubtotal: acc.originalSubtotal + lineOriginalSubtotal,
-          savings: acc.savings + lineSavings,
-          totalItems: acc.totalItems + item.quantity,
-        };
-      },
-      { subtotal: 0, originalSubtotal: 0, savings: 0, totalItems: 0 }
-    );
-  }, [items]);
+          return {
+            subtotal: acc.subtotal + lineSubtotal,
+            originalSubtotal: acc.originalSubtotal + lineOriginalSubtotal,
+            savings: acc.savings + lineSavings,
+            totalItems: acc.totalItems + item.quantity,
+          };
+        },
+        { subtotal: 0, originalSubtotal: 0, savings: 0, totalItems: 0 }
+      ),
+    [items]
+  );
 
   const estimatedTotal = subtotal;
   const savingsRate = originalSubtotal > 0 && savings > 0 ? Math.round((savings / originalSubtotal) * 100) : 0;

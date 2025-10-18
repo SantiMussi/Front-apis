@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { hasRole } from "../services/authService"
+import { formatCurrency, resolveItemPricing } from "../helpers/pricing";
 
 const ProductDetail = () => {
   const navigate = useNavigate();
@@ -63,10 +64,7 @@ const ProductDetail = () => {
   };
 
   const isOutOfStock = typeof product?.stock === "number" ? product.stock <= 0 : false;
-  const priceValue = Number(product?.price ?? 0);
-  const discountValue = Number(product?.discount ?? 0);
-  const hasDiscount = Number.isFinite(discountValue) && discountValue > 0;
-  const finalPrice = hasDiscount ? priceValue * (1 - discountValue) : priceValue;
+  const { unitPrice, compareAtPrice, hasDiscount, discountRate } = resolveItemPricing(product);
 
   const handleOpenVirtualFitter = () => {
     if (!product) return;
@@ -87,15 +85,11 @@ const ProductDetail = () => {
       <p className="description">{product.description}</p>
 
       <div className="price-block product-detail__price">
-        <span className="price-current">
-          ${finalPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-        </span>
+        <span className="price-current">{formatCurrency(unitPrice)}</span>
         {hasDiscount && (
           <>
-            <span className="price-original">
-              ${priceValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </span>
-            <span className="price-tag">-{Math.round(discountValue * 100)}%</span>
+            <span className="price-original">{formatCurrency(compareAtPrice)}</span>
+            <span className="price-tag">-{Math.round(discountRate * 100)}%</span>
           </>
         )}
       </div>

@@ -1,12 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import {
-  getCouponByCode,
-  getOrderById,
-  purchaseOrder,
-} from "../../services/checkoutService";
+import { getCouponByCode, getOrderById, purchaseOrder } from "../../services/checkoutService";
 import { getCurrentUser } from "../../services/authService";
 import "./checkout.css";
+import { formatCurrency, resolveItemPricing } from "../../helpers/pricing";
+import { normalizeBase64Image } from "../../helpers/image";
 
 const shippingOptions = [
   {
@@ -49,45 +47,6 @@ const paymentMethods = [
     description: "Mostraremos los datos bancarios una vez confirmes la compra",
   },
 ];
-
-const formatCurrency = (value) =>
-  `$${Number(value ?? 0).toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
-
-const resolveItemPricing = (item) => {
-  const priceValue = Number(item?.price ?? 0);
-  const originalPriceValue = Number(item?.originalPrice ?? priceValue);
-  const discountValue = Number(item?.discount ?? 0);
-  const hasDiscountFromDiscount = Number.isFinite(discountValue) && discountValue > 0;
-
-  let unitPrice = priceValue;
-  let compareAtPrice = originalPriceValue;
-
-  if (hasDiscountFromDiscount) {
-    compareAtPrice = priceValue;
-    unitPrice = priceValue * (1 - discountValue);
-  } else if (originalPriceValue > priceValue) {
-    unitPrice = priceValue;
-    compareAtPrice = originalPriceValue;
-  }
-
-  const hasDiscount = compareAtPrice > unitPrice && compareAtPrice > 0;
-  const discountRate = hasDiscount && compareAtPrice !== 0 ? 1 - unitPrice / compareAtPrice : 0;
-
-  return {
-    unitPrice,
-    compareAtPrice: hasDiscount ? compareAtPrice : unitPrice,
-    hasDiscount,
-    discountRate,
-  };
-};
-
-const normalizeBase64Image = (value) => {
-  if (!value) return null;
-  return value.startsWith("data:") ? value : `data:image/png;base64,${value}`;
-};
 
 const CheckoutView = () => {
   const navigate = useNavigate();
@@ -252,8 +211,6 @@ const CheckoutView = () => {
   const handleBackToCart = () => {
     navigate("/cart");
   };
-
-  console.log(items)
 
   return (
     <main className="checkout-page">

@@ -1,13 +1,5 @@
-const normalizeBase64Image = (value) => {
-  if (!value) return null;
-  return value.startsWith("data:") ? value : `data:image/png;base64,${value}`;
-};
-
-const formatCurrency = (value) =>
-  `$${Number(value ?? 0).toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
+import { formatCurrency, resolveItemPricing } from "../../helpers/pricing";
+import { normalizeBase64Image } from "../../helpers/image";
 
 const CartItem = ({ item, onQuantityChange, onRemove }) => {
   const {
@@ -17,46 +9,27 @@ const CartItem = ({ item, onQuantityChange, onRemove }) => {
     price,
     originalPrice,
     quantity,
-    image,
     base64img,
-    base64Img,
     description,
     categoryName,
-    brand,
-    color,
     discount,
   } = item;
 
-  const priceValue = Number(price ?? 0);
-  const discountValue = Number(discount ?? 0);
-  const originalPriceValue = Number(originalPrice ?? priceValue);
+  const { unitPrice, compareAtPrice, hasDiscount, discountRate } = resolveItemPricing({
+    price,
+    originalPrice,
+    discount,
+  });
 
-  const hasDiscountFromDiscount = Number.isFinite(discountValue) && discountValue > 0;
-
-  let unitPrice = priceValue;
-  let compareAtPrice = originalPriceValue;
-
-  if (hasDiscountFromDiscount) {
-    compareAtPrice = priceValue;
-    unitPrice = priceValue * (1 - discountValue);
-  } else if (originalPriceValue > priceValue) {
-    unitPrice = priceValue;
-    compareAtPrice = originalPriceValue;
-  }
-
-  const hasDiscount = compareAtPrice > unitPrice && compareAtPrice > 0;
   const subtotal = unitPrice * quantity;
-  const discountRate = hasDiscount && compareAtPrice !== 0 ? 1 - unitPrice / compareAtPrice : 0;
 
-  const resolvedImage =
-    normalizeBase64Image(base64img ?? base64Img) ?? image ?? "https://via.placeholder.com/120x140?text=Producto";
+  const resolvedImage = normalizeBase64Image(base64img);
 
   const detailChips = [
     size ? `Talle ${size}` : null,
-    color ?? null,
   ].filter(Boolean);
 
-  const leadingLabel = categoryName ?? brand ?? null;
+  const leadingLabel = categoryName ?? null;
 
   return (
     <article className="cart-item">
