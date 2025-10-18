@@ -149,7 +149,7 @@ export async function createCoupon(coupon) {
         method: "POST",
         headers: {
         "Content-Type": "application/json",
-        },
+        ...authHeader()},
         body: JSON.stringify(coupon),
     });
     if(!response.ok) throw new Error('Error al crear cupon');

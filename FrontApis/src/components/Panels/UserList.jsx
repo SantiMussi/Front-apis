@@ -1,8 +1,7 @@
 import { ROLE_OPTIONS } from "../../constants/user";
 
 /* Formatea el nombre para mostrar en la lista de usuarios */
-const formatDisplayName = (user) =>
-  [user.first_name, user.last_name].filter(Boolean).join(" ").trim();
+const formatDisplayName = (user) => [user.first_name, user.last_name].filter(Boolean).join(" ").trim();
 
 const UserList = ({ users, onRoleChange, updatingUserId, roleOptions = ROLE_OPTIONS }) => {
   return (
@@ -22,7 +21,7 @@ const UserList = ({ users, onRoleChange, updatingUserId, roleOptions = ROLE_OPTI
               <label className="admin-item-meta">
                 Rol:
                 <select
-                    className="admin-select"
+                    className="admin-select role"
                     value={normalizedRoleValue}
                     onChange={(event) => onRoleChange(user, event.target.value)}
                     disabled={updatingUserId === user.id}

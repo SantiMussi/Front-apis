@@ -365,7 +365,8 @@ function THEGODPAGE() {
       notify("error", "Seleccioná una fecha de expiración");
       return;
     }
-
+    
+    console.log(couponForm)
     setLoading(true);
     try {
       await createCoupon({
@@ -425,173 +426,170 @@ function THEGODPAGE() {
         <div className="admin-loading">Cargando información...</div>
       )}
 
-      <section className="admin-section">
-        <div className="admin-card">
-          <div className="admin-card-header">
-            <h2>Productos</h2>
-            <span>{products.length} en total</span>
-          </div>
-          <ProductList
-            products={products}
-            categories={categories}
-            onEdit={handleEditProduct}
-            onDelete={handleDeleteProduct}
-          />
-
-          <ProductForm
-            title={selectedProductId ? "Editar producto" : "Crear producto"}
-            product={productForm}
-            categories={categories}
-            onChange={handleProductChange}
-            onSubmit={handleProductSubmit}
-            onCancel={selectedProductId ? resetProductForm : undefined}
-            submitLabel={selectedProductId ? "Actualizar" : "Crear"}
-            isSubmitting={loading}
-          />
-        </div>
-      </section>
-
-      <section className="admin-section">
-        <div className="admin-card">
-          <div className="admin-card-header">
-            <h2>Cupones</h2>
-            <span>{coupons.length} disponibles</span>
-          </div>
-
-          {coupons.length > 0 ? (
-            <div className="admin-table-wrapper">
-              <table className="admin-table">
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Código</th>
-                    <th>Descuento</th>
-                    <th>Expira</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {coupons.map((coupon) => (
-                    <tr key={coupon.id ?? coupon.code}>
-                      <td>{coupon.id ?? "-"}</td>
-                      <td>{coupon.code}</td>
-                      <td>{
-                        typeof coupon.discount === "number"
-                          ? `${(coupon.discount * 100).toFixed(0)}%`
-                          : coupon.discount
-                      }</td>
-                      <td>{coupon.expirationDate}</td>
-                      <td>
-                        <button
-                          type="button"
-                          className="admin-button danger"
-                          onClick={() => handleCouponDelete(coupon.id)}
-                          disabled={loading}
-                        >
-                          Eliminar
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+      <div className="admin-grid">
+        <section className="admin-section full-width">
+          <div className="admin-card split">
+            <div className="admin-card-header">
+              <h2>Productos</h2>
+              <span>{products.length} en total</span>
             </div>
-          ) : (
-            <p className="admin-empty">No hay cupones registrados.</p>
-          )}
-
-          <form className="admin-form" onSubmit={handleCouponSubmit}>
-            <h3>Nuevo cupón</h3>
-            <label>
-              Código
-              <input
-                type="text"
-                name="code"
-                value={couponForm.code}
-                onChange={handleCouponChange}
-                placeholder="Ej: TEST"
-                required
+            <div className="admin-card-block">
+              <ProductList
+                products={products}
+                categories={categories}
+                onEdit={handleEditProduct}
+                onDelete={handleDeleteProduct}
               />
-            </label>
-            <label>
-              Descuento
-              <input
-                type="number"
-                name="discount"
-                value={couponForm.discount}
-                onChange={handleCouponChange}
-                placeholder="0.2"
-                min="0"
-                max="1"
-                step="0.01"
-                required
+            </div>
+            <div className="admin-card-block">
+              <ProductForm
+                title={selectedProductId ? "Editar producto" : "Crear producto"}
+                product={productForm}
+                categories={categories}
+                onChange={handleProductChange}
+                onSubmit={handleProductSubmit}
+                onCancel={selectedProductId ? resetProductForm : undefined}
+                submitLabel={selectedProductId ? "Actualizar" : "Crear"}
+                isSubmitting={loading}
               />
-            </label>
-            <label>
-              Fecha de expiración
-              <input
-                type="date"
-                name="expirationDate"
-                value={couponForm.expirationDate}
-                onChange={handleCouponChange}
-                required
-              />
-            </label>
-            <button
-              type="submit"
-              className="admin-button primary"
-              disabled={loading}
-            >
-              Crear cupón
-            </button>
-          </form>
-        </div>
-      </section>
-
-      <section className="admin-section two-columns">
-        <div className="admin-card">
-          <div className="admin-card-header">
-            <h2>Categorías</h2>
-            <span>{categories.length} registradas</span>
+            </div>
           </div>
+        </section>
 
-          <CategoryList categories={categories} />
+        <section className="admin-section">
+          <div className="admin-card">
+            <div className="admin-card-header">
+              <h2>Cupones</h2>
+              <span>{coupons.length} disponibles</span>
+            </div>
+            {coupons.length > 0 ? (
+              <div className="admin-list">
+                {coupons.map((coupon) => (
+                  <article
+                    key={coupon.id ?? coupon.code}
+                    className="admin-item"
+                  >
+                    <div className="admin-item-main">
+                      <h3>{coupon.code || `Cupón ${coupon.id ?? "-"}`}</h3>
+                      <p className="admin-item-meta">
+                        ID: {coupon.id ?? "-"} ·
+                        Descuento:{" "}
+                        {typeof coupon.discount === "number"
+                          ? `${(coupon.discount * 100).toFixed(0)}%`
+                          : coupon.discount ?? "-"}{" "}
+                        · Expira: {coupon.expirationDate ?? "-"}
+                      </p>
+                    </div>
 
-          <form className="admin-form" onSubmit={handleCategorySubmit}>
-            <h3>Nueva categoría</h3>
-            <label>
-              Descripción
-              <input
-                type="text"
-                name="description"
-                value={categoryForm.description}
-                onChange={handleCategoryChange}
-                placeholder="Descripción de la categoría"
-                required
-              />
-            </label>
-            <button
-              type="submit"
-              className="admin-button primary"
-              disabled={loading}
-            >
-              Crear categoría
-            </button>
-          </form>
-        </div>
+                    <div className="admin-item-actions">
+                      <button
+                        type="button"
+                        className="admin-button danger"
+                        onClick={() => handleCouponDelete(coupon.id)}
+                        disabled={loading}
+                      >
+                        Eliminar
+                      </button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <p className="admin-empty">No hay cupones registrados.</p>
+            )}
 
-        <div className="admin-card">
-          <div className="admin-card-header">
-            <h2>Usuarios</h2>
-            <span>{visibleUsers.length} registrados</span>
+            <form className="admin-form" onSubmit={handleCouponSubmit}>
+              <h3>Nuevo cupón</h3>
+              <label>
+                Código
+                <input
+                  type="text"
+                  name="code"
+                  value={couponForm.code}
+                  onChange={handleCouponChange}
+                  placeholder="Ej: TEST"
+                  required
+                />
+              </label>
+              <label>
+                Descuento
+                <input
+                  type="number"
+                  name="discount"
+                  value={couponForm.discount}
+                  onChange={handleCouponChange}
+                  placeholder="0.2"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  required
+                />
+              </label>
+              <label>
+                Fecha de expiración
+                <input
+                  type="date"
+                  name="expirationDate"
+                  value={couponForm.expirationDate}
+                  onChange={handleCouponChange}
+                  required
+                />
+              </label>
+              <button
+                type="submit"
+                className="admin-button primary"
+                disabled={loading}
+              >
+                Crear cupón
+              </button>
+            </form>
           </div>
-          <UserList
-            users={visibleUsers}
-            onRoleChange={handleUserRoleChange}
-            updatingUserId={updatingUserId}
-          />
-        </div>
-      </section>
+        </section>
+        <section className="admin-section">
+          <div className="admin-card">
+            <div className="admin-card-header">
+              <h2>Categorías</h2>
+              <span>{categories.length} registradas</span>
+            </div>
+            <CategoryList categories={categories} />
+
+            <form className="admin-form" onSubmit={handleCategorySubmit}>
+              <h3>Nueva categoría</h3>
+              <label>
+                Descripción
+                <input
+                  type="text"
+                  name="description"
+                  value={categoryForm.description}
+                  onChange={handleCategoryChange}
+                  placeholder="Descripción de la categoría"
+                  required
+                />
+              </label>
+              <button
+                type="submit"
+                className="admin-button primary"
+                disabled={loading}
+              >
+                Crear categoría
+              </button>
+            </form>
+          </div>
+        </section>
+        <section className="admin-section">
+          <div className="admin-card">
+            <div className="admin-card-header">
+              <h2>Usuarios</h2>
+              <span>{visibleUsers.length} registrados</span>
+            </div>
+            <UserList
+              users={visibleUsers}
+              onRoleChange={handleUserRoleChange}
+              updatingUserId={updatingUserId}
+            />
+          </div>
+        </section>
+      </div>
     </div>
   );
 }

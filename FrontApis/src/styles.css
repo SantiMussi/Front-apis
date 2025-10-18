@@ -723,7 +723,9 @@ nav{
 /* Admin page */
 .admin-page {
   padding: calc(var(--nav-h) + 2rem) var(--container-px) 4rem;
-  max-width: 1200px;
+  padding-right: 1rem;
+  padding-left: 1rem;
+  max-width: 1600px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -800,10 +802,43 @@ nav{
   gap: 2rem;
 }
 
+.admin-grid {
+  display: grid;
+  gap: 2.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+}
+
+.admin-section.full-width {
+  grid-column: 1 / -1;
+}
+
 .admin-section.two-columns {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 2rem;
+}
+
+.admin-card.split {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(260px, 1fr);
+  gap: 2rem;
+  align-items: start;
+}
+
+.admin-card.split .admin-card-header {
+  grid-column: 1 / -1;
+}
+
+.admin-card-block {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+@media (max-width: 1024px) {
+  .admin-card.split {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .admin-card {
@@ -840,7 +875,7 @@ nav{
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  max-height: 360px;
+  max-height: 520px;
   overflow-y: auto;
   padding-right: 0.4rem;
 }
@@ -1010,6 +1045,10 @@ nav{
   font-size: 0.85rem;
   letter-spacing: 0.04rem;
   text-transform: uppercase;
+}
+
+.admin-select.role{
+  margin-left: 0.5rem;
 }
 
 .admin-form input,
