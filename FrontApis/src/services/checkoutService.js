@@ -60,7 +60,7 @@ export async function getOrdersByUser(userId, { page, size } = {}) {
 
     const query = params.toString();
     const response = await fetch(
-        `${BASE_URL}/users/${userId}/orders${query ? `?${query}` : ""}`,
+        `${BASE_URL}/users/${userId}/orders`,
         {
             headers: authHeader(),
             credentials: "include",
