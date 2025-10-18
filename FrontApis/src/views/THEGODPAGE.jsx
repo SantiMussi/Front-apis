@@ -1,14 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  getProducts,
-  createProduct,
-  updateProduct,
-  deleteProduct,
-  getCategories,
-  createCategory,
-  getUsers,
-  updateUser,
-} from "../services/adminService";
+import { getProducts, createProduct, updateProduct, deleteProduct, getCategories, createCategory, getUsers, updateUser, getCoupons, createCoupon, deleteCoupon } from "../services/adminService";
 import { getCurrentUser, hasRole } from "../services/authService";
 import { EMPTY_PRODUCT } from "../constants/product";
 import ProductList from "../components/Panels/ProductList";
@@ -24,11 +15,17 @@ function THEGODPAGE() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [users, setUsers] = useState([]);
+  const [coupons, setCoupons] = useState([]);
 
   const [productForm, setProductForm] = useState(EMPTY_PRODUCT);
   const [selectedProductId, setSelectedProductId] = useState(null);
 
   const [categoryForm, setCategoryForm] = useState(EMPTY_CATEGORY);
+  const [couponForm, setCouponForm] = useState({
+    code: "",
+    discount: "",
+    expirationDate: "",
+  });
 
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -63,6 +60,18 @@ function THEGODPAGE() {
       console.error(error);
       notify("error", error.message || "No se pudieron cargar las categorías");
       setCategories([]);
+    }
+  };
+
+  // carga cupones
+  const loadCoupons = async () => {
+    try {
+      const data = await getCoupons();
+      setCoupons(Array.isArray(data) ? data : data?.content || []);
+    } catch (error) {
+      console.error(error);
+      notify("error", error.message || "No se pudieron cargar los cupones");
+      setCoupons([]);
     }
   };
 
@@ -135,7 +144,7 @@ function THEGODPAGE() {
   useEffect(() => {
     const bootstrap = async () => {
       setLoading(true);
-      await Promise.all([loadProducts(), loadCategories(), loadUsers()]);
+      await Promise.all([loadProducts(), loadCategories(), loadUsers(), loadCoupons()]);
       setLoading(false);
       setInitialLoad(false);
     };
@@ -316,9 +325,80 @@ function THEGODPAGE() {
   // recarga todo (productos, categorías, usuarios)
   const refreshAll = () => {
     setLoading(true);
-    Promise.all([loadProducts(), loadCategories(), loadUsers()])
+    Promise.all([loadProducts(), loadCategories(), loadUsers(), loadCoupons()])
       .catch(() => null)
       .finally(() => setLoading(false));
+  };
+
+    const resetCouponForm = () => {
+    setCouponForm({
+      code: "",
+      discount: "",
+      expirationDate: "",
+    });
+  };
+
+  const handleCouponChange = (event) => {
+    const { name, value } = event.target;
+    setCouponForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleCouponSubmit = async (event) => {
+    event.preventDefault();
+
+    const trimmedCode = couponForm.code.trim();
+    if (!trimmedCode) {
+      notify("error", "El cupón necesita un código");
+      return;
+    }
+
+    const discountValue = Number.parseFloat(couponForm.discount);
+    if (Number.isNaN(discountValue) || discountValue <= 0 || discountValue >= 1) {
+      notify("error", "El descuento debe ser un número entre 0 y 1");
+      return;
+    }
+
+    if (!couponForm.expirationDate) {
+      notify("error", "Seleccioná una fecha de expiración");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await createCoupon({
+        code: trimmedCode,
+        discount: discountValue,
+        expirationDate: couponForm.expirationDate,
+      });
+      notify("success", "Cupón creado correctamente");
+      resetCouponForm();
+      await loadCoupons();
+    } catch (error) {
+      console.error(error);
+      notify("error", error.message || "No se pudo crear el cupón");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCouponDelete = async (couponId) => {
+    if (!couponId) return;
+    const confirmed = window.confirm("¿Eliminar este cupón?");
+    if (!confirmed) return;
+    setLoading(true);
+    try {
+      await deleteCoupon(couponId);
+      notify("success", "Cupón eliminado correctamente");
+      await loadCoupons();
+    } catch (error) {
+      console.error(error);
+      notify("error", error.message || "No se pudo eliminar el cupón");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -368,7 +448,103 @@ function THEGODPAGE() {
             submitLabel={selectedProductId ? "Actualizar" : "Crear"}
             isSubmitting={loading}
           />
-          
+        </div>
+      </section>
+
+      <section className="admin-section">
+        <div className="admin-card">
+          <div className="admin-card-header">
+            <h2>Cupones</h2>
+            <span>{coupons.length} disponibles</span>
+          </div>
+
+          {coupons.length > 0 ? (
+            <div className="admin-table-wrapper">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Código</th>
+                    <th>Descuento</th>
+                    <th>Expira</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {coupons.map((coupon) => (
+                    <tr key={coupon.id ?? coupon.code}>
+                      <td>{coupon.id ?? "-"}</td>
+                      <td>{coupon.code}</td>
+                      <td>{
+                        typeof coupon.discount === "number"
+                          ? `${(coupon.discount * 100).toFixed(0)}%`
+                          : coupon.discount
+                      }</td>
+                      <td>{coupon.expirationDate}</td>
+                      <td>
+                        <button
+                          type="button"
+                          className="admin-button danger"
+                          onClick={() => handleCouponDelete(coupon.id)}
+                          disabled={loading}
+                        >
+                          Eliminar
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="admin-empty">No hay cupones registrados.</p>
+          )}
+
+          <form className="admin-form" onSubmit={handleCouponSubmit}>
+            <h3>Nuevo cupón</h3>
+            <label>
+              Código
+              <input
+                type="text"
+                name="code"
+                value={couponForm.code}
+                onChange={handleCouponChange}
+                placeholder="Ej: TEST"
+                required
+              />
+            </label>
+            <label>
+              Descuento
+              <input
+                type="number"
+                name="discount"
+                value={couponForm.discount}
+                onChange={handleCouponChange}
+                placeholder="0.2"
+                min="0"
+                max="1"
+                step="0.01"
+                required
+              />
+            </label>
+            <label>
+              Fecha de expiración
+              <input
+                type="date"
+                name="expirationDate"
+                value={couponForm.expirationDate}
+                onChange={handleCouponChange}
+                required
+              />
+            </label>
+            <button
+              type="submit"
+              className="admin-button primary"
+              disabled={loading}
+            >
+              Crear cupón
+            </button>
+          </form>
         </div>
       </section>
 
