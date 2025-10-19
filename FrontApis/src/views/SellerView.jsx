@@ -1,10 +1,20 @@
 import { useEffect, useMemo, useState } from "react";
-import { createProduct, getCategories, getProducts, updateProduct, deleteProduct } from "../services/adminService";
+import {
+  createProduct,
+  getCategories,
+  getProducts,
+  updateProduct,
+  deleteProduct,
+} from "../services/adminService";
 import ProductForm from "../components/Panels/ProductForm";
 import StatusAlert from "../components/Panels/StatusAlert";
 import { EMPTY_PRODUCT } from "../constants/product";
 import ProductList from "../components/Panels/ProductList";
-import { getCurrentUser } from "../services/authService";
+import { getCurrentUser, authHeader } from "../services/authService";
+import OrderCard from "../components/OrderComponents/OrderCard";
+import { normalizePage } from "../helpers/orderHelpers";
+
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 const SellerView = () => {
   const [productForm, setProductForm] = useState({ ...EMPTY_PRODUCT });
@@ -16,19 +26,28 @@ const SellerView = () => {
   const [isLoadingProducts, setIsLoadingProducts] = useState(true);
   const [selectedProductId, setSelectedProductId] = useState(null);
 
-  // Muestra una notificación temporal en UI
+  // Órdenes recibidas (seller)
+  const [sellerOrders, setSellerOrders] = useState([]);
+  const [soPage, setSoPage] = useState(0);
+  const [soSize] = useState(10);
+  const [soTotalPages, setSoTotalPages] = useState(1);
+  const [isLoadingSellerOrders, setIsLoadingSellerOrders] = useState(true);
+  const [sellerOrdersErr, setSellerOrdersErr] = useState("");
+
+  // Notificación temporal
   const notify = (type, message) => {
     setStatus({ type, message });
     window.clearTimeout(notify.timeoutId);
     notify.timeoutId = window.setTimeout(() => setStatus(null), 5000);
   };
 
-  // Resetea el formulario a vacío y cancela edición (propaga a ProductForm)
+  // Reset form
   const resetProductForm = () => {
     setProductForm({ ...EMPTY_PRODUCT });
     setSelectedProductId(null);
   };
 
+  // Categorías
   const fetchCategories = async () => {
     setIsLoadingCategories(true);
     try {
@@ -44,6 +63,7 @@ const SellerView = () => {
     }
   };
 
+  // Productos del vendedor
   const fetchSellerProducts = async () => {
     setIsLoadingProducts(true);
     try {
@@ -57,108 +77,115 @@ const SellerView = () => {
         : productsResponse?.content || [];
 
       const currentUserId = currentUser?.id;
-
       if (!currentUserId) {
-        notify(
-          "error",
-          "No se pudo identificar al usuario actual para listar sus productos"
-        );
+        notify("error", "No se pudo identificar al usuario actual para listar sus productos");
         setSellerProducts([]);
         return;
       }
 
-       // Filtra productos que pertenezcan al usuario actual (varios posibles nombres de campo)
-      const filteredProducts = parsedProducts.filter((product) => {
-        const creatorId = product?.creatorId;
-        if (creatorId === undefined || creatorId === null) {
-          return false;
-        }
-        return String(creatorId) === String(currentUserId);
+      const filtered = parsedProducts.filter((p) => {
+        const creatorId = p?.creatorId;
+        return creatorId !== undefined && creatorId !== null && String(creatorId) === String(currentUserId);
       });
 
-      setSellerProducts(filteredProducts);
+      setSellerProducts(filtered);
     } catch (error) {
       console.error(error);
-      notify(
-        "error",
-        error.message || "No se pudieron cargar los productos del vendedor"
-      );
+      notify("error", error.message || "No se pudieron cargar los productos del vendedor");
       setSellerProducts([]);
     } finally {
       setIsLoadingProducts(false);
     }
   };
 
-  // Carga inicial de categorías y productos
+  // Órdenes recibidas del vendedor
+  const fetchSellerOrders = async () => {
+    setIsLoadingSellerOrders(true);
+    setSellerOrdersErr("");
+    try {
+      // TODO: ajustá el endpoint si tu API usa otro
+      const url = `${BASE_URL}/orders/seller?page=${soPage}&size=${soSize}`;
+      const res = await fetch(url, {
+        headers: { "Content-Type": "application/json", ...authHeader() },
+        credentials: "include",
+      });
+
+      if (res.status === 401) {
+        setSellerOrders([]);
+        setSoTotalPages(1);
+        setSellerOrdersErr("");
+        return;
+      }
+      if (res.status === 204 || res.status === 404) {
+        setSellerOrders([]);
+        setSoTotalPages(1);
+        setSellerOrdersErr("");
+        return;
+      }
+      if (!res.ok) {
+        await res.text().catch(() => null);
+        throw new Error("No pudimos cargar tus órdenes recibidas");
+      }
+
+      const data = await res.json();
+      const n = normalizePage(data);
+      setSellerOrders(n.items);
+      setSoTotalPages(n.totalPages || 1);
+      setSellerOrdersErr("");
+    } catch (e) {
+      setSellerOrdersErr(e?.message || "No pudimos cargar tus órdenes recibidas");
+      setSellerOrders([]);
+      setSoTotalPages(1);
+    } finally {
+      setIsLoadingSellerOrders(false);
+    }
+  };
+
+  // Carga inicial
   useEffect(() => {
     fetchCategories();
     fetchSellerProducts();
-
     return () => {
-      if (notify.timeoutId) {
-        window.clearTimeout(notify.timeoutId); // limpia timeouts al desmontar
-      }
+      if (notify.timeoutId) window.clearTimeout(notify.timeoutId);
     };
   }, []);
 
-  // Maneja cambios de inputs del formulario (Propaga a productForm)
-  const handleProductChange = (event) => {
-    const { name, value } = event.target;
-    setProductForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+  // Recarga órdenes cuando cambia la página
+  useEffect(() => {
+    fetchSellerOrders();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [soPage]);
+
+  // Form product
+  const handleProductChange = (e) => {
+    const { name, value } = e.target;
+    setProductForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Logica de envio del formulario (propaga a ProductForm)
   const handleProductSubmit = async (event) => {
     event.preventDefault();
     if (isSubmitting) return;
     setIsSubmitting(true);
     try {
       const trimmedName = productForm.name.trim();
-      if (!trimmedName) {
-        notify("error", "El nombre del producto es obligatorio");
-        return;
-      }
+      if (!trimmedName) return notify("error", "El nombre del producto es obligatorio");
 
       const priceValue = Number.parseFloat(productForm.price);
-      if (Number.isNaN(priceValue)) {
-        notify("error", "Ingresá un precio válido");
-        return;
-      }
+      if (Number.isNaN(priceValue)) return notify("error", "Ingresá un precio válido");
 
-      const discountValue =
-        productForm.discount === ""
-          ? 0
-          : Number.parseFloat(productForm.discount);
-      if (Number.isNaN(discountValue) || discountValue < 0 || discountValue > 1) {
-        notify("error", "El descuento debe estar entre 0 y 1");
-        return;
-      }
+      const discountValue = productForm.discount === "" ? 0 : Number.parseFloat(productForm.discount);
+      if (Number.isNaN(discountValue) || discountValue < 0 || discountValue > 1)
+        return notify("error", "El descuento debe estar entre 0 y 1");
 
-      const stockValue =
-        productForm.stock === ""
-          ? 0
-          : Number.parseInt(productForm.stock, 10);
-      if (Number.isNaN(stockValue) || stockValue < 0) {
-        notify("error", "El stock no es válido");
-        return;
-      }
+      const stockValue = productForm.stock === "" ? 0 : Number.parseInt(productForm.stock, 10);
+      if (Number.isNaN(stockValue) || stockValue < 0) return notify("error", "El stock no es válido");
 
       const categoryValue = Number.parseInt(productForm.categoryId, 10);
-      if (Number.isNaN(categoryValue)) {
-        notify("error", "Seleccioná una categoría válida");
-        return;
-      }
+      if (Number.isNaN(categoryValue)) return notify("error", "Seleccioná una categoría válida");
 
       const currentUser = await getCurrentUser();
-      if (!currentUser?.id) {
-        notify("error", "No se pudo identificar al usuario actual");
-        return;
-      }
+      if (!currentUser?.id) return notify("error", "No se pudo identificar al usuario actual");
 
-      // Payload normalizado para la API
       const payload = {
         name: trimmedName,
         description: productForm.description,
@@ -171,7 +198,6 @@ const SellerView = () => {
         creatorId: currentUser.id,
       };
 
-      // Decide si crear o actualizar según selectedProductId
       if (selectedProductId) {
         await updateProduct(selectedProductId, payload);
         notify("success", "Producto actualizado correctamente");
@@ -189,7 +215,6 @@ const SellerView = () => {
     }
   };
 
-  // Determina si el submit debe estar deshabilitado
   const isSubmitDisabled = useMemo(
     () =>
       isSubmitting ||
@@ -202,7 +227,6 @@ const SellerView = () => {
     [isSubmitting, isLoadingCategories, productForm]
   );
 
-  // Prepara el formulario para editar un producto (propaga a ProductList)
   const handleEditProduct = (formValues, productId) => {
     setSelectedProductId(productId ?? null);
 
@@ -213,18 +237,9 @@ const SellerView = () => {
 
     const normalizedForm = {
       ...formValues,
-      price:
-        formValues.price === undefined || formValues.price === null
-          ? ""
-          : formValues.price,
-      discount:
-        formValues.discount === undefined || formValues.discount === null
-          ? ""
-          : formValues.discount,
-      stock:
-        formValues.stock === undefined || formValues.stock === null
-          ? ""
-          : formValues.stock,
+      price: formValues.price ?? "",
+      discount: formValues.discount ?? "",
+      stock: formValues.stock ?? "",
       categoryId: normalizedCategoryValue,
       category_id: normalizedCategoryValue,
       base64img: formValues.base64img || "",
@@ -234,7 +249,6 @@ const SellerView = () => {
     setProductForm({ ...EMPTY_PRODUCT, ...normalizedForm });
   };
 
-  // Elimina producto por id (propaga a ProductList)
   const handleDeleteProduct = async (id) => {
     if (!id || isSubmitting) return;
     const confirmed = window.confirm("¿Eliminar este producto?");
@@ -245,9 +259,7 @@ const SellerView = () => {
       await deleteProduct(id);
       notify("success", "Producto eliminado correctamente");
       await fetchSellerProducts();
-      if (selectedProductId === id) {
-        resetProductForm();
-      }
+      if (selectedProductId === id) resetProductForm();
     } catch (error) {
       console.error(error);
       notify("error", error.message || "No se pudo eliminar el producto");
@@ -256,13 +268,12 @@ const SellerView = () => {
     }
   };
 
-  // Refresca categorías y productos 
+  // Refrescar todo
   const handleRefresh = () => {
-    if (isLoadingCategories || isSubmitting || isLoadingProducts) {
-      return;
-    }
+    if (isLoadingCategories || isSubmitting || isLoadingProducts || isLoadingSellerOrders) return;
     fetchCategories();
     fetchSellerProducts();
+    fetchSellerOrders();
   };
 
   const isEditing = Boolean(selectedProductId);
@@ -272,17 +283,13 @@ const SellerView = () => {
       <header className="admin-header">
         <div>
           <h1>Panel de Vendedor</h1>
-          <p className="admin-subtitle">
-            Cargá nuevos productos para que aparezcan en la tienda.
-          </p>
+          <p className="admin-subtitle">Cargá nuevos productos para que aparezcan en la tienda.</p>
         </div>
         <button
           type="button"
           className="admin-refresh"
           onClick={handleRefresh}
-          disabled={
-            isLoadingCategories || isSubmitting || isLoadingProducts
-          }
+          disabled={isLoadingCategories || isSubmitting || isLoadingProducts || isLoadingSellerOrders}
         >
           Actualizar datos
         </button>
@@ -294,6 +301,61 @@ const SellerView = () => {
         <div className="admin-loading">Cargando categorías...</div>
       )}
 
+      {/* Órdenes recibidas */}
+      <section className="admin-section">
+        <div className="admin-card">
+          <div className="admin-card-header">
+            <h2>Mis órdenes recibidas</h2>
+            <span>{isLoadingSellerOrders ? "—" : `${sellerOrders.length} en esta página`}</span>
+          </div>
+
+          {isLoadingSellerOrders && <div className="admin-loading">Cargando órdenes...</div>}
+
+          {!isLoadingSellerOrders && sellerOrdersErr && (
+            <div className="admin-alert error">{sellerOrdersErr}</div>
+          )}
+
+          {!isLoadingSellerOrders && !sellerOrdersErr && sellerOrders.length === 0 && (
+            <div className="no-product">Aún no recibiste órdenes</div>
+          )}
+
+          {!isLoadingSellerOrders && !sellerOrdersErr && sellerOrders.length > 0 && (
+            <section className="orders-list">
+              {sellerOrders.map((o) => (
+                <OrderCard
+                  key={o?.id ?? o?.orderId ?? crypto.randomUUID()}
+                  order={o}
+                  variant="seller"
+                />
+              ))}
+            </section>
+          )}
+
+          {!isLoadingSellerOrders && soTotalPages > 1 && (
+            <div className="orders-pagination">
+              <button
+                className="admin-button"
+                onClick={() => setSoPage((p) => Math.max(0, p - 1))}
+                disabled={soPage === 0}
+              >
+                Anterior
+              </button>
+              <span className="orders-page-indicator">
+                Página {soPage + 1} de {soTotalPages}
+              </span>
+              <button
+                className="admin-button"
+                onClick={() => setSoPage((p) => Math.min(soTotalPages - 1, p + 1))}
+                disabled={soPage >= soTotalPages - 1}
+              >
+                Siguiente
+              </button>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Formulario de producto */}
       <section className="admin-section">
         <div className="admin-card">
           <div className="admin-card-header">
@@ -306,7 +368,9 @@ const SellerView = () => {
             categories={categories}
             onChange={handleProductChange}
             onSubmit={handleProductSubmit}
-            submitLabel={isSubmitting ? "Cargando..." : isEditing ? "Actualizar producto" : "Cargar producto"}
+            submitLabel={
+              isSubmitting ? "Cargando..." : isEditing ? "Actualizar producto" : "Cargar producto"
+            }
             isSubmitting={isSubmitting}
             isSubmitDisabled={isSubmitDisabled}
             onCancel={resetProductForm}
@@ -315,6 +379,7 @@ const SellerView = () => {
         </div>
       </section>
 
+      {/* Lista de productos */}
       <section className="admin-section">
         <div className="admin-card">
           <div className="admin-card-header">
@@ -335,6 +400,6 @@ const SellerView = () => {
       </section>
     </div>
   );
-}
+};
 
 export default SellerView;

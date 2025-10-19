@@ -13,7 +13,7 @@ import RequireRole from './components/RequireRole';
 import SellerView from './views/SellerView';
 import THEGODPAGE from './views/THEGODPAGE';
 import Footer from "./components/Footer/Footer"
-import Orders from "./views/Order/Orders"
+import UserOrdersPage from "./views/Order/UserOrdersPage"
 import NotFoundView from './views/NotFoundView';
 
 import Terms from "./components/Footer/Terms.jsx";
@@ -30,7 +30,7 @@ function App() {
           path="/orders"
           element={
             <RequireRole roles={['USER']}>
-              <Orders />
+              <UserOrdersPage />
             </RequireRole>
           }
         />

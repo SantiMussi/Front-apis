@@ -4,7 +4,7 @@ function formatCurrency(value, currency) {
     return new Intl.NumberFormat("es-AR", {
         style: "currency",
         currency,
-    }).format(value);
+    }).format(value ?? 0);
 }
 
 function OrderItemRow({ item, currency }) {
@@ -35,15 +35,16 @@ function OrderItemRow({ item, currency }) {
 }
 
 export default function OrderItemsList({ items, currency }) {
-    if (!Array.isArray(items) || items.length === 0) {
-        return <div className="no-product compact">Orden sin ítems</div>;
+
+    const list = Array.isArray(items) ? items : [];
+
+    if(list.length === 0){
+        return <div classname='no-product compact'>Orden sin items</div>
     }
 
-    return (
+    return(
         <ul className="order-items">
-            {items.map((item, idx) => (
-                <OrderItemRow key={idx} item={item} currency={currency} />
-            ))}
+            {list.map((item, idx) => (<OrderItemRow key={idx} item={item} currency={currency} />))}
         </ul>
     );
 }
