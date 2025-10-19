@@ -98,48 +98,66 @@ const SellerView = () => {
     }
   };
 
-  // Órdenes recibidas del vendedor
   const fetchSellerOrders = async () => {
     setIsLoadingSellerOrders(true);
     setSellerOrdersErr("");
     try {
-      // TODO: ajustá el endpoint si tu API usa otro
-      const url = `${BASE_URL}/orders/seller?page=${soPage}&size=${soSize}`;
-      const res = await fetch(url, {
-        headers: { "Content-Type": "application/json", ...authHeader() },
-        credentials: "include",
-      });
+      // usuario actual para comparar creatorId
+      const me = await getCurrentUser();
+      const myId = me?.id;
+      if (!myId) {
+        setSellerOrders([]); setSoTotalPages(1);
+        setSellerOrdersErr("No pudimos identificar al vendedor autenticado.");
+        setIsLoadingSellerOrders(false);
+        return;
+      }
 
-      if (res.status === 401) {
-        setSellerOrders([]);
-        setSoTotalPages(1);
-        setSellerOrdersErr("");
-        return;
+      // Intento con paginado
+      let res = await fetch(
+        `${BASE_URL}/orders?page=${soPage}&size=${soSize}`,
+        { headers: { "Content-Type": "application/json", ...authHeader() }, credentials: "include" }
+      );
+
+      // si el backend no pagina /orders, probamos sin query
+      if (res.status === 400) {
+        res = await fetch(`${BASE_URL}/orders`, {
+          headers: { "Content-Type": "application/json", ...authHeader() }, credentials: "include"
+        });
       }
-      if (res.status === 204 || res.status === 404) {
-        setSellerOrders([]);
-        setSoTotalPages(1);
-        setSellerOrdersErr("");
-        return;
-      }
+
+      if (res.status === 401) { setSellerOrders([]); setSoTotalPages(1); setSellerOrdersErr(""); return; }
+      if (res.status === 204 || res.status === 404) { setSellerOrders([]); setSoTotalPages(1); setSellerOrdersErr(""); return; }
       if (!res.ok) {
         await res.text().catch(() => null);
-        throw new Error("No pudimos cargar tus órdenes recibidas");
+        throw new Error("No pudimos cargar tus órdenes recibidas.");
       }
 
       const data = await res.json();
       const n = normalizePage(data);
-      setSellerOrders(n.items);
+      const allOrders = Array.isArray(n.items) ? n.items : [];
+
+      // 🔎 filtrar órdenes que tengan al menos un item con product.creatorId === myId
+      const mine = allOrders.filter((ord) => {
+        const items = Array.isArray(ord?.items) ? ord.items :
+          Array.isArray(ord?.orderItems) ? ord.orderItems : [];
+        return items.some((it) => {
+          const p = it?.product;
+          return p?.creatorId != null && String(p.creatorId) === String(myId);
+        });
+      });
+
+      setSellerOrders(mine);
+      // si la API no devuelve paginado real, mantené una sola página
       setSoTotalPages(n.totalPages || 1);
       setSellerOrdersErr("");
     } catch (e) {
-      setSellerOrdersErr(e?.message || "No pudimos cargar tus órdenes recibidas");
-      setSellerOrders([]);
-      setSoTotalPages(1);
+      setSellerOrdersErr(e?.message || "No pudimos cargar tus órdenes recibidas.");
+      setSellerOrders([]); setSoTotalPages(1);
     } finally {
       setIsLoadingSellerOrders(false);
     }
   };
+
 
   // Carga inicial
   useEffect(() => {
