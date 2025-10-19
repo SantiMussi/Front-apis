@@ -37,7 +37,7 @@ export default function SellerOrdersPage() {
     );
   }
 
-  // AJUSTAR DSP AL ENDPOINT DEL VENDEDOR
+  // TODO: AJUSTAR DSP AL ENDPOINT DEL VENDEDOR
   const fetchFn = async (p, s) => {
     const res = await fetch(`${BASE_URL}/orders/seller?page=${p}&size=${s}`, {
       headers: { "Content-Type": "application/json", ...authHeader() },
