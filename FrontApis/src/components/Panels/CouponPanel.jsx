@@ -1,3 +1,5 @@
+import CouponList from "./CouponList";
+
 const CouponPanel = ({coupons = [], couponForm = {}, onChange, onSubmit, onDelete, loading = false}) => {
   const hasCoupons = Array.isArray(coupons) && coupons.length > 0;
   const { code = "", discount = "", expirationDate = "" } = couponForm;
@@ -9,40 +11,8 @@ const CouponPanel = ({coupons = [], couponForm = {}, onChange, onSubmit, onDelet
           <h2>Cupones</h2>
           <span>{coupons.length} disponibles</span>
         </div>
-        {hasCoupons ? (
-          <div className="admin-list">
-            {coupons.map((coupon) => (
-              <article
-                key={coupon.id ?? coupon.code}
-                className="admin-item"
-              >
-                <div className="admin-item-main">
-                  <h3>{coupon.code || `Cupón ${coupon.id ?? "-"}`}</h3>
-                  <p className="admin-item-meta">
-                    ID: {coupon.id ?? "-"} · Descuento: {" "}
-                    {typeof coupon.discount === "number"
-                      ? `${(coupon.discount * 100).toFixed(0)}%`
-                      : coupon.discount ?? "-"}{" "}
-                    · Expira: {coupon.expirationDate ?? "-"}
-                  </p>
-                </div>
-
-                <div className="admin-item-actions">
-                  <button
-                    type="button"
-                    className="admin-button danger"
-                    onClick={() => onDelete?.(coupon.id)}
-                    disabled={loading}
-                  >
-                    Eliminar
-                  </button>
-                </div>
-              </article>
-            ))}
-          </div>
-        ) : (
-          <p className="admin-empty">No hay cupones registrados.</p>
-        )}
+        
+        <CouponList coupons={coupons} onDelete={onDelete} loading={loading} />              
 
         <form className="admin-form" onSubmit={onSubmit}>
           <h3>Nuevo cupón</h3>

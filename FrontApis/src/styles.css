@@ -866,6 +866,7 @@ nav{
   display: grid;
   gap: 2.5rem;
   grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  align-items: stretch;
 }
 
 .admin-section.full-width {
@@ -901,6 +902,10 @@ nav{
   }
 }
 
+.admin-section {
+  height: 100%;
+}
+
 .admin-card {
   background: rgba(17,17,17,0.8);
   border: 1px solid var(--line);
@@ -910,6 +915,7 @@ nav{
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  height: 100%;
 }
 
 .admin-card-header {
@@ -940,8 +946,8 @@ nav{
   padding-right: 0.4rem;
 }
 
-.admin-list.compact {
-  max-height: 300px;
+.admin-list.categories {
+  max-height: 440px;
   gap: 0.75rem;
 }
 
@@ -950,9 +956,12 @@ nav{
   flex-direction: column;
   gap: 1rem;
   overflow-y: auto;
-  max-height: 500px;
+  max-height: 600px;
 }
 
+.admin-list.coupons {
+  max-height: 300px;
+}
 
 .admin-item {
   display: flex;

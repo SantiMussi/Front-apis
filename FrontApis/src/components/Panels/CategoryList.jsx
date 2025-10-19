@@ -1,6 +1,6 @@
 const CategoryList = ({ categories }) => {
   return (
-    <ul className="admin-list compact">
+    <ul className="admin-list categories">
       {categories.map((category) => (
         <li key={category.id} className="admin-item">
           <div className="admin-item-main">
