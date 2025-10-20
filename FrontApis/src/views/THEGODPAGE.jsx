@@ -590,11 +590,19 @@ function THEGODPAGE() {
           {!isLoadingadminOrders && !adminOrdersErr && orders.length > 0 && (
             <section className="orders-list">
               {orders.map((o) => (
+
+                <>
                 <OrderCard
                   key={o?.id ?? o?.orderId ?? crypto.randomUUID()}
                   order={o}
                   variant="ADMIN"
                 />
+
+                <button
+                  type="submit"
+                  onClick={handleOrderChange}
+                >Actualizar estado</button>
+                </>
               ))}
             </section>
           )}
