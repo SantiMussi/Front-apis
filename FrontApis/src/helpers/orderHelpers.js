@@ -23,17 +23,6 @@ export function normalizePage(payload) {
     };
 }
 
-export function getItemThumb(item) {
-    return (
-        item?.image_preview_url ||
-        item?.base64img ||
-        item?.image ||
-        item?.img ||
-        item?.product?.base64img ||
-        null
-    );
-}
-
 export function getOrderItems(order) {
     if (Array.isArray(order?.items)) return order.items;
     if (Array.isArray(order?.orderItems)) return order.orderItems;

@@ -1,5 +1,3 @@
-import { getItemThumb } from "../../helpers/orderHelpers";
-
 function formatCurrency(value, currency) {
     return new Intl.NumberFormat("es-AR", {
         style: "currency",
@@ -8,11 +6,11 @@ function formatCurrency(value, currency) {
 }
 
 function OrderItemRow({ item, currency }) {
-    const name = item?.name || "Ítem";
+    const name = item?.product?.name || "Ítem";
     const qty = item?.quantity;
-    const price = item?.subtotal / item?.quantity;
+    const price = item?.product?.price;
     const lineTotal = item?.subtotal;
-    const img = item?.base64img;
+    const img = item?.product?.base64img;
 
     return (
         <li className="order-item">
