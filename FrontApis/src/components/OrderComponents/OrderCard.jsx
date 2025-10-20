@@ -2,15 +2,13 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import OrderItemsList from "./OrderItemsList";
 import {
-    getItemThumb,
     getOrderItems,
     resolveOrderCurrency,
     resolveOrderCreatedAt,
     resolveOrderId,
     resolveOrderStatus,
     resolveOrderTotal,
-    statusClass,
-} from "../../helpers/orderHelpers";
+    } from "../../helpers/orderHelpers";
 
 function formatCurrency(value, currency) {
     return new Intl.NumberFormat("es-AR", {
@@ -30,7 +28,6 @@ function formatCurrency(value, currency) {
 export default function OrderCard({
     order,
     variant = "buyer",
-    showOpenButton = true,
     onOpenChange,
 }) {
     const [open, setOpen] = useState(false);
@@ -42,12 +39,7 @@ export default function OrderCard({
     const currency = resolveOrderCurrency(order);
 
     const items = useMemo(() => getOrderItems(order), [order]);
-
-    const thumbs = useMemo(
-        () => items.map(getItemThumb).filter(Boolean).slice(0, 4),
-        [items]
-    );
-
+   
     //Meta extra si es variant seller (no rompe si no viene)
     const buyerName = order?.buyerName || order?.user?.name || order?.customerName || null;
     const buyerEmail = order?.buyerEmail || order?.user?.email || order?.customerEmail || null;
@@ -65,7 +57,7 @@ export default function OrderCard({
             <div className="order-card__header">
                 <div className="order-card__title">
                     <h3>Orden #{id}</h3>
-                    <span className={`status-badge ${statusClass(status)}`}>{status}</span>
+                    <span className={`status-badge ${status}`}>{status}</span>
                 </div>
 
                 <div className="order-card__meta">
