@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getCurrentUser, isLoggedIn, onAuthChange, authHeader } from "../../services/authService";
-import { getOrdersByUser, getUserOrders } from "../../services/checkoutService";
+import {isLoggedIn, onAuthChange, authHeader } from "../../services/authService";
 import OrderCard from "../../components/OrderComponents/OrderCard";
 import { normalizePage } from "../../helpers/orderHelpers";
 import "./Orders.css";
@@ -34,7 +33,7 @@ export default function OrdersPage() {
         setErr("");
 
         try {
-            // 1) Intento con paginado
+            // Intento con paginado
             let res = await fetch(
                 `${import.meta.env.VITE_API_URL}/users/me/orders?page=${page}&size=${size}`,
                 {
@@ -51,11 +50,11 @@ export default function OrdersPage() {
                 });
             }
 
-            // 401: sesión inválida → estado vacío amable
+            // 401: sesión inválida 
             if (res.status === 401) {
                 setOrders([]); setTotalPages(1); setErr(""); setLoading(false); return;
             }
-            // 204/404: sin órdenes → vacío amable
+            // 204/404: sin órdenes 
             if (res.status === 204 || res.status === 404) {
                 setOrders([]); setTotalPages(1); setErr(""); setLoading(false); return;
             }

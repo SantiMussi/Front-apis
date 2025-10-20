@@ -10,9 +10,7 @@ import ProductForm from "../components/Panels/ProductForm";
 import StatusAlert from "../components/Panels/StatusAlert";
 import { EMPTY_PRODUCT } from "../constants/product";
 import ProductList from "../components/Panels/ProductList";
-import { getCurrentUser, authHeader } from "../services/authService";
-import OrderCard from "../components/OrderComponents/OrderCard";
-import { normalizePage } from "../helpers/orderHelpers";
+import { getCurrentUser } from "../services/authService";
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -26,13 +24,6 @@ const SellerView = () => {
   const [isLoadingProducts, setIsLoadingProducts] = useState(true);
   const [selectedProductId, setSelectedProductId] = useState(null);
 
-  // Órdenes recibidas (seller)
-  const [sellerOrders, setSellerOrders] = useState([]);
-  const [soPage, setSoPage] = useState(0);
-  const [soSize] = useState(10);
-  const [soTotalPages, setSoTotalPages] = useState(1);
-  const [isLoadingSellerOrders, setIsLoadingSellerOrders] = useState(true);
-  const [sellerOrdersErr, setSellerOrdersErr] = useState("");
 
   // Notificación temporal
   const notify = (type, message) => {
@@ -98,66 +89,6 @@ const SellerView = () => {
     }
   };
 
-  const fetchSellerOrders = async () => {
-    setIsLoadingSellerOrders(true);
-    setSellerOrdersErr("");
-    try {
-      // usuario actual para comparar creatorId
-      const me = await getCurrentUser();
-      const myId = me?.id;
-      if (!myId) {
-        setSellerOrders([]); setSoTotalPages(1);
-        setSellerOrdersErr("No pudimos identificar al vendedor autenticado.");
-        setIsLoadingSellerOrders(false);
-        return;
-      }
-
-      // Intento con paginado
-      let res = await fetch(
-        `${BASE_URL}/orders?page=${soPage}&size=${soSize}`,
-        { headers: { "Content-Type": "application/json", ...authHeader() }, credentials: "include" }
-      );
-
-      // si el backend no pagina /orders, probamos sin query
-      if (res.status === 400) {
-        res = await fetch(`${BASE_URL}/orders`, {
-          headers: { "Content-Type": "application/json", ...authHeader() }, credentials: "include"
-        });
-      }
-
-      if (res.status === 401) { setSellerOrders([]); setSoTotalPages(1); setSellerOrdersErr(""); return; }
-      if (res.status === 204 || res.status === 404) { setSellerOrders([]); setSoTotalPages(1); setSellerOrdersErr(""); return; }
-      if (!res.ok) {
-        await res.text().catch(() => null);
-        throw new Error("No pudimos cargar tus órdenes recibidas.");
-      }
-
-      const data = await res.json();
-      const n = normalizePage(data);
-      const allOrders = Array.isArray(n.items) ? n.items : [];
-
-      // 🔎 filtrar órdenes que tengan al menos un item con product.creatorId === myId
-      const mine = allOrders.filter((ord) => {
-        const items = Array.isArray(ord?.items) ? ord.items :
-          Array.isArray(ord?.orderItems) ? ord.orderItems : [];
-        return items.some((it) => {
-          const p = it?.product;
-          return p?.creatorId != null && String(p.creatorId) === String(myId);
-        });
-      });
-
-      setSellerOrders(mine);
-      // si la API no devuelve paginado real, mantené una sola página
-      setSoTotalPages(n.totalPages || 1);
-      setSellerOrdersErr("");
-    } catch (e) {
-      setSellerOrdersErr(e?.message || "No pudimos cargar tus órdenes recibidas.");
-      setSellerOrders([]); setSoTotalPages(1);
-    } finally {
-      setIsLoadingSellerOrders(false);
-    }
-  };
-
 
   // Carga inicial
   useEffect(() => {
@@ -168,11 +99,7 @@ const SellerView = () => {
     };
   }, []);
 
-  // Recarga órdenes cuando cambia la página
-  useEffect(() => {
-    fetchSellerOrders();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [soPage]);
+
 
   // Form product
   const handleProductChange = (e) => {
@@ -288,10 +215,9 @@ const SellerView = () => {
 
   // Refrescar todo
   const handleRefresh = () => {
-    if (isLoadingCategories || isSubmitting || isLoadingProducts || isLoadingSellerOrders) return;
+    if (isLoadingCategories || isSubmitting || isLoadingProducts) return;
     fetchCategories();
     fetchSellerProducts();
-    fetchSellerOrders();
   };
 
   const isEditing = Boolean(selectedProductId);
@@ -307,7 +233,7 @@ const SellerView = () => {
           type="button"
           className="admin-refresh"
           onClick={handleRefresh}
-          disabled={isLoadingCategories || isSubmitting || isLoadingProducts || isLoadingSellerOrders}
+          disabled={isLoadingCategories || isSubmitting || isLoadingProducts}
         >
           Actualizar datos
         </button>
@@ -318,60 +244,6 @@ const SellerView = () => {
       {isLoadingCategories && categories.length === 0 && (
         <div className="admin-loading">Cargando categorías...</div>
       )}
-
-      {/* Órdenes recibidas */}
-      <section className="admin-section">
-        <div className="admin-card">
-          <div className="admin-card-header">
-            <h2>Mis órdenes recibidas</h2>
-            <span>{isLoadingSellerOrders ? "—" : `${sellerOrders.length} en esta página`}</span>
-          </div>
-
-          {isLoadingSellerOrders && <div className="admin-loading">Cargando órdenes...</div>}
-
-          {!isLoadingSellerOrders && sellerOrdersErr && (
-            <div className="admin-alert error">{sellerOrdersErr}</div>
-          )}
-
-          {!isLoadingSellerOrders && !sellerOrdersErr && sellerOrders.length === 0 && (
-            <div className="no-product">Aún no recibiste órdenes</div>
-          )}
-
-          {!isLoadingSellerOrders && !sellerOrdersErr && sellerOrders.length > 0 && (
-            <section className="orders-list">
-              {sellerOrders.map((o) => (
-                <OrderCard
-                  key={o?.id ?? o?.orderId ?? crypto.randomUUID()}
-                  order={o}
-                  variant="seller"
-                />
-              ))}
-            </section>
-          )}
-
-          {!isLoadingSellerOrders && soTotalPages > 1 && (
-            <div className="orders-pagination">
-              <button
-                className="admin-button"
-                onClick={() => setSoPage((p) => Math.max(0, p - 1))}
-                disabled={soPage === 0}
-              >
-                Anterior
-              </button>
-              <span className="orders-page-indicator">
-                Página {soPage + 1} de {soTotalPages}
-              </span>
-              <button
-                className="admin-button"
-                onClick={() => setSoPage((p) => Math.min(soTotalPages - 1, p + 1))}
-                disabled={soPage >= soTotalPages - 1}
-              >
-                Siguiente
-              </button>
-            </div>
-          )}
-        </div>
-      </section>
 
       {/* Formulario de producto */}
       <section className="admin-section">

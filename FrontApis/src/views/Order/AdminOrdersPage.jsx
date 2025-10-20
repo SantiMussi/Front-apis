@@ -26,20 +26,20 @@ export default function SellerOrdersPage() {
       </main>
     );
   }
-  if (!hasRole("SELLER","ADMIN")) {
+  if (!hasRole("ADMIN")) {
     return (
       <main className="orders-page">
         <header className="orders-header"><h1>Órdenes recibidas</h1></header>
         <div className="admin-alert error" style={{ marginTop: "1rem" }}>
-          No tenés permisos de vendedor.
+          No tenés permisos de admin.
         </div>
       </main>
     );
   }
 
-  // TODO: AJUSTAR DSP AL ENDPOINT DEL VENDEDOR
+  // TODO: AJUSTAR DSP AL ENDPOINT DEL ADMIN
   const fetchFn = async (p, s) => {
-    const res = await fetch(`${BASE_URL}/orders/seller?page=${p}&size=${s}`, {
+    const res = await fetch(`${BASE_URL}/orders?page=${p}&size=${s}`, {
       headers: { "Content-Type": "application/json", ...authHeader() },
       credentials: "include",
     });
@@ -55,14 +55,14 @@ export default function SellerOrdersPage() {
   return (
     <OrdersList
       title="Órdenes recibidas"
-      subtitle="Pedidos que recibiste como vendedor"
+      subtitle="Pedidos que recibiste"
       loading={loading}
       err={err}
       orders={orders}
       totalPages={totalPages}
       page={page}
       setPage={setPage}
-      variant="seller"
+      variant="ADMIN"
     />
   );
 }

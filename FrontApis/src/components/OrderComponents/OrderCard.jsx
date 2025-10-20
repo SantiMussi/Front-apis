@@ -39,10 +39,7 @@ export default function OrderCard({
     const currency = resolveOrderCurrency(order);
 
     const items = useMemo(() => getOrderItems(order), [order]);
-   
-    //Meta extra si es variant seller (no rompe si no viene)
-    const buyerName = order?.buyerName || order?.user?.name || order?.customerName || null;
-    const buyerEmail = order?.buyerEmail || order?.user?.email || order?.customerEmail || null;
+    const buyerId = order?.userId
 
     const handleToggle = () => {
         const next = !open;
@@ -73,12 +70,12 @@ export default function OrderCard({
                         {formatCurrency(total, currency)}
                     </span>
 
-                    {variant === "SELLER" && (buyerName || buyerEmail) && (
+                    {variant === "ADMIN" && (buyerId) && (
                         <span className="order-meta">
                             <strong>
-                                Comprador:
-                            </strong> {buyerName || "—"}
-                            {buyerEmail ? ` ${buyerEmail}` : "—"}
+                                Id de comprador:
+                            </strong>
+                            {buyerId ? ` ${buyerId}` : "—"}
                         </span>
                     )}
                 </div>

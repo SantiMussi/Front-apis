@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { getProducts, createProduct, updateProduct, deleteProduct, getCategories, createCategory, getUsers, updateUser, getCoupons, createCoupon, deleteCoupon } from "../services/adminService";
-import { getCurrentUser, hasRole } from "../services/authService";
+import { authHeader, getCurrentUser, hasRole } from "../services/authService";
 import { EMPTY_PRODUCT } from "../constants/product";
 import ProductList from "../components/Panels/ProductList";
 import ProductForm from "../components/Panels/ProductForm";
@@ -9,8 +9,11 @@ import UserList from "../components/Panels/UserList";
 import StatusAlert from "../components/Panels/StatusAlert";
 import CouponPanel from "../components/Panels/CouponPanel";
 import { normalizeUserRecord } from "../helpers/userAdmin";
+import { normalizePage } from "../helpers/orderHelpers";
+import OrderCard from "../components/OrderComponents/OrderCard";
 
 const EMPTY_CATEGORY = { description: "" };
+const BASE_URL = import.meta.env.VITE_API_URL
 
 function THEGODPAGE() {
   const [products, setProducts] = useState([]);
@@ -33,12 +36,54 @@ function THEGODPAGE() {
   const [initialLoad, setInitialLoad] = useState(true);
   const [updatingUserId, setUpdatingUserId] = useState(null);
 
+  // Órdenes recibidas
+  const [orders, setOrders] = useState([]);
+  const [soPage, setSoPage] = useState(0);
+  const [soSize] = useState(10);
+  const [soTotalPages, setSoTotalPages] = useState(1);
+  const [isLoadingadminOrders, setIsLoadingAdminOrders] = useState(true);
+  const [adminOrdersErr, setAdminOrdersErr] = useState("");
+
+
+  const fetchAdminOrders = async () => {
+    setIsLoadingAdminOrders(true);
+    setAdminOrdersErr("");
+    try {
+      let res = await fetch(`${BASE_URL}/orders`, {
+        headers: { "Content-Type": "application/json", ...authHeader() }, credentials: "include"
+      })
+      
+      if (res.status === 401) { setSoTotalPages(1); setAdminOrdersErr(""); return; }
+      if (res.status === 204 || res.status === 404) { setSoTotalPages(1); setAdminOrdersErr(""); return; }
+      if (!res.ok) {
+        await res.text().catch(() => null);
+        throw new Error("No pudimos cargar tus órdenes recibidas.");
+      }
+
+      const data = await res.json();
+      const n = normalizePage(data);
+      const allOrders = Array.isArray(n.items) ? n.items : [];
+
+      // si la API no devuelve paginado real, mantiene una sola página
+      setSoTotalPages(n.totalPages || 1);
+      setAdminOrdersErr("");
+      setOrders(allOrders)
+    } catch (e) {
+      setAdminOrdersErr(e?.message || "No pudimos cargar tus órdenes recibidas.");
+      setSoTotalPages(1);
+    } finally {
+      setIsLoadingAdminOrders(false);
+    }
+  };
+
+
+
   // muestra notificaciones temporales en pantalla
   const notify = (type, message) => {
-      setStatus({ type, message });
-      window.clearTimeout(notify.timeoutId);
-      notify.timeoutId = window.setTimeout(() => setStatus(null), 5000);
-    };
+    setStatus({ type, message });
+    window.clearTimeout(notify.timeoutId);
+    notify.timeoutId = window.setTimeout(() => setStatus(null), 5000);
+  };
 
   // carga productos desde la API
   const loadProducts = async () => {
@@ -76,7 +121,11 @@ function THEGODPAGE() {
     }
   };
 
-   // cambia de forma optimista el rol de usuario
+  const loadOrders = async () => {
+    fetchAdminOrders();
+  }
+
+  // cambia de forma optimista el rol de usuario
   const handleUserRoleChange = async (user, newRole) => {
     const normalizedRole = (newRole || "").trim().toUpperCase();
 
@@ -96,9 +145,9 @@ function THEGODPAGE() {
       prevUsers.map((item) =>
         item.id === user.id
           ? {
-              ...item,
-              role: normalizedRole,
-            }
+            ...item,
+            role: normalizedRole,
+          }
           : item
       )
     );
@@ -113,9 +162,9 @@ function THEGODPAGE() {
         prevUsers.map((item) =>
           item.id === user.id
             ? {
-                ...item,
-                role: previousRole,
-              }
+              ...item,
+              role: previousRole,
+            }
             : item
         )
       );
@@ -159,6 +208,11 @@ function THEGODPAGE() {
       }
     };
   }, []);
+
+  // Recarga órdenes cuando cambia la página
+  useEffect(() => {
+    fetchAdminOrders();
+  }, [soPage]);
 
   // decide si ocultar usuarios ADMIN según rol del actual
   const shouldHideAdminUsers = hasRole("ADMIN");
@@ -326,12 +380,12 @@ function THEGODPAGE() {
   // recarga todo (productos, categorías, usuarios)
   const refreshAll = () => {
     setLoading(true);
-    Promise.all([loadProducts(), loadCategories(), loadUsers(), loadCoupons()])
+    Promise.all([loadProducts(), loadCategories(), loadUsers(), loadCoupons(), loadOrders()])
       .catch(() => null)
       .finally(() => setLoading(false));
   };
 
-    const resetCouponForm = () => {
+  const resetCouponForm = () => {
     setCouponForm({
       code: "",
       discount: "",
@@ -366,7 +420,7 @@ function THEGODPAGE() {
       notify("error", "Seleccioná una fecha de expiración");
       return;
     }
-    
+
     console.log(couponForm)
     setLoading(true);
     try {
@@ -403,6 +457,10 @@ function THEGODPAGE() {
     }
   };
 
+  const handleOrderChange = async () => {
+    return;
+  }
+
   return (
     <div className="admin-page">
       <header className="admin-header">
@@ -421,7 +479,7 @@ function THEGODPAGE() {
         </button>
       </header>
 
-      <StatusAlert status={status}/>
+      <StatusAlert status={status} />
 
       {loading && initialLoad && (
         <div className="admin-loading">Cargando información...</div>
@@ -456,6 +514,7 @@ function THEGODPAGE() {
             </div>
           </div>
         </section>
+
         <CouponPanel
           coupons={coupons}
           couponForm={couponForm}
@@ -509,7 +568,62 @@ function THEGODPAGE() {
           </div>
         </section>
       </div>
+
+      {/* Órdenes recibidas */}
+      <section className="admin-section">
+        <div className="admin-card">
+          <div className="admin-card-header">
+            <h2>Mis órdenes recibidas</h2>
+            <span>{isLoadingadminOrders ? "—" : `${orders.length} en esta página`}</span>
+          </div>
+
+          {isLoadingadminOrders && <div className="admin-loading">Cargando órdenes...</div>}
+
+          {!isLoadingadminOrders && adminOrdersErr && (
+            <div className="admin-alert error">{adminOrdersErr}</div>
+          )}
+
+          {!isLoadingadminOrders && !adminOrdersErr && orders.length === 0 && (
+            <div className="no-product">Aún no recibiste órdenes</div>
+          )}
+
+          {!isLoadingadminOrders && !adminOrdersErr && orders.length > 0 && (
+            <section className="orders-list">
+              {orders.map((o) => (
+                <OrderCard
+                  key={o?.id ?? o?.orderId ?? crypto.randomUUID()}
+                  order={o}
+                  variant="ADMIN"
+                />
+              ))}
+            </section>
+          )}
+
+          {!isLoadingadminOrders && soTotalPages > 1 && (
+            <div className="orders-pagination">
+              <button
+                className="admin-button"
+                onClick={() => setSoPage((p) => Math.max(0, p - 1))}
+                disabled={soPage === 0}
+              >
+                Anterior
+              </button>
+              <span className="orders-page-indicator">
+                Página {soPage + 1} de {soTotalPages}
+              </span>
+              <button
+                className="admin-button"
+                onClick={() => setSoPage((p) => Math.min(soTotalPages - 1, p + 1))}
+                disabled={soPage >= soTotalPages - 1}
+              >
+                Siguiente
+              </button>
+            </div>
+          )}
+        </div>
+      </section>
     </div>
+
   );
 }
 
