@@ -356,7 +356,6 @@ export default function VirtualFitter() {
                     disabled={!activeProd}
                     onChange={(e) => setScaleAbs(editKey, parseFloat(e.target.value))}
                     onInput={(e) => updateRangeFill(e.currentTarget)}
-                    // onDoubleClick={() => activeProd && setScaleAbs(editKey, activeBase.scale)} // opcional reset por doble click
                   />
                   <span className="vf-bubble" data-unit="%">
                     {activeProd ? Math.round(activeScale * 100) : '—'}
@@ -384,7 +383,7 @@ export default function VirtualFitter() {
                 <div className="vf-percent">
                   <input
                     type="number"
-                    min={5}
+                    min={1}
                     max={150}
                     step={1}
                     disabled={!activeProd}

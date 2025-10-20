@@ -8,7 +8,7 @@ import {
     resolveOrderId,
     resolveOrderStatus,
     resolveOrderTotal,
-    } from "../../helpers/orderHelpers";
+} from "../../helpers/orderHelpers";
 
 function formatCurrency(value, currency) {
     return new Intl.NumberFormat("es-AR", {
@@ -33,11 +33,10 @@ export default function OrderCard({
     const [open, setOpen] = useState(false);
 
     const id = resolveOrderId(order);
-    const status = resolveOrderStatus(order);
+    const [status, setStatus] = useState(resolveOrderStatus(order))
     const createdAt = resolveOrderCreatedAt(order);
     const total = resolveOrderTotal(order);
     const currency = resolveOrderCurrency(order);
-
     const items = useMemo(() => getOrderItems(order), [order]);
     const buyerId = order?.userId
 
@@ -55,6 +54,23 @@ export default function OrderCard({
                 <div className="order-card__title">
                     <h3>Orden #{id}</h3>
                     <span className={`status-badge ${status}`}>{status}</span>
+                    {variant === "ADMIN" && (
+                        <><span>Editar estado del producto</span>
+                        <div className="vf-select-wrap">
+                            
+                            <select
+                                className="vf-select"
+                                value={status}
+                                onChange={(e) => setStatus(e.target.value)}
+                            >
+                                <option value="PENDIENTE">PENDIENTE</option>
+                                <option value="EN PROGRESO">EN PROGRESO</option>
+                                <option value="ENVIADO">ENVIADO</option>
+                                <option value="COMPLETADO">COMPLETADO</option>
+                            </select>
+                        </div>
+                        </>
+                    )}
                 </div>
 
                 <div className="order-card__meta">
