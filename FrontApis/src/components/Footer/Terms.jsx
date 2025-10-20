@@ -10,7 +10,7 @@ const Terms = () => {
                 <p>
 
                     Bienvenido/a a Szafrankus (en adelante, "el Sitio"). Al acceder y utilizar este sitio web, aceptás cumplir con los siguientes Términos y Condiciones. Si no estás de acuerdo con alguna parte de estos términos, te pedimos que no utilices el Sitio.
-
+                     
                     <h3>1. Información General </h3>
 
                     El Sitio es operado por Szafrankus SA, con domicilio en Lima 757. Nos dedicamos a la comercialización de ropa y accesorios a través de internet.
@@ -21,7 +21,7 @@ const Terms = () => {
 
                     <h3>3. Productos y Precios</h3>
 
-                    Los productos ofrecidos en el Sitio están sujetos a disponibilidad. Nos reservamos el derecho de modificar o discontinuar productos sin previo aviso. Todos los precios están expresados en [moneda local] e incluyen los impuestos aplicables, salvo que se indique lo contrario.
+                    Los productos ofrecidos en el Sitio están sujetos a disponibilidad. Nos reservamos el derecho de modificar o discontinuar productos sin previo aviso. Todos los precios están expresados en pesos (ARS$) e incluyen los impuestos aplicables, salvo que se indique lo contrario.
 
                     <h3>4. Proceso de Compra</h3>
 
@@ -29,11 +29,11 @@ const Terms = () => {
 
                     <h3>5. Pagos</h3>
 
-                    Aceptamos los siguientes medios de pago: [lista de medios de pago]. Las transacciones son procesadas a través de plataformas seguras. No almacenamos información sensible de tarjetas de crédito o débito.
+                    Aceptamos los siguientes medios de pago: Transferencia bancaria, Tarjeta de credito (red MasterCard, American Express), Tarjeta de debito (red Visa, MasterCard, American Express). Las transacciones son procesadas a través de plataformas seguras. No almacenamos información sensible de tarjetas de crédito o débito.
 
                 <h3>6. Envíos y Entregas</h3>
 
-                    Los envíos se realizan a través de [empresa de envíos]. Los plazos de entrega son estimativos y pueden variar según la ubicación. No nos responsabilizamos por demoras atribuibles al servicio de mensajería.
+                    Los envíos se realizan a través de Mercado Envios, Correo Argentino. Los plazos de entrega son estimativos y pueden variar según la ubicación. No nos responsabilizamos por demoras atribuibles al servicio de mensajería.
 
                 <h3>7. Cambios y Devoluciones</h3>
 
@@ -41,7 +41,7 @@ const Terms = () => {
 
                 <h3>8. Propiedad Intelectual</h3>
 
-                    Todo el contenido del Sitio (textos, imágenes, logos, diseños, etc.) es propiedad de [Nombre de la Tienda] o de sus respectivos autores, y está protegido por las leyes de propiedad intelectual. Queda prohibida su reproducción sin autorización expresa.
+                    Todo el contenido del Sitio (textos, imágenes, logos, diseños, etc.) es propiedad de Szafrankus SA o de sus respectivos autores, y está protegido por las leyes de propiedad intelectual. Queda prohibida su reproducción sin autorización expresa.
 
                 <h3>9. Protección de Datos</h3>
 
