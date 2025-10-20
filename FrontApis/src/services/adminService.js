@@ -1,24 +1,24 @@
 const BASE_URL = import.meta.env.VITE_API_URL;
 
 //Devuelve el token
-function authHeader(){
+function authHeader() {
     const token = localStorage.getItem('token');
     return token ? { 'Authorization': `Bearer ${token}` } : {};
 }
 
 //Funciones CRUD PRODUCTOS
 
-export async function getProducts(){
+export async function getProducts() {
     const response = await fetch(`${BASE_URL}/product`, {
         headers: authHeader()
     });
-    if(!response.ok) throw new Error('Error al obtener productos');
+    if (!response.ok) throw new Error('Error al obtener productos');
     return response.json();
 }
 
 //Crear producto
 
-export async function createProduct(product){
+export async function createProduct(product) {
     const response = await fetch(`${BASE_URL}/product`, {
         method: 'POST',
         headers: {
@@ -27,13 +27,13 @@ export async function createProduct(product){
         },
         body: JSON.stringify(product)
     });
-    if(!response.ok) throw new Error('Error al crear producto: ' + (await response.json()).message);
+    if (!response.ok) throw new Error('Error al crear producto: ' + (await response.json()).message);
     return response.json();
 }
 
 // Actualizar producto existente
 
-export async function updateProduct(id, product){
+export async function updateProduct(id, product) {
     const response = await fetch(`${BASE_URL}/product/${id}/modify`, {
         method: 'PUT',
         headers: {
@@ -42,95 +42,113 @@ export async function updateProduct(id, product){
         },
         body: JSON.stringify(product)
     });
-    if(!response.ok) throw new Error('Error al actualizar producto');
+    if (!response.ok) throw new Error('Error al actualizar producto');
     return response.json();
 }
 
 // Eliminar producto
 
-export async function deleteProduct(id){
+export async function deleteProduct(id) {
     const response = await fetch(`${BASE_URL}/product/${id}/delete`, {
         method: 'DELETE',
         headers: authHeader()
     });
-    if(!response.ok) throw new Error('Error al eliminar producto')
+    if (!response.ok) throw new Error('Error al eliminar producto')
 }
 
 // CATEGORIAS
 
 // Obtener todas las categorias
 
-export async function getCategories(){
+export async function getCategories() {
     const response = await fetch(`${BASE_URL}/categories`, {
         headers: authHeader()
     });
-    if(!response.ok) throw new Error('Error al obtener categorias');
+    if (!response.ok) throw new Error('Error al obtener categorias');
     return response.json();
 }
 
-export async function getCategoryById(id){
+export async function getCategoryById(id) {
     const response = await fetch(`${BASE_URL}/categories/${id}`, {
         headers: authHeader()
     });
-    if(!response.ok) throw new Error('Error al obtener categoria');
+    if (!response.ok) throw new Error('Error al obtener categoria');
     return response.json();
 }
 
 // Crear categoria
 
-export async function createCategory(category){
+export async function createCategory(category) {
     const response = await fetch(`${BASE_URL}/categories`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            ...authHeader()},
-            body: JSON.stringify(category)
-        });
-    if(!response.ok) throw new Error('Error al crear categoria');
+            ...authHeader()
+        },
+        body: JSON.stringify(category)
+    });
+    if (!response.ok) throw new Error('Error al crear categoria');
     return response.json();
 }
 
 
 // Eliminar categorua
 
-export async function deleteCategory(id){
-    const response = await fetch(`${BASE_URL}/category/${id}/delete`, {
+export async function deleteCategory(id) {
+    const response = await fetch(`${BASE_URL}/categories/delete`, {
         method: 'DELETE',
-        headers: authHeader()
+        headers:{ "Content-Type": "application/json", ...authHeader()},
+        body: JSON.stringify({ id })
     });
-    if(!response.ok) throw new Error('Error al eliminar producto')
+    if (!response.ok) {
+        const msg = await response.text().catch(() => 'Error al eliminar categoria');
+        throw new Error(msg);
+    }
+    return true;
 }
 
 
+//Actualizar categoria
+export async function updateCategory(categoryId, body) {
+    const BASE_URL = import.meta.env.VITE_API_URL;
+    const res = await fetch(`${BASE_URL}/categories/modify/${categoryId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", ...authHeader() },
+        body: JSON.stringify(body),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json?.() ?? { id: categoryId, ...body };
+}
 // USUARIOS
 
-export async function getUsers(){
+export async function getUsers() {
     const response = await fetch(`${BASE_URL}/users`, {
         headers: authHeader()
     });
-    if(!response.ok) throw new Error('Error al obtener usuarios');
+    if (!response.ok) throw new Error('Error al obtener usuarios');
     return response.json();
 }
 
 // Update user
-export async function updateUser(id, user){
+export async function updateUser(id, user) {
     const response = await fetch(`${BASE_URL}/users/${id}`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
-            ...authHeader()},
+            ...authHeader()
+        },
         body: JSON.stringify(user)
     });
-    if(!response.ok) throw new Error('Error al actualizar usuario');
+    if (!response.ok) throw new Error('Error al actualizar usuario');
     return response.json();
 }
 
-export async function deleteUser(id){
+export async function deleteUser(id) {
     const response = await fetch(`${BASE_URL}/users/${id}`, {
         method: 'DELETE',
         headers: authHeader()
     });
-    if(!response.ok) throw new Error('Error al eliminar usuario');
+    if (!response.ok) throw new Error('Error al eliminar usuario');
 }
 
 
@@ -140,7 +158,7 @@ export async function getCoupons() {
     const response = await fetch(`${BASE_URL}/coupons`, {
         headers: authHeader()
     });
-    if(!response.ok) throw new Error('Error al obtener cupones');
+    if (!response.ok) throw new Error('Error al obtener cupones');
     return response.json();
 }
 
@@ -148,11 +166,12 @@ export async function createCoupon(coupon) {
     const response = await fetch(`${BASE_URL}/coupons`, {
         method: "POST",
         headers: {
-        "Content-Type": "application/json",
-        ...authHeader()},
+            "Content-Type": "application/json",
+            ...authHeader()
+        },
         body: JSON.stringify(coupon),
     });
-    if(!response.ok) throw new Error('Error al crear cupon');
+    if (!response.ok) throw new Error('Error al crear cupon');
     return response.json();
 }
 
@@ -161,6 +180,6 @@ export async function deleteCoupon(id) {
         method: "DELETE",
         headers: authHeader()
     });
-    if(!response.ok) throw new Error('Error al eliminar cupon');
+    if (!response.ok) throw new Error('Error al eliminar cupon');
     return response.json();
 }

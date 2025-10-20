@@ -1,4 +1,6 @@
-const CategoryList = ({ categories }) => {
+import PropTypes from "prop-types";
+
+const CategoryList = ({ categories = [], onEdit, onDelete }) => {
   return (
     <ul className="admin-list categories">
       {categories.map((category) => (
@@ -9,10 +11,19 @@ const CategoryList = ({ categories }) => {
           </div>
           <div className="admin-item-actions">
             <button
-            className="admin-btn edit"
-            onClick={() => onEdit(category)}>
+            className="admin-button"
+            onClick={() => onEdit?.(category)}>
               Editar
             </button>
+
+            {onDelete && (
+              <button
+              className='admin-button danger'
+              onClick={() => onDelete(category)}
+              title="Eliminar categoría">
+                Eliminar 
+                </button>
+            )}
           </div>
         </li>
       ))}
@@ -22,5 +33,16 @@ const CategoryList = ({ categories }) => {
     </ul>
   );
 }
+
+CategoryList.propTypes = {
+  categories: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.number.isRequired,
+      description: PropTypes.string,
+    })
+  ),
+  onEdit: PropTypes.func,
+  onDelete: PropTypes.func,
+};
 
 export default CategoryList;

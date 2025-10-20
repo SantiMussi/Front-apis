@@ -6,6 +6,8 @@ import {
   deleteProduct,
   getCategories,
   createCategory,
+  updateCategory,
+  deleteCategory,
   getUsers,
   updateUser,
   getCoupons,
@@ -29,6 +31,8 @@ const EMPTY_CATEGORY = { description: "" };
 function THEGODPAGE() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [editingCategory, setEditingCategory] = useState(null);
+  const [savingCategory, setSavingCategory] = useState(false);
   const [users, setUsers] = useState([]);
   const [coupons, setCoupons] = useState([]);
 
@@ -321,6 +325,62 @@ function THEGODPAGE() {
     }));
   };
 
+  const handleEditCategoryClick = (category) => {
+    setEditingCategory({ ...category }); // copia editable
+  };
+
+  const handleEditCategoryChange = (e) => {
+    const { value } = e.target;
+    setEditingCategory((prev) => ({ ...prev, description: value }));
+  };
+
+  const handleEditCategoryCancel = () => {
+    setEditingCategory(null);
+  };
+
+  const handleEditCategorySave = async (e) => {
+    e?.preventDefault?.();
+    if (!editingCategory?.id) return;
+    const desc = (editingCategory.description ?? "").trim();
+    if (!desc) {
+      notify("error", "La descripción no puede estar vacía");
+      return;
+    }
+    try {
+      setSavingCategory(true);
+      const resp = await updateCategory(editingCategory.id, { description: desc });
+
+      //actualizo lista local usando la descripcion confirmada
+      setCategories((prev) => prev.map((c) => c.id === editingCategory.id ? {...c, description: desc} : c))
+      notify("success", "Categoría actualizada");
+      setEditingCategory(null);
+    } catch (err) {
+      console.error(err);
+      notify("error", err.message || "No se pudo actualizar la categoría");
+    } finally {
+      setSavingCategory(false);
+    }
+  };
+
+  const handleDeleteCategory = async (category) => {
+    if (!category?.id) return;
+    const ok = window.confirm(`¿Eliminar la categoría "${category.description}" (ID ${category.id})?`);
+    if (!ok) return;
+
+    try {
+      setLoading(true);
+      await deleteCategory(category.id);
+      notify("success", "Categoría eliminada");
+      // Actualizo lista local sin recargar todo
+      setCategories((prev) => prev.filter((c) => c.id !== category.id));
+    } catch (err) {
+      // Posible caso: categoría en uso por productos
+      notify("error", err.message || "No se pudo eliminar la categoría (puede estar en uso)");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // crea una nueva categoría
   const handleCategorySubmit = async (event) => {
     event.preventDefault();
@@ -406,7 +466,7 @@ function THEGODPAGE() {
     }
   };
 
-    const handleCouponDelete = async (couponId) => {
+  const handleCouponDelete = async (couponId) => {
     if (!couponId) return;
     const confirmed = window.confirm("¿Eliminar este cupón?");
     if (!confirmed) return;
@@ -491,29 +551,62 @@ function THEGODPAGE() {
               <h2>Categorías</h2>
               <span>{categories.length} registradas</span>
             </div>
-            <CategoryList categories={categories} />
+            <CategoryList categories={categories} onEdit={handleEditCategoryClick} onDelete={handleDeleteCategory}/>
 
-            <form className="admin-form" onSubmit={handleCategorySubmit}>
-              <h3>Nueva categoría</h3>
-              <label>
-                Descripción
-                <input
-                  type="text"
-                  name="description"
-                  value={categoryForm.description}
-                  onChange={handleCategoryChange}
-                  placeholder="Descripción de la categoría"
-                  required
-                />
-              </label>
-              <button
-                type="submit"
-                className="admin-button primary"
-                disabled={loading}
-              >
-                Crear categoría
-              </button>
-            </form>
+
+            {editingCategory && (
+              <form className="admin-form" onSubmit={handleEditCategorySave} style={{ marginTop: "1rem" }}>
+                <h3>Editar categoría (ID: {editingCategory.id})</h3>
+                <label>
+                  Descripción
+                  <input
+                    type="text"
+                    value={editingCategory.description ?? ""}
+                    onChange={handleEditCategoryChange}
+                    placeholder="Descripción de la categoría"
+                    required />
+                </label>
+
+                <div className="admin-actions" style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button type='button' className="admin-button" onClick={handleEditCategoryCancel} disabled={savingCategory}>
+                    Cancelar
+                  </button>
+
+                  <button type='submit' className="admin-button primary" disabled={savingCategory}>
+                    {savingCategory ? "Guardando..." : 'Guardar cambios'}
+                  </button>
+
+
+                </div>
+              </form>
+            )
+
+            }
+
+            {!editingCategory && (
+              <form className="admin-form" onSubmit={handleCategorySubmit}>
+                <h3>Nueva categoría</h3>
+                <label>
+                  Descripción
+                  <input
+                    type="text"
+                    name="description"
+                    value={categoryForm.description}
+                    onChange={handleCategoryChange}
+                    placeholder="Descripción de la categoría"
+                    required
+                  />
+                </label>
+                <button
+                  type="submit"
+                  className="admin-button primary"
+                  disabled={loading}
+                >
+                  Crear categoría
+                </button>
+              </form>
+            )
+            }
           </div>
         </section>
         <section className="admin-section">
@@ -532,7 +625,7 @@ function THEGODPAGE() {
       </div>
 
       {/* Panel de orders */}
-      <OrderPanel/>
+      <OrderPanel />
     </div>
 
   );
