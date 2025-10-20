@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { authHeader } from "../../services/authService";
-import { normalizePage } from "../../helpers/orderHelpers";
+import { normalizePage, resolveOrderId, resolveOrderStatus } from "../../helpers/orderHelpers";
 import { CANON_STATES, normalizeStatusToken } from "../../helpers/statusMap";
 import OrderCard from "../OrderComponents/OrderCard";
 
@@ -80,8 +80,8 @@ export default function OrderPanel() {
     const selectedCanon = (statusFilter ?? "").trim().toUpperCase();
 
     return orders.filter((o) => {
-      const idStr = String(o?.id ?? o?.orderId ?? "");
-      const stCanon = normalizeStatusToken(o?.status);
+      const idStr = String(resolveOrderId(o));
+      const stCanon = normalizeStatusToken(resolveOrderStatus(o));
       const matchesNumber = q === "" ? true : idStr.includes(q);
       const matchesStatus =
         selectedCanon === "" ? true : stCanon === selectedCanon;
