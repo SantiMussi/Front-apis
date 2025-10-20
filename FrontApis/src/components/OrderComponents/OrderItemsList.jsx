@@ -9,10 +9,10 @@ function formatCurrency(value, currency) {
 
 function OrderItemRow({ item, currency }) {
     const name = item?.name || "Ítem";
-    const qty = item?.quantity ?? 1;
-    const price = item?.price ?? item?.unitPrice ?? item?.product?.price ?? 0;
-    const lineTotal = price * qty;
-    const img = getItemThumb(item);
+    const qty = item?.quantity;
+    const price = item?.subtotal / item?.quantity;
+    const lineTotal = item?.subtotal;
+    const img = item?.base64img;
 
     return (
         <li className="order-item">
@@ -39,7 +39,7 @@ export default function OrderItemsList({ items, currency }) {
     const list = Array.isArray(items) ? items : [];
 
     if(list.length === 0){
-        return <div classname='no-product compact'>Orden sin items</div>
+        return <div className='no-product compact'>Orden sin items</div>
     }
 
     return(

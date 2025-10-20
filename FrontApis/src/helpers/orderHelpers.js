@@ -54,7 +54,7 @@ export function resolveOrderId(order) {
 }
 
 export function resolveOrderStatus(order) {
-    return order?.status ?? order?.state ?? "Pending";
+    return order?.status ?? order?.OrderStatus ?? "Pending";
 }
 
 export function resolveOrderCreatedAt(order) {
@@ -67,6 +67,7 @@ export function resolveOrderTotal(order) {
         order?.totalAmount ??
         order?.amount ??
         order?.summary?.total ??
+        order?.totalPrice ??
         0
     );
 }

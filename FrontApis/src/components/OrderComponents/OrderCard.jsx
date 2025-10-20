@@ -58,6 +58,8 @@ export default function OrderCard({
         onOpenChange?.(next);
     }
 
+    console.log(items)
+
     return (
         <div className="order-card admin-card">
             <div className="order-card__header">
@@ -88,13 +90,6 @@ export default function OrderCard({
                         </span>
                     )}
                 </div>
-
-                <div className="order-card__thumbs vf-mini">
-                    {thumbs.length === 0 && <div className="vf-mini-empty">Sin preview</div>}
-                    {thumbs.map((src, i) => (
-                        <img key={i} src={src} alt={`item-${i}`} />
-                    ))}
-                </div>
             </div>
 
             <div className="order-card__actions">
@@ -105,12 +100,6 @@ export default function OrderCard({
                 >
                     {open ? "Ocultar detalle" : "Ver detalle"}
                 </button>
-
-                {showOpenButton && (
-                    <Link className="admin-button primary" to={`/orders/${id}`}>
-                        Abrir
-                    </Link>
-                )}
             </div>
 
             {open && (
