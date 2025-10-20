@@ -129,6 +129,8 @@ function THEGODPAGE() {
   const handleUserRoleChange = async (user, newRole) => {
     const normalizedRole = (newRole || "").trim().toUpperCase();
 
+    alert("Cambiando el rol de " + user?.first_name + " " + user?.last_name + " a " + newRole)
+
     if (!normalizedRole) {
       notify("error", "Seleccioná un rol válido");
       return;
