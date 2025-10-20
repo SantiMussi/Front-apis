@@ -34,7 +34,7 @@ export function resolveOrderId(order) {
 }
 
 export function resolveOrderStatus(order) {
-    return order?.status ?? order?.orderStatus ?? "Pending";
+    return order?.status ?? order?.orderStatus ?? "PENDIENTE";
 }
 
 export function resolveOrderCreatedAt(order) {
