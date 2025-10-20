@@ -23,15 +23,6 @@ export function normalizePage(payload) {
     };
 }
 
-export function statusClass(status) {
-    const s = (status || "").toLowerCase();
-    if (["paid", "completed", "approved"].includes(s)) return "ok";
-    if (["shipped", "delivered", "sent"].includes(s)) return "ship";
-    if (["pending", "processing"].includes(s)) return "pending";
-    if (["cancelled", "canceled", "rejected", "failed"].includes(s)) return "bad";
-    return "neutral";
-}
-
 export function getItemThumb(item) {
     return (
         item?.image_preview_url ||
@@ -54,7 +45,7 @@ export function resolveOrderId(order) {
 }
 
 export function resolveOrderStatus(order) {
-    return order?.status ?? order?.OrderStatus ?? "Pending";
+    return order?.status ?? order?.orderStatus ?? "Pending";
 }
 
 export function resolveOrderCreatedAt(order) {
