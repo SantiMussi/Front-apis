@@ -75,10 +75,16 @@ export async function login(email, password){
         body: JSON.stringify({email, password})
     });
 
-    if(!response.ok) throw new Error(await response.text() || `Error ${response.status}`);
-    return response.json();
-}
 
+  if (!response.ok) {
+    const errorText = await response.text();
+
+    const errorData = JSON.parse(errorText);
+    throw new Error(errorData.message);
+  }
+
+  return response.json();
+}
 export async function register(firstname, lastname, email, password){
     const response = await fetch(`${BASE_URL}/api/v1/auth/register`, {
         method: 'POST',

@@ -59,7 +59,7 @@ const LoginForm = () => {
           required
         />
 
-        {error && <p className="error-message">{error}</p>}
+        {error && <p className="error-message">Error: {error}</p>}
 
         <button type="submit" className="cta-button">Entrar</button>
       </form>
