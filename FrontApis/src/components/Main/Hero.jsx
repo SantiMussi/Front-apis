@@ -20,7 +20,15 @@ export default function Hero() {
           speed={3}
           className="hero-title"/>
           </h1>
-        <p className="hero-subtitle">El click que cambia tu look</p>
+
+
+        <p className="hero-subtitle">
+          <ShinyText
+          text="El click que cambia tu look"
+          speed={10}
+          className="hero-subtitle"
+          />
+          </p>
         <button className="cta-button" onClick={() => navigate("/indumentaria")}>Explorar Ahora</button>
       </div>
     </section>
