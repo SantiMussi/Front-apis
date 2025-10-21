@@ -99,7 +99,7 @@ export default function OrderCard({
         <div className="order-card__meta">
           <span className="order-meta">
             <strong>Fecha:</strong>{" "}
-            {createdAt ? new Date(createdAt).toLocaleString() : "—"}
+            {createdAt}
           </span>
           <span className="order-meta">
             <strong>Ítems:</strong> {items.length}

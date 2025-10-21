@@ -38,7 +38,13 @@ export function resolveOrderStatus(order) {
 }
 
 export function resolveOrderCreatedAt(order) {
-    return order?.createdAt || order?.date || order?.issueDate || order?.created_date || null;
+  const rawDate = order?.createdAt || order?.date || order?.issueDate || order?.created_date || order?.issue_date;
+  return rawDate ? formatDate(rawDate) : null;
+}
+
+export function formatDate(isoString) {
+  const [year, month, day] = isoString.split('T')[0].split('-');
+  return `${day}/${month}/${year}`;
 }
 
 export function resolveOrderTotal(order) {
