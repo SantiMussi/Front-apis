@@ -101,7 +101,7 @@ function Register() {
                     height: "1.2rem",
                 }}
                 >          
-                    {capsLockOn ? "Caps Lock / Bloc Mayús esta activo." : ""}
+                    {capsLockOn ? "Caps Lock / Bloc Mayús está activo." : ""}
                 </div>
             
                 <button type="submit">Registrarse</button>
