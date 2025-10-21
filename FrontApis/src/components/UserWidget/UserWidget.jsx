@@ -19,7 +19,7 @@ export default function UserWidget({ onLogout }) {
         setOpen(false);
     };
 
-    const avatarSrc = hasRole('ADMIN') ? gigachadAvatar : userAvatar;
+    const avatarSrc= userAvatar;
     const roleClass = hasRole('ADMIN') ? 'admin' : hasRole('SELLER') ? 'seller' : 'user';
 
     // Cerrar click afuera
