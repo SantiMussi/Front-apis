@@ -14,9 +14,21 @@ function Register() {
         password: "",
     });
 
+    // Estado para detectar si Caps Lock está activado
+    const [capsLockOn, setCapsLockOn] = useState(false);
+
     const handleChange = (e) => {
         setFormData({...formData, [e.target.name]: e.target.value});
     };
+
+    // Maneja eventos de teclado para detectar Caps Lock
+    const handlePasswordKey = (e) => {
+        if (typeof e.getModifierState === "function") {
+        setCapsLockOn(Boolean(e.getModifierState("CapsLock")));
+        }
+    };
+
+    const handlePasswordBlur = () => setCapsLockOn(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -71,8 +83,26 @@ function Register() {
                     name="password"
                     placeholder="Contraseña"
                     onChange={handleChange}
+                    onKeyDown={handlePasswordKey}
+                    onKeyUp={handlePasswordKey}
+                    onFocus={handlePasswordKey}
+                    onBlur={handlePasswordBlur}
                     required
                 />
+
+                {/* Aviso accesible sobre Caps Lock */}
+                <div
+                role="status"
+                aria-live="polite"
+                style={{
+                    color: "#e07a5f",
+                    fontSize: "0.9rem",
+                    marginTop: "6px",
+                    height: "1.2rem",
+                }}
+                >          
+                    {capsLockOn ? "Caps Lock / Bloc Mayús esta activo." : ""}
+                </div>
             
                 <button type="submit">Registrarse</button>
             </form>
