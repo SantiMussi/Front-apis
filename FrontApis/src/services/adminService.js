@@ -108,16 +108,31 @@ export async function deleteCategory(id) {
 }
 
 
-//Actualizar categoria
 export async function updateCategory(categoryId, body) {
-    const BASE_URL = import.meta.env.VITE_API_URL;
-    const res = await fetch(`${BASE_URL}/categories/modify/${categoryId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json", ...authHeader() },
-        body: JSON.stringify(body),
-    });
-    if (!res.ok) throw new Error(await res.text());
-    return res.json?.() ?? { id: categoryId, ...body };
+  const res = await fetch(`${BASE_URL}/categories/modify/${categoryId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      ...authHeader(),
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    const msg = await res.text().catch(() => "Error desconocido");
+    throw new Error(msg || "Error al actualizar la categoría");
+  }
+
+  // Si el backend no devuelve JSON o devuelve vacío (ej: 204)
+  const contentType = res.headers.get("content-type") || "";
+  if (!contentType.includes("application/json")) {
+    // Intentamos leer texto por si hay mensaje tipo "Category modified"
+    const text = await res.text().catch(() => "");
+    return text || { id: categoryId, ...body };
+  }
+
+  // Si sí devuelve JSON válido
+  return res.json();
 }
 // USUARIOS
 

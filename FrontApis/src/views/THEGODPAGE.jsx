@@ -447,7 +447,6 @@ function THEGODPAGE() {
       return;
     }
 
-    console.log(couponForm)
     setLoading(true);
     try {
       await createCoupon({
