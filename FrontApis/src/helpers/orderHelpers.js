@@ -38,7 +38,7 @@ export function resolveOrderStatus(order) {
 }
 
 export function resolveOrderCreatedAt(order) {
-    return order?.createdAt || order?.date || order?.created_date || null;
+    return order?.createdAt || order?.date || order?.issueDate || order?.created_date || null;
 }
 
 export function resolveOrderTotal(order) {
