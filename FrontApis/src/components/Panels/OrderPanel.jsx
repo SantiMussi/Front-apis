@@ -130,26 +130,6 @@ export default function OrderPanel() {
           <h2>Órdenes</h2>
           <span>{loading ? "—" : `${filteredOrders.length} en esta página`}</span>
         </div>
-
-        {toast && (
-          <div
-            className={`admin-alert ${
-              toast.type === "error" ? "error" : "success"
-            }`}
-            style={{ marginBottom: 12 }}
-          >
-            {toast.message}
-          </div>
-        )}
-
-        {loading && <div className="admin-loading">Cargando órdenes...</div>}
-
-        {!loading && err && <div className="admin-alert error">{err}</div>}
-
-        {!loading && !err && orders.length === 0 && (
-          <div className="no-product">Aún no hay órdenes</div>
-        )}
-
         <div
           className="admin-form"
           style={{
@@ -201,6 +181,24 @@ export default function OrderPanel() {
             </button>
           )}
         </div>
+
+        {toast && (
+          <div
+            className={`admin-alert ${toast.type === "error" ? "error" : "success"
+              }`}
+            style={{ marginBottom: 12 }}
+          >
+            {toast.message}
+          </div>
+        )}
+
+        {loading && <div className="admin-loading">Cargando órdenes...</div>}
+
+        {!loading && err && <div className="admin-alert error">{err}</div>}
+
+        {!loading && !err && orders.length === 0 && (
+          <div className="no-product">Aún no hay órdenes</div>
+        )}
 
         {!loading && !err && filteredOrders.length > 0 && (
           <section className="orders-list">
