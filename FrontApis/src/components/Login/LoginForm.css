@@ -13,7 +13,7 @@
 
 .page-container .success-message,
 .page-container .redirect-text {
-  position: relative;
+  position: absolute;
   z-index: var(--z-content);
 }
 
