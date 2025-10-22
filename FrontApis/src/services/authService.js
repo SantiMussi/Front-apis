@@ -91,7 +91,7 @@ export async function register(firstname, lastname, email, password){
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({firstname, lastname, email, password, role: 'USER'})
     })
- 
+
     if(!response.ok){
         const errorData = await response.json().catch(() => null);
         const message = errorData?.message || `Error ${response.status}`

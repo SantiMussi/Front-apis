@@ -62,7 +62,6 @@ export default function OrderCard({
     onOpenChange?.(next);
   };
 
-  console.log(order)
   return (
     <div className="order-card admin-card">
       <div className="order-card__header">

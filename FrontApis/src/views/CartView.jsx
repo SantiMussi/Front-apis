@@ -1,17 +1,39 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getProductById } from "../services/checkoutService";
 import CartItem from "../components/Cart/CartItem";
 import "../components/Cart/cart.css";
 import { formatCurrency, resolveItemPricing } from "../helpers/pricing";
-
-const demoProduct1 = await getProductById(1)
-const demoProduct2 = await getProductById(3)
-demoProduct1.quantity = 2; // Cantidad de ejemplo
-demoProduct2.quantity = 1; // Cantidad de ejemplo
+import { isLoggedIn } from "../services/authService";
 
 const CartView = () => {
-  const [items, setItems] = useState([demoProduct1, demoProduct2]);
+  const [items, setItems] = useState([]);
+  useEffect(() => {
+    let mounted = true;
+    const loadDemoProducts = async () => {
+      if (!isLoggedIn()) return;
+      try {
+        const demoProduct1 = await getProductById(1);
+        const demoProduct2 = await getProductById(3);
+        // assign example quantities
+        if (demoProduct1 && mounted) demoProduct1.quantity = 2;
+        if (demoProduct2 && mounted) demoProduct2.quantity = 1;
+        if (mounted) setItems([demoProduct1, demoProduct2]);
+      } catch {
+        // fail silently for demo load
+      } finally {
+        if (mounted) {
+          // no-op
+        }
+      }
+    };
+
+    loadDemoProducts();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   const navigate = useNavigate();
 
   /* maneja el cambio de cantidad de un artículo en el carrito. Se lo pasa como prop al cartItem */
@@ -88,7 +110,7 @@ const CartView = () => {
                 <CartItem
                   key={item.id}
                   item={item}
-                  quantity={1}
+                    quantity={Number(item.quantity ?? 1)}
                   onQuantityChange={handleQuantityChange}
                   onRemove={handleRemove}
                 />
@@ -104,6 +126,9 @@ const CartView = () => {
               <p className="cart-actions__summary">
                 Tenés {totalItems} {totalItems === 1 ? "artículo" : "artículos"} con un subtotal estimado de {formatCurrency(estimatedTotal)}
               </p>
+              {savings > 0 && (
+                <p className="cart-actions__savings">Ahorrás {formatCurrency(savings)} ({savingsRate}%)</p>
+              )}
             </div>
             <button
               className="cart-checkout cart-actions__button"
