@@ -101,8 +101,10 @@ export async function deleteCategory(id) {
         body: JSON.stringify({ id })
     });
     if (!response.ok) {
-        const msg = await response.text().catch(() => 'Error al eliminar categoria');
-        throw new Error(msg);
+        const msg = await response.text();
+
+        const errorData = JSON.parse(msg);
+        throw new Error(errorData.message);
     }
     return true;
 }
