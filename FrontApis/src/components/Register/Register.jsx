@@ -17,6 +17,8 @@ function Register() {
     // Estado para detectar si Caps Lock está activado
     const [capsLockOn, setCapsLockOn] = useState(false);
 
+    const [error, setError] = useState("");
+
     const handleChange = (e) => {
         setFormData({...formData, [e.target.name]: e.target.value});
     };
@@ -33,11 +35,12 @@ function Register() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try{
+            setError("");
             const data = await register(
                 formData.firstname,
                 formData.lastname,
                 formData.email,
-                formData.password
+                formData.password 
             );
 
 
@@ -47,7 +50,7 @@ function Register() {
 
         } catch(err){
             console.error("Error al registrar: ", err)
-            alert("Error al registrarse")
+            setError("Error al registrarse: El mail ya está registrado.")
         }
     };
 
@@ -105,6 +108,7 @@ function Register() {
                 </div>
             
                 <button type="submit">Registrarse</button>
+                {error && <p className="error-message">{error}</p>}
             </form>
         </div>
     )
