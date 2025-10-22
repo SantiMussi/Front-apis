@@ -11,10 +11,14 @@
   overflow: hidden;
 }
 
-.page-container .success-message,
+.page-container,
 .page-container .redirect-text {
-  position: absolute;
+  position: relative;
   z-index: var(--z-content);
+}
+
+.success-message{
+  position: absolute;
 }
 
 .login-form {
