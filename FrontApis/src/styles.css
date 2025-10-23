@@ -879,12 +879,37 @@ nav{
   gap: 2rem;
 }
 
-.admin-card.split {
+/* Productos: lista (izq) form (der) */
+.admin-card.split .collapsible-inner {
   display: grid;
-  grid-template-columns: minmax(0, 1.5fr) minmax(260px, 1fr);
-  gap: 2rem;
+  grid-template-columns: minmax(0, 0.65fr) minmax(420px, 0.35fr);
+  column-gap: 24px;
   align-items: start;
+  width: 100%;
 }
+
+.admin-card.split .admin-card-block {
+  min-width: 0;
+  width: 100%;
+}
+
+.admin-card.split .admin-card-block:first-child {
+  overflow: auto;
+  max-height: 70vh;
+  padding-right: 4px; 
+}
+
+.admin-card.split .admin-form {
+  width: 100%;
+}
+
+.admin-card.split .admin-form input,
+.admin-card.split .admin-form select,
+.admin-card.split .admin-form textarea {
+  width: 100%;
+  box-sizing: border-box;
+}
+
 
 .admin-card.split .admin-card-header {
   grid-column: 1 / -1;

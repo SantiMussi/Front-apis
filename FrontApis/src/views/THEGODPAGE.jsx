@@ -358,7 +358,7 @@ function THEGODPAGE() {
       const resp = await updateCategory(editingCategory.id, { description: desc });
 
       //actualizo lista local usando la descripcion confirmada
-      setCategories((prev) => prev.map((c) => c.id === editingCategory.id ? {...c, description: desc} : c))
+      setCategories((prev) => prev.map((c) => c.id === editingCategory.id ? { ...c, description: desc } : c))
       notify("success", "Categoría actualizada");
       setEditingCategory(null);
     } catch (err) {
@@ -519,6 +519,7 @@ function THEGODPAGE() {
             isOpen={openPanel === "products"}
             onToggle={togglePanel}
             className="split"
+            contentClassName="split"
           >
             <div className="admin-card-block">
               <ProductList
@@ -662,7 +663,7 @@ function THEGODPAGE() {
         </section>
       </div>
 
-     <OrderPanel id="orders" isOpen={openPanel === "orders"} onToggle={togglePanel} />
+      <OrderPanel id="orders" isOpen={openPanel === "orders"} onToggle={togglePanel} />
 
     </div>
   );

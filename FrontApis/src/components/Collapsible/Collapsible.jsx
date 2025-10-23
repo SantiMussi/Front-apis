@@ -12,6 +12,7 @@ export default function Collapsible({
   onToggle,
   children,
   className = "",
+  contentClassName = "",
 }) {
   const contentId = useId();
 
@@ -37,13 +38,10 @@ export default function Collapsible({
       </button>
 
       {/* Contenido colapsable */}
-      <div
-        id={contentId}
-        className={`collapsible-content ${isOpen ? "open" : ""}`}
-        role="region"
-        aria-labelledby={contentId}
-      >
-        <div className="collapsible-inner">{children}</div>
+      <div id={contentId} className={`collapsible-content ${isOpen ? "open" : ""}`} role="region">
+        <div className={`collapsible-inner ${contentClassName}`}>  {/* 👈 aplica acá */}
+          {children}
+        </div>
       </div>
     </div>
   );
