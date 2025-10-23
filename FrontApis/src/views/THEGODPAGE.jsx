@@ -23,7 +23,7 @@ import UserList from "../components/Panels/UserList";
 import StatusAlert from "../components/Panels/StatusAlert";
 import CouponPanel from "../components/Panels/CouponPanel";
 import { normalizeUserRecord } from "../helpers/userAdmin";
-
+import Collapsible from "../components/Collapsible/Collapsible";
 import OrderPanel from "../components/Panels/OrderPanel"
 
 const EMPTY_CATEGORY = { description: "" };
@@ -50,6 +50,13 @@ function THEGODPAGE() {
   const [loading, setLoading] = useState(false);
   const [initialLoad, setInitialLoad] = useState(true);
   const [updatingUserId, setUpdatingUserId] = useState(null);
+
+
+  //Acordeon
+  const [openPanel, setOpenPanel] = useState('');
+  const togglePanel = (id) => {
+    setOpenPanel((curr) => (curr === id ? null : id))
+  }
 
   // muestra notificaciones temporales en pantalla
   const notify = (type, message) => {
@@ -491,11 +498,7 @@ function THEGODPAGE() {
             Gestioná productos, categorías y usuarios desde un solo lugar.
           </p>
         </div>
-        <button
-          type="button"
-          className="admin-refresh"
-          onClick={refreshAll}
-        >
+        <button type="button" className="admin-refresh" onClick={refreshAll}>
           Refrescar todo
         </button>
       </header>
@@ -507,12 +510,16 @@ function THEGODPAGE() {
       )}
 
       <div className="admin-grid">
+        {/*  Productos (lista + formulario)  */}
         <section className="admin-section full-width">
-          <div className="admin-card split">
-            <div className="admin-card-header">
-              <h2>Productos</h2>
-              <span>{products.length} en total</span>
-            </div>
+          <Collapsible
+            id="products"
+            title="Productos"
+            rightInfo={`${products.length} en total`}
+            isOpen={openPanel === "products"}
+            onToggle={togglePanel}
+            className="split"
+          >
             <div className="admin-card-block">
               <ProductList
                 products={products}
@@ -533,28 +540,50 @@ function THEGODPAGE() {
                 isSubmitting={loading}
               />
             </div>
-          </div>
+          </Collapsible>
         </section>
 
-        <CouponPanel
-          coupons={coupons}
-          couponForm={couponForm}
-          onChange={handleCouponChange}
-          onSubmit={handleCouponSubmit}
-          onDelete={handleCouponDelete}
-          loading={loading}
-        />
+        {/*  Cupones  */}
         <section className="admin-section">
-          <div className="admin-card">
-            <div className="admin-card-header">
-              <h2>Categorías</h2>
-              <span>{categories.length} registradas</span>
-            </div>
-            <CategoryList categories={categories} onEdit={handleEditCategoryClick} onDelete={handleDeleteCategory}/>
+          <Collapsible
+            id="coupons"
+            title="Cupones"
+            rightInfo={`${coupons.length} activos`}
+            isOpen={openPanel === "coupons"}
+            onToggle={togglePanel}
+          >
+            <CouponPanel
+              coupons={coupons}
+              couponForm={couponForm}
+              onChange={handleCouponChange}
+              onSubmit={handleCouponSubmit}
+              onDelete={handleCouponDelete}
+              loading={loading}
+            />
+          </Collapsible>
+        </section>
 
+        {/*  Categorías  */}
+        <section className="admin-section">
+          <Collapsible
+            id="categories"
+            title="Categorías"
+            rightInfo={`${categories.length} registradas`}
+            isOpen={openPanel === "categories"}
+            onToggle={togglePanel}
+          >
+            <CategoryList
+              categories={categories}
+              onEdit={handleEditCategoryClick}
+              onDelete={handleDeleteCategory}
+            />
 
-            {editingCategory && (
-              <form className="admin-form" onSubmit={handleEditCategorySave} style={{ marginTop: "1rem" }}>
+            {editingCategory ? (
+              <form
+                className="admin-form"
+                onSubmit={handleEditCategorySave}
+                style={{ marginTop: "1rem" }}
+              >
                 <h3>Editar categoría (ID: {editingCategory.id})</h3>
                 <label>
                   Descripción
@@ -563,26 +592,33 @@ function THEGODPAGE() {
                     value={editingCategory.description ?? ""}
                     onChange={handleEditCategoryChange}
                     placeholder="Descripción de la categoría"
-                    required />
+                    required
+                  />
                 </label>
 
-                <div className="admin-actions" style={{ display: 'flex', gap: '0.5rem' }}>
-                  <button type='button' className="admin-button" onClick={handleEditCategoryCancel} disabled={savingCategory}>
+                <div
+                  className="admin-actions"
+                  style={{ display: "flex", gap: ".5rem" }}
+                >
+                  <button
+                    type="button"
+                    className="admin-button"
+                    onClick={handleEditCategoryCancel}
+                    disabled={savingCategory}
+                  >
                     Cancelar
                   </button>
 
-                  <button type='submit' className="admin-button primary" disabled={savingCategory}>
-                    {savingCategory ? "Guardando..." : 'Guardar cambios'}
+                  <button
+                    type="submit"
+                    className="admin-button primary"
+                    disabled={savingCategory}
+                  >
+                    {savingCategory ? "Guardando..." : "Guardar cambios"}
                   </button>
-
-
                 </div>
               </form>
-            )
-
-            }
-
-            {!editingCategory && (
+            ) : (
               <form className="admin-form" onSubmit={handleCategorySubmit}>
                 <h3>Nueva categoría</h3>
                 <label>
@@ -604,29 +640,31 @@ function THEGODPAGE() {
                   Crear categoría
                 </button>
               </form>
-            )
-            }
-          </div>
+            )}
+          </Collapsible>
         </section>
+
+        {/* Usuarios */}
         <section className="admin-section">
-          <div className="admin-card">
-            <div className="admin-card-header">
-              <h2>Usuarios</h2>
-              <span>{visibleUsers.length} registrados</span>
-            </div>
+          <Collapsible
+            id="users"
+            title="Usuarios"
+            rightInfo={`${visibleUsers.length} registrados`}
+            isOpen={openPanel === "users"}
+            onToggle={togglePanel}
+          >
             <UserList
               users={visibleUsers}
               onRoleChange={handleUserRoleChange}
               updatingUserId={updatingUserId}
             />
-          </div>
+          </Collapsible>
         </section>
       </div>
 
-      {/* Panel de orders */}
-      <OrderPanel />
-    </div>
+     <OrderPanel id="orders" isOpen={openPanel === "orders"} onToggle={togglePanel} />
 
+    </div>
   );
 }
 

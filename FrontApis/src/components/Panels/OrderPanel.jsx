@@ -1,12 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
 import { authHeader } from "../../services/authService";
-import { normalizePage, resolveOrderId, resolveOrderStatus } from "../../helpers/orderHelpers";
+import {
+  normalizePage,
+  resolveOrderId,
+  resolveOrderStatus,
+} from "../../helpers/orderHelpers";
 import { CANON_STATES, normalizeStatusToken } from "../../helpers/statusMap";
 import OrderCard from "../OrderComponents/OrderCard";
+import Collapsible from "../Collapsible/Collapsible"; // ojo con la ruta
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 
-export default function OrderPanel() {
+export default function OrderPanel({ id = "orders", isOpen, onToggle, className = "" }) {
+  // Data
   const [orders, setOrders] = useState([]);
   const [page, setPage] = useState(0);
   const [size] = useState(10);
@@ -31,7 +37,6 @@ export default function OrderPanel() {
     setLoading(true);
     setErr("");
     try {
-      // si tu API soporta paginado real, agregá ?page=${page}&size=${size}
       const res = await fetch(`${BASE_URL}/orders`, {
         headers: { "Content-Type": "application/json", ...authHeader() },
         credentials: "include",
@@ -123,13 +128,18 @@ export default function OrderPanel() {
     }
   };
 
+  const rightInfo = loading ? "—" : `${filteredOrders.length} en esta página`;
+
   return (
     <section className="admin-section">
-      <div className="admin-card">
-        <div className="admin-card-header">
-          <h2>Órdenes</h2>
-          <span>{loading ? "—" : `${filteredOrders.length} en esta página`}</span>
-        </div>
+      <Collapsible
+        id={id}
+        title="Órdenes"
+        rightInfo={rightInfo}
+        isOpen={isOpen}
+        onToggle={onToggle}
+        className={className}
+      >
         <div
           className="admin-form"
           style={{
@@ -184,8 +194,9 @@ export default function OrderPanel() {
 
         {toast && (
           <div
-            className={`admin-alert ${toast.type === "error" ? "error" : "success"
-              }`}
+            className={`admin-alert ${
+              toast.type === "error" ? "error" : "success"
+            }`}
             style={{ marginBottom: 12 }}
           >
             {toast.message}
@@ -236,7 +247,7 @@ export default function OrderPanel() {
             </button>
           </div>
         )}
-      </div>
+      </Collapsible>
     </section>
   );
 }
