@@ -11,59 +11,62 @@ import StatusAlert from "../components/Panels/StatusAlert";
 import { EMPTY_PRODUCT } from "../constants/product";
 import ProductList from "../components/Panels/ProductList";
 import { getCurrentUser } from "../services/authService";
+import Collapsible from "../components/Collapsible/Collapsible";
 
+const EMPTY_STATUS = null;
+
+/** Mantengo BASE_URL si lo usás en otros helpers de este archivo */
 const BASE_URL = import.meta.env.VITE_API_URL;
 
-const SellerView = () => {
+export default function SellerView() {
   const [productForm, setProductForm] = useState({ ...EMPTY_PRODUCT });
-  const [categories, setCategories] = useState([]);
-  const [status, setStatus] = useState(null);
-  const [isLoadingCategories, setIsLoadingCategories] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [sellerProducts, setSellerProducts] = useState([]);
-  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
   const [selectedProductId, setSelectedProductId] = useState(null);
 
+  const [categories, setCategories] = useState([]);
+  const [sellerProducts, setSellerProducts] = useState([]);
 
-  // Notificación temporal
+  const [status, setStatus] = useState(EMPTY_STATUS);
+  const [loading, setLoading] = useState(false);
+  const [initialLoad, setInitialLoad] = useState(true);
+
+  // Acordeón (igual que en THEGODPAGE)
+  const [openPanel, setOpenPanel] = useState("");
+  const togglePanel = (id) => setOpenPanel((curr) => (curr === id ? null : id));
+
+  // Notificación temporal (idéntico a THEGODPAGE)
   const notify = (type, message) => {
     setStatus({ type, message });
     window.clearTimeout(notify.timeoutId);
     notify.timeoutId = window.setTimeout(() => setStatus(null), 5000);
   };
 
-  // Reset form
+  // Reset formulario
   const resetProductForm = () => {
     setProductForm({ ...EMPTY_PRODUCT });
     setSelectedProductId(null);
   };
 
-  // Categorías
+  // CATEGORÍAS
   const fetchCategories = async () => {
-    setIsLoadingCategories(true);
     try {
       const data = await getCategories();
-      const parsedCategories = Array.isArray(data) ? data : data?.content || [];
-      setCategories(parsedCategories);
+      setCategories(Array.isArray(data) ? data : data?.content || []);
     } catch (error) {
       console.error(error);
       notify("error", error.message || "No se pudieron cargar las categorías");
       setCategories([]);
-    } finally {
-      setIsLoadingCategories(false);
     }
   };
 
-  // Productos del vendedor
+  // PRODUCTOS DEL VENDEDOR
   const fetchSellerProducts = async () => {
-    setIsLoadingProducts(true);
     try {
       const [currentUser, productsResponse] = await Promise.all([
         getCurrentUser(),
         getProducts(),
       ]);
 
-      const parsedProducts = Array.isArray(productsResponse)
+      const parsed = Array.isArray(productsResponse)
         ? productsResponse
         : productsResponse?.content || [];
 
@@ -74,9 +77,11 @@ const SellerView = () => {
         return;
       }
 
-      const filtered = parsedProducts.filter((p) => {
-        const creatorId = p?.creatorId;
-        return creatorId !== undefined && creatorId !== null && String(creatorId) === String(currentUserId);
+      // Acepta tanto creatorId como creator_id desde el backend
+      const filtered = parsed.filter((p) => {
+        const creator =
+          p?.creatorId ?? p?.creator_id ?? p?.creator?.id ?? null;
+        return creator !== undefined && creator !== null && String(creator) === String(currentUserId);
       });
 
       setSellerProducts(filtered);
@@ -84,22 +89,23 @@ const SellerView = () => {
       console.error(error);
       notify("error", error.message || "No se pudieron cargar los productos del vendedor");
       setSellerProducts([]);
-    } finally {
-      setIsLoadingProducts(false);
     }
   };
 
-
-  // Carga inicial
+  // Bootstrap inicial (igual patrón que THEGODPAGE)
   useEffect(() => {
-    fetchCategories();
-    fetchSellerProducts();
+    const bootstrap = async () => {
+      setLoading(true);
+      await Promise.all([fetchCategories(), fetchSellerProducts()]);
+      setLoading(false);
+      setInitialLoad(false);
+    };
+    bootstrap();
+
     return () => {
       if (notify.timeoutId) window.clearTimeout(notify.timeoutId);
     };
   }, []);
-
-
 
   // Form product
   const handleProductChange = (e) => {
@@ -109,28 +115,53 @@ const SellerView = () => {
 
   const handleProductSubmit = async (event) => {
     event.preventDefault();
-    if (isSubmitting) return;
-    setIsSubmitting(true);
+    setLoading(true);
     try {
-      const trimmedName = productForm.name.trim();
-      if (!trimmedName) return notify("error", "El nombre del producto es obligatorio");
+      const trimmedName = (productForm.name || "").trim();
+      if (!trimmedName) {
+        notify("error", "El nombre del producto es obligatorio");
+        setLoading(false);
+        return;
+      }
 
       const priceValue = Number.parseFloat(productForm.price);
-      if (Number.isNaN(priceValue)) return notify("error", "Ingresá un precio válido");
+      if (Number.isNaN(priceValue)) {
+        notify("error", "Ingresá un precio válido");
+        setLoading(false);
+        return;
+      }
 
-      const discountValue = productForm.discount === "" ? 0 : Number.parseFloat(productForm.discount);
-      if (Number.isNaN(discountValue) || discountValue < 0 || discountValue > 1)
-        return notify("error", "El descuento debe estar entre 0 y 1");
+      const discountValue =
+        productForm.discount === "" ? 0 : Number.parseFloat(productForm.discount);
+      if (Number.isNaN(discountValue) || discountValue < 0 || discountValue > 1) {
+        notify("error", "El descuento debe estar entre 0 y 1");
+        setLoading(false);
+        return;
+      }
 
-      const stockValue = productForm.stock === "" ? 0 : Number.parseInt(productForm.stock, 10);
-      if (Number.isNaN(stockValue) || stockValue < 0) return notify("error", "El stock no es válido");
+      const stockValue =
+        productForm.stock === "" ? 0 : Number.parseInt(productForm.stock, 10);
+      if (Number.isNaN(stockValue) || stockValue < 0) {
+        notify("error", "El stock no es válido");
+        setLoading(false);
+        return;
+      }
 
       const categoryValue = Number.parseInt(productForm.categoryId, 10);
-      if (Number.isNaN(categoryValue)) return notify("error", "Seleccioná una categoría válida");
+      if (Number.isNaN(categoryValue)) {
+        notify("error", "Seleccioná una categoría válida");
+        setLoading(false);
+        return;
+      }
 
       const currentUser = await getCurrentUser();
-      if (!currentUser?.id) return notify("error", "No se pudo identificar al usuario actual");
+      if (!currentUser?.id) {
+        notify("error", "No se pudo identificar al usuario actual");
+        setLoading(false);
+        return;
+      }
 
+      // Payload alineado con THEGODPAGE (creator_id)
       const payload = {
         name: trimmedName,
         description: productForm.description,
@@ -140,7 +171,7 @@ const SellerView = () => {
         stock: stockValue,
         categoryId: categoryValue,
         base64img: productForm.base64img || null,
-        creatorId: currentUser.id,
+        creator_id: currentUser.id, // <- clave
       };
 
       if (selectedProductId) {
@@ -148,30 +179,33 @@ const SellerView = () => {
         notify("success", "Producto actualizado correctamente");
       } else {
         await createProduct(payload);
-        notify("success", "Producto cargado correctamente");
+        notify("success", "Producto creado correctamente");
       }
+
       await fetchSellerProducts();
       resetProductForm();
     } catch (error) {
       console.error(error);
       notify("error", error.message || "Ocurrió un error al cargar el producto");
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
     }
   };
+
+  const isSubmitting = loading; // usamos el mismo flag general que en THEGODPAGE
 
   const isSubmitDisabled = useMemo(
     () =>
       isSubmitting ||
-      isLoadingCategories ||
-      !productForm.name.trim() ||
+      !productForm.name?.trim() ||
       !productForm.price ||
       !productForm.stock ||
       !productForm.size ||
       !productForm.categoryId,
-    [isSubmitting, isLoadingCategories, productForm]
+    [isSubmitting, productForm]
   );
 
+  // Editar
   const handleEditProduct = (formValues, productId) => {
     setSelectedProductId(productId ?? null);
 
@@ -192,14 +226,17 @@ const SellerView = () => {
     };
 
     setProductForm({ ...EMPTY_PRODUCT, ...normalizedForm });
+    // abre el panel de productos al editar (calza con UX del admin)
+    setOpenPanel("products");
   };
 
+  // Eliminar
   const handleDeleteProduct = async (id) => {
-    if (!id || isSubmitting) return;
+    if (!id) return;
     const confirmed = window.confirm("¿Eliminar este producto?");
     if (!confirmed) return;
 
-    setIsSubmitting(true);
+    setLoading(true);
     try {
       await deleteProduct(id);
       notify("success", "Producto eliminado correctamente");
@@ -209,15 +246,16 @@ const SellerView = () => {
       console.error(error);
       notify("error", error.message || "No se pudo eliminar el producto");
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
     }
   };
 
-  // Refrescar todo
+  // Refresh todo
   const handleRefresh = () => {
-    if (isLoadingCategories || isSubmitting || isLoadingProducts) return;
-    fetchCategories();
-    fetchSellerProducts();
+    setLoading(true);
+    Promise.all([fetchCategories(), fetchSellerProducts()])
+      .catch(() => null)
+      .finally(() => setLoading(false));
   };
 
   const isEditing = Boolean(selectedProductId);
@@ -227,69 +265,64 @@ const SellerView = () => {
       <header className="admin-header">
         <div>
           <h1>Panel de Vendedor</h1>
-          <p className="admin-subtitle">Cargá nuevos productos para que aparezcan en la tienda.</p>
+          <p className="admin-subtitle">Cargá y administrá tus productos publicados.</p>
         </div>
         <button
           type="button"
           className="admin-refresh"
           onClick={handleRefresh}
-          disabled={isLoadingCategories || isSubmitting || isLoadingProducts}
+          disabled={loading}
         >
-          Actualizar datos
+          Refrescar
         </button>
       </header>
 
       <StatusAlert status={status} />
 
-      {isLoadingCategories && categories.length === 0 && (
-        <div className="admin-loading">Cargando categorías...</div>
+      {loading && initialLoad && (
+        <div className="admin-loading">Cargando información...</div>
       )}
 
-      {/* Formulario de producto */}
-      <section className="admin-section">
-        <div className="admin-card">
-          <div className="admin-card-header">
-            <h2>Cargar producto</h2>
-            <span>{categories.length} categorías disponibles</span>
+      <section className="admin-section full-width">
+        <Collapsible
+          id="products"
+          title="Mis productos"
+          rightInfo={`${sellerProducts.length} publicados`}
+          isOpen={openPanel === "products"}
+          onToggle={togglePanel}
+          className="split"
+          contentClassName="split"
+        >
+          {/* Lista */}
+          <div className="admin-card-block">
+            {loading && !sellerProducts.length ? (
+              <div className="admin-loading">Cargando productos...</div>
+            ) : (
+              <ProductList
+                products={sellerProducts}
+                categories={categories}
+                onEdit={handleEditProduct}
+                onDelete={handleDeleteProduct}
+              />
+            )}
           </div>
-          <ProductForm
-            title={isEditing ? "Editar producto" : "Datos del producto"}
-            product={productForm}
-            categories={categories}
-            onChange={handleProductChange}
-            onSubmit={handleProductSubmit}
-            submitLabel={
-              isSubmitting ? "Cargando..." : isEditing ? "Actualizar producto" : "Cargar producto"
-            }
-            isSubmitting={isSubmitting}
-            isSubmitDisabled={isSubmitDisabled}
-            onCancel={resetProductForm}
-            cancelLabel={isEditing ? "Cancelar edición" : "Limpiar formulario"}
-          />
-        </div>
-      </section>
 
-      {/* Lista de productos */}
-      <section className="admin-section">
-        <div className="admin-card">
-          <div className="admin-card-header">
-            <h2>Mis productos publicados</h2>
-            <span>{sellerProducts.length} productos encontrados</span>
-          </div>
-          {isLoadingProducts ? (
-            <div className="admin-loading">Cargando productos...</div>
-          ) : (
-            <ProductList
-              products={sellerProducts}
+          {/* Formulario */}
+          <div className="admin-card-block">
+            <ProductForm
+              title={isEditing ? "Editar producto" : "Crear producto"}
+              product={productForm}
               categories={categories}
-              onEdit={handleEditProduct}
-              onDelete={handleDeleteProduct}
+              onChange={handleProductChange}
+              onSubmit={handleProductSubmit}
+              onCancel={isEditing ? resetProductForm : undefined}
+              submitLabel={isEditing ? "Actualizar" : "Crear"}
+              isSubmitting={isSubmitting}
+              isSubmitDisabled={isSubmitDisabled}
             />
-          )}
-        </div>
+          </div>
+        </Collapsible>
       </section>
     </div>
   );
-};
-
-export default SellerView;
+}
