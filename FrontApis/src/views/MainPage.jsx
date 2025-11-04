@@ -1,6 +1,6 @@
 import Hero from "../components/Main/Hero"
 import About from "../components/Main/About"
-import Products from "../components/Products"
+import Products from "../components/ProductListNEW"
 
 const MainPage = () => {
   return (

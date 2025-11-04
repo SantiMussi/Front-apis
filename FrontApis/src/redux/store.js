@@ -1,6 +1,8 @@
-import {configureStore} from "@reduxjs/toolkit"
+import { configureStore } from "@reduxjs/toolkit";
+import productsReducer from "./productsSlice";
 
 export const store = configureStore({
-    //El reducer va a contener todos los estados globales
-    reducer: {}
-})
+  reducer: {
+    products: productsReducer, // registra el slice
+  },
+});
