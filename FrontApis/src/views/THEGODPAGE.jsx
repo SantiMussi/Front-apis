@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import {
-  getProducts,
   createProduct,
   updateProduct,
   deleteProduct,
@@ -10,10 +10,15 @@ import {
   deleteCategory,
   getUsers,
   updateUser,
-  getCoupons,
-  createCoupon,
-  deleteCoupon
 } from "../services/adminService";
+import {
+  fetchProducts as fetchProductsThunk,
+} from "../redux/productsSlice";
+import {
+  fetchCoupons as fetchCouponsThunk,
+  createCoupon as createCouponThunk,
+  deleteCoupon as deleteCouponThunk,
+} from "../redux/couponsSlice";
 import { getCurrentUser, hasRole } from "../services/authService";
 import { EMPTY_PRODUCT } from "../constants/product";
 import ProductList from "../components/Panels/ProductList";
@@ -29,12 +34,13 @@ import OrderPanel from "../components/Panels/OrderPanel"
 const EMPTY_CATEGORY = { description: "" };
 
 function THEGODPAGE() {
-  const [products, setProducts] = useState([]);
+  const dispatch = useDispatch();
+  const { products } = useSelector((state) => state.products);
   const [categories, setCategories] = useState([]);
   const [editingCategory, setEditingCategory] = useState(null);
   const [savingCategory, setSavingCategory] = useState(false);
   const [users, setUsers] = useState([]);
-  const [coupons, setCoupons] = useState([]);
+  const { coupons } = useSelector((state) => state.coupons);
 
   const [productForm, setProductForm] = useState(EMPTY_PRODUCT);
   const [selectedProductId, setSelectedProductId] = useState(null);
@@ -68,12 +74,10 @@ function THEGODPAGE() {
   // carga productos desde la API
   const loadProducts = async () => {
     try {
-      const data = await getProducts();
-      setProducts(Array.isArray(data) ? data : data?.content || []);
+      await dispatch(fetchProductsThunk()).unwrap();
     } catch (error) {
       console.error(error);
-      notify("error", error.message || "No se pudieron cargar los productos");
-      setProducts([]);
+      notify("error", error || "No se pudieron cargar los productos");
     }
   };
 
@@ -92,12 +96,10 @@ function THEGODPAGE() {
   // carga cupones
   const loadCoupons = async () => {
     try {
-      const data = await getCoupons();
-      setCoupons(Array.isArray(data) ? data : data?.content || []);
+      await dispatch(fetchCouponsThunk()).unwrap();
     } catch (error) {
       console.error(error);
-      notify("error", error.message || "No se pudieron cargar los cupones");
-      setCoupons([]);
+      notify("error", error || "No se pudieron cargar los cupones");
     }
   };
 
@@ -456,17 +458,17 @@ function THEGODPAGE() {
 
     setLoading(true);
     try {
-      await createCoupon({
+      await dispatch(createCouponThunk({
         code: trimmedCode,
         discount: discountValue,
         expirationDate: couponForm.expirationDate,
-      });
+      })).unwrap();
       notify("success", "Cupón creado correctamente");
       resetCouponForm();
       await loadCoupons();
     } catch (error) {
       console.error(error);
-      notify("error", error.message || "No se pudo crear el cupón");
+      notify("error", error || "No se pudo crear el cupón");
     } finally {
       setLoading(false);
     }
@@ -478,12 +480,12 @@ function THEGODPAGE() {
     if (!confirmed) return;
     setLoading(true);
     try {
-      await deleteCoupon(couponId);
+      await dispatch(deleteCouponThunk(couponId)).unwrap();
       notify("success", "Cupón eliminado correctamente");
       await loadCoupons();
     } catch (error) {
       console.error(error);
-      notify("error", error.message || "No se pudo eliminar el cupón");
+      notify("error", error || "No se pudo eliminar el cupón");
     } finally {
       setLoading(false);
     }
