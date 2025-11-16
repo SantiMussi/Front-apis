@@ -1,5 +1,13 @@
-import { useEffect, useMemo, useState, useCallback, useRef } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  useCallback,
+  useRef
+} from "react";
 import { useSearchParams } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchProducts } from "../../redux/productsSlice";
 import mannequin from "../../assets/mannequin.png";
 import { hasRole } from "../../services/authService";
 import "./VirtualFitter.css";
@@ -8,16 +16,16 @@ const BASE_URL = import.meta.env.VITE_API_URL;
 
 /** Calibración por capa (defaults) */
 const LAYER_DEFAULTS = {
-  top: { scale: 0.17, x: 1.2, y: -3.5, z: 30 },
-  bottom: { scale: 0.40, x: 0.8, y: 17.5, z: 20 },
-  coat: { scale: 0.24, x: 1.0, y: -4.5, z: 40 },
+  top:    { scale: 0.17, x: 1.2,  y: -3.5, z: 30 },
+  bottom: { scale: 0.40, x: 0.8,  y: 17.5, z: 20 },
+  coat:   { scale: 0.24, x: 1.0,  y: -4.5, z: 40 },
 };
 
 /** Mapeo de categorías lógicas */
 const CATEGORIES = [
-  { key: "top", label: "Prenda superior", apiValues: ["Remera"] },
+  { key: "top",    label: "Prenda superior", apiValues: ["Remera"] },
   { key: "bottom", label: "Prenda inferior", apiValues: ["Pantalon", "Short", "Jean"] },
-  { key: "coat", label: "Abrigo", apiValues: ["Abrigo", "Polar", "Hoodie"] },
+  { key: "coat",   label: "Abrigo",          apiValues: ["Abrigo", "Polar", "Hoodie"] },
 ];
 
 /** LS helpers */
@@ -44,13 +52,40 @@ function mapProduct(p) {
   };
 }
 
-export default function VirtualFitter() {
-  // estado
-  const [itemsByCat, setItemsByCat] = useState({ top: [], bottom: [], coat: [] });
-  const [indexes, setIndexes] = useState({ top: -1, bottom: -1, coat: -1 }); // -1 = ninguna
-  const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState("");
+/** Agrupa productos por capa lógica (top/bottom/coat) */
+function bucketizeProducts(all) {
+  const out = { top: [], bottom: [], coat: [] };
 
+  const isIn = (name, list) =>
+    list.some((x) => x.toLowerCase() === String(name).toLowerCase());
+
+  const tops    = CATEGORIES.find(c => c.key === "top").apiValues;
+  const bottoms = CATEGORIES.find(c => c.key === "bottom").apiValues;
+  const coats   = CATEGORIES.find(c => c.key === "coat").apiValues;
+
+  for (const raw of all) {
+    const p = mapProduct(raw);
+    if (!p.image) continue;
+
+    if (isIn(p.categoryName, tops))    out.top.push(p);
+    if (isIn(p.categoryName, bottoms)) out.bottom.push(p);
+    if (isIn(p.categoryName, coats))   out.coat.push(p);
+  }
+  return out;
+}
+
+export default function VirtualFitter() {
+  const dispatch = useDispatch();
+
+  // 👇 productos desde Redux
+  const {
+    products = [],
+    loading,
+    error
+  } = useSelector((state) => state.products);
+
+  // estado local
+  const [indexes, setIndexes] = useState({ top: -1, bottom: -1, coat: -1 }); // -1 = ninguna
   const [searchParams] = useSearchParams();
   const preselectId = searchParams.get("productId");
   const appliedPreselectIdRef = useRef(null);
@@ -59,46 +94,23 @@ export default function VirtualFitter() {
   const [overrides, setOverrides] = useState(getOverridesFromLS);
   const [editKey, setEditKey] = useState("top");
 
-  // estado para agregar al carrito
   const [adding, setAdding] = useState(false);
   const [addMsg, setAddMsg] = useState("");
 
-  // helpers
-  const bucketize = (all) => {
-    const out = { top: [], bottom: [], coat: [] };
-    const isIn = (name, list) =>
-      list.some((x) => x.toLowerCase() === String(name).toLowerCase());
-    for (const raw of all) {
-      const p = mapProduct(raw);
-      if (!p.image) continue;
-      if (isIn(p.categoryName, CATEGORIES.find(c => c.key === "top").apiValues)) out.top.push(p);
-      if (isIn(p.categoryName, CATEGORIES.find(c => c.key === "bottom").apiValues)) out.bottom.push(p);
-      if (isIn(p.categoryName, CATEGORIES.find(c => c.key === "coat").apiValues)) out.coat.push(p);
-    }
-    return out;
-  };
+  // 👇 derivamos itemsByCat de products (no se guarda más en state)
+  const itemsByCat = useMemo(
+    () => bucketizeProducts(products),
+    [products]
+  );
 
-  // carga
+  // 👇 si no hay productos cargados, disparo fetchProducts al montar
   useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const res = await fetch(`${BASE_URL}/product`);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        const list = Array.isArray(data) ? data : (Array.isArray(data?.content) ? data.content : []);
-        if (!mounted) return;
-        setItemsByCat(bucketize(list));
-      } catch (e) {
-        setErr(e.message || "Error al cargar productos");
-      } finally {
-        setLoading(false);
-      }
-    })();
-    return () => { mounted = false; };
-  }, []);
+    if (!products || products.length === 0) {
+      dispatch(fetchProducts());
+    }
+  }, [dispatch, products.length]); // products.length para no re-fetch infinito
 
-  // preselección por ?productId
+  // preselección por ?productId (igual que antes, pero usando itemsByCat de arriba)
   useEffect(() => {
     if (!preselectId) return;
     if (appliedPreselectIdRef.current === preselectId) return;
@@ -121,26 +133,40 @@ export default function VirtualFitter() {
     appliedPreselectIdRef.current = preselectId;
   }, [preselectId, itemsByCat]);
 
-  const currentTop    = useMemo(() => (indexes.top    >= 0 ? itemsByCat.top[indexes.top]       : null), [itemsByCat.top, indexes.top]);
-  const currentBottom = useMemo(() => (indexes.bottom >= 0 ? itemsByCat.bottom[indexes.bottom] : null), [itemsByCat.bottom, indexes.bottom]);
-  const currentCoat   = useMemo(() => (indexes.coat   >= 0 ? itemsByCat.coat[indexes.coat]     : null), [itemsByCat.coat, indexes.coat]);
+  const currentTop = useMemo(
+    () => (indexes.top >= 0 ? itemsByCat.top[indexes.top] : null),
+    [itemsByCat, indexes.top]
+  );
+  const currentBottom = useMemo(
+    () => (indexes.bottom >= 0 ? itemsByCat.bottom[indexes.bottom] : null),
+    [itemsByCat, indexes.bottom]
+  );
+  const currentCoat = useMemo(
+    () => (indexes.coat >= 0 ? itemsByCat.coat[indexes.coat] : null),
+    [itemsByCat, indexes.coat]
+  );
 
-  const selectedProducts = useMemo(() => {
-    return [currentTop, currentBottom, currentCoat].filter(Boolean);
-  }, [currentTop, currentBottom, currentCoat]);
+  const selectedProducts = useMemo(
+    () => [currentTop, currentBottom, currentCoat].filter(Boolean),
+    [currentTop, currentBottom, currentCoat]
+  );
 
   // ciclo que incluye ninguna (-1)
-  const cycle = useCallback((key, dir = 1) => {
-    setIndexes((prev) => {
-      const list = itemsByCat[key] || [];
-      const len = list.length;
-      const order = [-1, ...Array.from({ length: len }, (_, i) => i)];
-      const cur = prev[key] ?? -1;
-      const idx = Math.max(0, order.indexOf(cur));
-      const next = order[(idx + dir + order.length) % order.length];
-      return { ...prev, [key]: next };
-    });
-  }, [itemsByCat]);
+  const cycle = useCallback(
+    (key, dir = 1) => {
+      setIndexes((prev) => {
+        const list = itemsByCat[key] || [];
+        const len = list.length;
+        const order = [-1, ...Array.from({ length: len }, (_, i) => i)];
+        const cur = prev[key] ?? -1;
+        const idx = Math.max(0, order.indexOf(cur));
+        const next = order[(idx + dir + order.length) % order.length];
+        return { ...prev, [key]: next };
+      });
+    },
+    [itemsByCat]
+  );
+
 
   // mueve la prenda activa (guarda override por producto)
   const nudge = (key, dx, dy) => {
@@ -300,7 +326,8 @@ export default function VirtualFitter() {
 
   // early returns (sin hooks después!)
   if (loading) return <div className="vf-loading">Cargando prendas…</div>;
-  if (err)      return <div className="vf-error">Error: {err}</div>;
+  if (error)   return <div className="vf-error">Error: {error}</div>;
+
 
   return (
     <div className="vf-page">
