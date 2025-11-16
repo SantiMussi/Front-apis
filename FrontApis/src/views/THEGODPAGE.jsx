@@ -4,7 +4,6 @@ import {
   createProduct,
   updateProduct,
   deleteProduct,
-  getCategories,
   createCategory,
   updateCategory,
   deleteCategory,
@@ -14,6 +13,10 @@ import {
 import {
   fetchProducts as fetchProductsThunk,
 } from "../redux/productsSlice";
+
+import {
+  fetchCategories as fetchCategoriesThunk,
+} from "../redux/categoriesSlice"
 import {
   fetchCoupons as fetchCouponsThunk,
   createCoupon as createCouponThunk,
@@ -35,12 +38,14 @@ const EMPTY_CATEGORY = { description: "" };
 
 function THEGODPAGE() {
   const dispatch = useDispatch();
+
   const { products } = useSelector((state) => state.products);
-  const [categories, setCategories] = useState([]);
+  const { categories } = useSelector((state) => state.categories);
+  const { coupons } = useSelector((state) => state.coupons);
+
   const [editingCategory, setEditingCategory] = useState(null);
   const [savingCategory, setSavingCategory] = useState(false);
   const [users, setUsers] = useState([]);
-  const { coupons } = useSelector((state) => state.coupons);
 
   const [productForm, setProductForm] = useState(EMPTY_PRODUCT);
   const [selectedProductId, setSelectedProductId] = useState(null);
@@ -56,7 +61,6 @@ function THEGODPAGE() {
   const [loading, setLoading] = useState(false);
   const [initialLoad, setInitialLoad] = useState(true);
   const [updatingUserId, setUpdatingUserId] = useState(null);
-
 
   //Acordeon
   const [openPanel, setOpenPanel] = useState('');
@@ -84,14 +88,12 @@ function THEGODPAGE() {
   // carga categorías desde la API
   const loadCategories = async () => {
     try {
-      const data = await getCategories();
-      setCategories(Array.isArray(data) ? data : data?.content || []);
-    } catch (error) {
-      console.error(error);
-      notify("error", error.message || "No se pudieron cargar las categorías");
-      setCategories([]);
+      await dispatch(fetchCategoriesThunk()).unwrap();
     }
-  };
+    catch (error) {
+      notify("error", error || 'No se pudieron cargar las categorías')
+    }
+  }
 
   // carga cupones
   const loadCoupons = async () => {
