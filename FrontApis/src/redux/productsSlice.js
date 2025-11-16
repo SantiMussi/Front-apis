@@ -1,27 +1,55 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
+import { captureOwnerStack } from "react";
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 
-// GET de productos (general)
+// Funcion para que, si viene paginado como { content: [...] }, tomamos content. Si es array, lo usamos directo.
+const resolveArray = (payload) => {
+  if (Array.isArray(payload?.content)) return payload.content;
+  if (Array.isArray(payload)) return payload;
+  return [];
+};
+
+// Get de productos, general o por categoria
 export const fetchProducts = createAsyncThunk(
   "products/fetchProducts",
-  async () => {
-    const { data } = await axios.get(`${BASE_URL}/product`);
-    // Si viene paginado como { content: [...] }, tomamos content. Si es array, lo usamos directo.
-    const items = Array.isArray(data?.content) ? data.content : Array.isArray(data) ? data : [];
-    return items;
-  }
-);
+  //Payload opcional: categoryId
+  async ({ categoryId = null } = {}, { rejectWithValue }) => {
+    try {
+      //Si no hay una cat establecida, directamente va a product
+      if (!categoryId) {
+        const { data } = await axios.get(`${BASE_URL}/product`);
+        const items = resolveArray(data);
+        return items;
+      }
+
+      //Si hay categorai
+      const { data } = await axios.get(`${BASE_URL}/categories/${categoryId}`);
+      const items = Array.isArray(data?.products) ? data.products : [];
+      return items;
+    }
+    //Caso de error
+    catch (error) {
+      const message =
+        error?.response?.data?.message || error?.message || "Error al obtener productos";
+      return rejectWithValue(message);
+    }
+  })
+const initialState = {
+  products: [],
+  loading: false,
+  error: null,
+};
 
 const productsSlice = createSlice({
   name: "products",
-  initialState: {
-    products: [],
-    loading: false,
-    error: null,
+  initialState,
+  reducers: {
+    resetProductsError: (state) => {
+      state.error = null;
+    },
   },
-  reducers: {},
   extraReducers: (builder) => {
     builder
       .addCase(fetchProducts.pending, (state) => {
@@ -30,13 +58,15 @@ const productsSlice = createSlice({
       })
       .addCase(fetchProducts.fulfilled, (state, action) => {
         state.loading = false;
-        state.products = action.payload; // <— guarda en 'products'
+        state.products = action.payload;
       })
       .addCase(fetchProducts.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message || "Error al cargar productos";
+        state.error = action.payload || action.error.message;
+        state.products = [];
       });
   },
 });
 
+export const { resetProductsError } = productsSlice.actions;
 export default productsSlice.reducer;

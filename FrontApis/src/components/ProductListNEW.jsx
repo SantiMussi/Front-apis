@@ -1,27 +1,32 @@
 import { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import { fetchProducts } from "../redux/productsSlice";
 
-const ProductListNEW = () => {
+function Products({ categoryId = null }) {
   const dispatch = useDispatch();
-  const { products, error, loading } = useSelector((state) => state.products);
+  const { products, loading, error } = useSelector((state) => state.products);
 
+  // Cada vez que cambie la categoría, pedimos los productos correspondientes
   useEffect(() => {
-    dispatch(fetchProducts()); // thunk
-  }, [dispatch]);
+    dispatch(fetchProducts({ categoryId }));
+  }, [categoryId, dispatch]);
 
-  if (loading)
+  if (loading) {
     return (
       <div className="loading">
         <div className="spinner"></div>
         <p>Cargando productos...</p>
       </div>
     );
+  }
 
   if (error) {
-    console.error("Error al cargar productos:", error);
-    return <div className="no-product">Error al cargar productos</div>;
+    return (
+      <div className="loading">
+        <p>Error: {error}</p>
+      </div>
+    );
   }
 
   const list = Array.isArray(products) ? products : [];
@@ -32,15 +37,18 @@ const ProductListNEW = () => {
         {list.map((p) => {
           const priceValue = Number(p.price ?? 0);
           const discountValue = Number(p.discount ?? 0);
-          const hasDiscount = Number.isFinite(discountValue) && discountValue > 0;
-          const finalPrice = hasDiscount ? priceValue * (1 - discountValue) : priceValue;
+          const hasDiscount =
+            Number.isFinite(discountValue) && discountValue > 0;
+          const finalPrice = hasDiscount
+            ? priceValue * (1 - discountValue)
+            : priceValue;
 
           return (
             <div key={p.id} className="producto-card">
               <img src={p.base64img} alt={p.name} />
               <h3>{p.name}</h3>
-
               <div className="price-block">
+                {/* Precio actual con descuento */}
                 <span className="price-current">
                   $
                   {finalPrice.toLocaleString(undefined, {
@@ -49,6 +57,7 @@ const ProductListNEW = () => {
                   })}
                 </span>
 
+                {/* Si tiene descuento, mostrar original y porcentaje arriba */}
                 {hasDiscount && (
                   <div className="price-discount-details">
                     <span className="price-original">
@@ -64,7 +73,6 @@ const ProductListNEW = () => {
                   </div>
                 )}
               </div>
-
               <Link to={`/product/${p.id}`} className="detail-btn">
                 Ver más
               </Link>
@@ -78,6 +86,6 @@ const ProductListNEW = () => {
       </div>
     </section>
   );
-};
+}
 
-export default ProductListNEW;
+export default Products;
