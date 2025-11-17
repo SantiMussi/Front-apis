@@ -8,14 +8,6 @@ function authHeader() {
 
 //Funciones CRUD PRODUCTOS
 
-export async function getProducts() {
-    const response = await fetch(`${BASE_URL}/product`, {
-        headers: authHeader()
-    });
-    if (!response.ok) throw new Error('Error al obtener productos');
-    return response.json();
-}
-
 //Crear producto
 
 export async function createProduct(product) {
@@ -56,86 +48,6 @@ export async function deleteProduct(id) {
     if (!response.ok) throw new Error('Error al eliminar producto')
 }
 
-// CATEGORIAS
-
-// Obtener todas las categorias
-
-export async function getCategories() {
-    const response = await fetch(`${BASE_URL}/categories`, {
-        headers: authHeader()
-    });
-    if (!response.ok) throw new Error('Error al obtener categorias');
-    return response.json();
-}
-
-export async function getCategoryById(id) {
-    const response = await fetch(`${BASE_URL}/categories/${id}`, {
-        headers: authHeader()
-    });
-    if (!response.ok) throw new Error('Error al obtener categoria');
-    return response.json();
-}
-
-// Crear categoria
-
-export async function createCategory(category) {
-    const response = await fetch(`${BASE_URL}/categories`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            ...authHeader()
-        },
-        body: JSON.stringify(category)
-    });
-    if (!response.ok) throw new Error('Error al crear categoria');
-    return response.json();
-}
-
-
-// Eliminar categorua
-
-export async function deleteCategory(id) {
-    const response = await fetch(`${BASE_URL}/categories/delete`, {
-        method: 'DELETE',
-        headers:{ "Content-Type": "application/json", ...authHeader()},
-        body: JSON.stringify({ id })
-    });
-    if (!response.ok) {
-        const msg = await response.text();
-
-        const errorData = JSON.parse(msg);
-        throw new Error(errorData.message);
-    }
-    return true;
-}
-
-
-export async function updateCategory(categoryId, body) {
-  const res = await fetch(`${BASE_URL}/categories/modify/${categoryId}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      ...authHeader(),
-    },
-    body: JSON.stringify(body),
-  });
-
-  if (!res.ok) {
-    const msg = await res.text().catch(() => "Error desconocido");
-    throw new Error(msg || "Error al actualizar la categoría");
-  }
-
-  // Si el backend no devuelve JSON o devuelve vacío (ej: 204)
-  const contentType = res.headers.get("content-type") || "";
-  if (!contentType.includes("application/json")) {
-    // Intentamos leer texto por si hay mensaje tipo "Category modified"
-    const text = await res.text().catch(() => "");
-    return text || { id: categoryId, ...body };
-  }
-
-  // Si sí devuelve JSON válido
-  return res.json();
-}
 // USUARIOS
 
 export async function getUsers() {

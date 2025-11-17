@@ -1,113 +1,116 @@
 import { useEffect, useMemo, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+
 import {
   createProduct,
-  getCategories,
-  getProducts,
   updateProduct,
   deleteProduct,
 } from "../services/adminService";
-import ProductForm from "../components/Panels/ProductForm";
-import StatusAlert from "../components/Panels/StatusAlert";
-import { EMPTY_PRODUCT } from "../constants/product";
-import ProductList from "../components/Panels/ProductList";
 import { getCurrentUser } from "../services/authService";
+
+import {
+  fetchProducts as fetchProductsThunk,
+} from "../redux/productsSlice";
+import {
+  fetchCategories as fetchCategoriesThunk,
+} from "../redux/categoriesSlice";
+
+import ProductForm from "../components/Panels/ProductForm";
+import ProductList from "../components/Panels/ProductList";
+import StatusAlert from "../components/Panels/StatusAlert";
 import Collapsible from "../components/Collapsible/Collapsible";
+import { EMPTY_PRODUCT } from "../constants/product";
 
 const EMPTY_STATUS = null;
 
-/** Mantengo BASE_URL si lo usás en otros helpers de este archivo */
-const BASE_URL = import.meta.env.VITE_API_URL;
-
 export default function SellerView() {
+  const dispatch = useDispatch();
+
+  // Redux
+  const { products, loading: prodLoading } = useSelector(
+    (state) => state.products
+  );
+  const { categories, loading: catLoading, error: catError } = useSelector(
+    (state) => state.categories
+  );
+
+  // ID del usuario logueado
+  const [currentUserId, setCurrentUserId] = useState(null);
+
+  // Form de producto
   const [productForm, setProductForm] = useState({ ...EMPTY_PRODUCT });
   const [selectedProductId, setSelectedProductId] = useState(null);
 
-  const [categories, setCategories] = useState([]);
-  const [sellerProducts, setSellerProducts] = useState([]);
-
+  // UI
   const [status, setStatus] = useState(EMPTY_STATUS);
   const [loading, setLoading] = useState(false);
   const [initialLoad, setInitialLoad] = useState(true);
 
-  // Acordeón (igual que en THEGODPAGE)
-  const [openPanel, setOpenPanel] = useState("");
+  // Acordeón
+  const [openPanel, setOpenPanel] = useState("products");
   const togglePanel = (id) => setOpenPanel((curr) => (curr === id ? null : id));
 
-  // Notificación temporal (idéntico a THEGODPAGE)
+  // Notificaciones
   const notify = (type, message) => {
     setStatus({ type, message });
     window.clearTimeout(notify.timeoutId);
     notify.timeoutId = window.setTimeout(() => setStatus(null), 5000);
   };
 
-  // Reset formulario
   const resetProductForm = () => {
     setProductForm({ ...EMPTY_PRODUCT });
     setSelectedProductId(null);
   };
 
-  // CATEGORÍAS
-  const fetchCategories = async () => {
+  // Cargar usuario actual (solo una vez)
+  const loadCurrentUser = async () => {
     try {
-      const data = await getCategories();
-      setCategories(Array.isArray(data) ? data : data?.content || []);
-    } catch (error) {
-      console.error(error);
-      notify("error", error.message || "No se pudieron cargar las categorías");
-      setCategories([]);
-    }
-  };
-
-  // PRODUCTOS DEL VENDEDOR
-  const fetchSellerProducts = async () => {
-    try {
-      const [currentUser, productsResponse] = await Promise.all([
-        getCurrentUser(),
-        getProducts(),
-      ]);
-
-      const parsed = Array.isArray(productsResponse)
-        ? productsResponse
-        : productsResponse?.content || [];
-
-      const currentUserId = currentUser?.id;
-      if (!currentUserId) {
-        notify("error", "No se pudo identificar al usuario actual para listar sus productos");
-        setSellerProducts([]);
+      const user = await getCurrentUser();
+      if (!user?.id) {
+        notify("error", "No se pudo identificar al usuario actual");
+        setCurrentUserId(null);
         return;
       }
-
-      // Acepta tanto creatorId como creator_id desde el backend
-      const filtered = parsed.filter((p) => {
-        const creator =
-          p?.creatorId ?? p?.creator_id ?? p?.creator?.id ?? null;
-        return creator !== undefined && creator !== null && String(creator) === String(currentUserId);
-      });
-
-      setSellerProducts(filtered);
+      setCurrentUserId(user.id);
     } catch (error) {
       console.error(error);
-      notify("error", error.message || "No se pudieron cargar los productos del vendedor");
-      setSellerProducts([]);
+      notify("error", error.message || "No se pudo obtener el usuario actual");
+      setCurrentUserId(null);
     }
   };
 
-  // Bootstrap inicial (igual patrón que THEGODPAGE)
+  // Bootstrap: productos + categorías + usuario
   useEffect(() => {
     const bootstrap = async () => {
       setLoading(true);
-      await Promise.all([fetchCategories(), fetchSellerProducts()]);
+      await Promise.all([
+        dispatch(fetchCategoriesThunk()).unwrap(),
+        dispatch(fetchProductsThunk()).unwrap(),
+        loadCurrentUser(),
+      ]);
       setLoading(false);
       setInitialLoad(false);
     };
+
     bootstrap();
 
     return () => {
       if (notify.timeoutId) window.clearTimeout(notify.timeoutId);
     };
-  }, []);
+  }, [dispatch]);
 
-  // Form product
+  // Productos del vendedor (filtrados)
+  const sellerProducts = useMemo(() => {
+    if (!currentUserId) return [];
+    return products.filter((p) => {
+      const creator =
+        p?.creatorId ?? p?.creator_id ?? p?.creator?.id ?? null;
+      if (creator == null) return false;
+      return String(creator) === String(currentUserId);
+    });
+  }, [products, currentUserId]);
+
+  // Manejo del form de producto
   const handleProductChange = (e) => {
     const { name, value } = e.target;
     setProductForm((prev) => ({ ...prev, [name]: value }));
@@ -132,15 +135,23 @@ export default function SellerView() {
       }
 
       const discountValue =
-        productForm.discount === "" ? 0 : Number.parseFloat(productForm.discount);
-      if (Number.isNaN(discountValue) || discountValue < 0 || discountValue > 1) {
+        productForm.discount === ""
+          ? 0
+          : Number.parseFloat(productForm.discount);
+      if (
+        Number.isNaN(discountValue) ||
+        discountValue < 0 ||
+        discountValue > 1
+      ) {
         notify("error", "El descuento debe estar entre 0 y 1");
         setLoading(false);
         return;
       }
 
       const stockValue =
-        productForm.stock === "" ? 0 : Number.parseInt(productForm.stock, 10);
+        productForm.stock === ""
+          ? 0
+          : Number.parseInt(productForm.stock, 10);
       if (Number.isNaN(stockValue) || stockValue < 0) {
         notify("error", "El stock no es válido");
         setLoading(false);
@@ -154,14 +165,15 @@ export default function SellerView() {
         return;
       }
 
-      const currentUser = await getCurrentUser();
-      if (!currentUser?.id) {
-        notify("error", "No se pudo identificar al usuario actual");
+      if (!currentUserId) {
+        notify(
+          "error",
+          "No se pudo identificar al usuario actual para asignar el producto"
+        );
         setLoading(false);
         return;
       }
 
-      // Payload alineado con THEGODPAGE (creator_id)
       const payload = {
         name: trimmedName,
         description: productForm.description,
@@ -171,7 +183,7 @@ export default function SellerView() {
         stock: stockValue,
         categoryId: categoryValue,
         base64img: productForm.base64img || null,
-        creator_id: currentUser.id, // <- clave
+        creator_id: currentUserId,
       };
 
       if (selectedProductId) {
@@ -182,17 +194,21 @@ export default function SellerView() {
         notify("success", "Producto creado correctamente");
       }
 
-      await fetchSellerProducts();
+      // refresco productos globales -> sellerProducts se recalcula solo
+      await dispatch(fetchProductsThunk()).unwrap();
       resetProductForm();
     } catch (error) {
       console.error(error);
-      notify("error", error.message || "Ocurrió un error al cargar el producto");
+      notify(
+        "error",
+        error.message || "Ocurrió un error al cargar el producto"
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  const isSubmitting = loading; // usamos el mismo flag general que en THEGODPAGE
+  const isSubmitting = loading;
 
   const isSubmitDisabled = useMemo(
     () =>
@@ -226,7 +242,6 @@ export default function SellerView() {
     };
 
     setProductForm({ ...EMPTY_PRODUCT, ...normalizedForm });
-    // abre el panel de productos al editar (calza con UX del admin)
     setOpenPanel("products");
   };
 
@@ -240,7 +255,7 @@ export default function SellerView() {
     try {
       await deleteProduct(id);
       notify("success", "Producto eliminado correctamente");
-      await fetchSellerProducts();
+      await dispatch(fetchProductsThunk()).unwrap();
       if (selectedProductId === id) resetProductForm();
     } catch (error) {
       console.error(error);
@@ -250,10 +265,14 @@ export default function SellerView() {
     }
   };
 
-  // Refresh todo
+  // Refresh manual
   const handleRefresh = () => {
     setLoading(true);
-    Promise.all([fetchCategories(), fetchSellerProducts()])
+    Promise.all([
+      dispatch(fetchCategoriesThunk()).unwrap(),
+      dispatch(fetchProductsThunk()).unwrap(),
+      loadCurrentUser(),
+    ])
       .catch(() => null)
       .finally(() => setLoading(false));
   };
@@ -265,7 +284,9 @@ export default function SellerView() {
       <header className="admin-header">
         <div>
           <h1>Panel de Vendedor</h1>
-          <p className="admin-subtitle">Cargá y administrá tus productos publicados.</p>
+          <p className="admin-subtitle">
+            Cargá y administrá tus productos publicados.
+          </p>
         </div>
         <button
           type="button"
@@ -295,7 +316,7 @@ export default function SellerView() {
         >
           {/* Lista */}
           <div className="admin-card-block">
-            {loading && !sellerProducts.length ? (
+            {(loading || prodLoading) && !sellerProducts.length ? (
               <div className="admin-loading">Cargando productos...</div>
             ) : (
               <ProductList

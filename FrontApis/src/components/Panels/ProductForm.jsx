@@ -1,11 +1,11 @@
 import { SIZE_OPTIONS } from "../../constants/product";
-import { useEffect, useState} from 'react'
+import { useEffect, useState } from 'react'
 
-function clamp01(n){
-  if(n=== "" || n === null || n === undefined) return "";
+function clamp01(n) {
+  if (n === "" || n === null || n === undefined) return "";
   const x = Number(n);
-  if(Number.isNaN(x)) return "";
-  return Math.min(1, Math.max(0,x));
+  if (Number.isNaN(x)) return "";
+  return Math.min(1, Math.max(0, x));
 }
 
 const ProductForm = ({
@@ -34,33 +34,33 @@ const ProductForm = ({
   useEffect(() => {
     setPreviewUrl(product?.image_preview_url ?? product?.base64img ?? null);
   }, [product]);
-  
-  const handleDiscountChange = (e)=> {
+
+  const handleDiscountChange = (e) => {
     const clamped = clamp01(e.target.value);
     onChange({
-      target: {name: 'discount', value: clamped}
+      target: { name: 'discount', value: clamped }
     })
   }
 
   const handleDiscountBlur = (e) => {
     const clamped = clamp01(e.target.value === "" ? 0 : e.target.value)
     onChange({
-      target:{ name: 'discount', value: clamped}
+      target: { name: 'discount', value: clamped }
     });
   };
 
   //Imagen -> base64 y validaciones
   const handleImageChange = async (e) => {
     const file = e.target.files?.[0] || null;
-    if(!file){
-      onChange({ target: {name: 'base64img', value: ''}})
+    if (!file) {
+      onChange({ target: { name: 'base64img', value: '' } })
       setPreviewUrl(null);
       return
     }
 
     //Validar el tipo
     const validTypes = ['image/jpeg', 'image/png'];
-    if(!validTypes.includes(file.type)){
+    if (!validTypes.includes(file.type)) {
       onImageValidationError?.('Formato inválido. Sólo PNG o JPG')
       e.target.value = ""
       return;
@@ -72,12 +72,12 @@ const ProductForm = ({
       const dataUrl = reader.result; //String base64
       //Validar dimensiones
 
-      if(expectedWidth || expectedHeight){
-        validateImageDimensions(dataUrl).then(({width, height}) => {
+      if (expectedWidth || expectedHeight) {
+        validateImageDimensions(dataUrl).then(({ width, height }) => {
           const okW = expectedWidth ? width === expectedWidth : true;
           const okH = expectedHeight ? height === expectedHeight : true;
 
-          if(!okW || !okH){
+          if (!okW || !okH) {
             onImageValidationError?.(
               `Dimensiones inválidas. Se esperaba ${expectedWidth}x${expectedHeight ?? '?'} px y se recibió ${width}x${height} px`
             );
@@ -86,16 +86,16 @@ const ProductForm = ({
           }
 
           //Guardar base64 y preview
-          onChange({target: {name: 'base64img', value: dataUrl}});
+          onChange({ target: { name: 'base64img', value: dataUrl } });
           setPreviewUrl(dataUrl);
         })
-        .catch(() => {
-          onImageValidationError?.('No se pudo leer la imagen para validar las dimensiones.')
-          e.target.value = "";
-        })
+          .catch(() => {
+            onImageValidationError?.('No se pudo leer la imagen para validar las dimensiones.')
+            e.target.value = "";
+          })
       } else {
         //Sin validacion de tamano
-        onChange({target: {name: 'base64img', value: dataUrl}});
+        onChange({ target: { name: 'base64img', value: dataUrl } });
         setPreviewUrl(dataUrl);
       }
     };
@@ -107,21 +107,21 @@ const ProductForm = ({
 
   //Envuelve el submit para exigir imagen solo en la creacion
   const handleSubmit = () => {
-      if(!isCreating){
-        const hasImg = (product?.base64img && String(product.base64img).length > 0) || (previewUrl && String(previewUrl).length >0);
+    if (!isCreating) {
+      const hasImg = (product?.base64img && String(product.base64img).length > 0) || (previewUrl && String(previewUrl).length > 0);
 
-        if(!hasImg){
-          e.preventDefault();
-          onImageValidationError?.(
-            "Debes seleccionar una imagen para crear el producto"
-          );
-          return;
-        }
+      if (!hasImg) {
+        e.preventDefault();
+        onImageValidationError?.(
+          "Debes seleccionar una imagen para crear el producto"
+        );
+        return;
       }
-      //Delegamos al submit real del padre
-      onSubmit?.(e);
+    }
+    //Delegamos al submit real del padre
+    onSubmit?.(e);
   }
-  
+
   return (
     <form className="admin-form" onSubmit={onSubmit}>
       {title && <h3>{title}</h3>}
@@ -195,14 +195,14 @@ const ProductForm = ({
         {(previewUrl) && (
           <div className='full-width'>
             <small>Vista previa:</small>
-              <div className='admin-image-preview'>
-                <img
-                  src={previewUrl}
-                  alt='Vista previa'
-                  style={{maxWidth: 240, height: 'auto', display: 'block'}}
-                />
-              </div>
+            <div className='admin-image-preview'>
+              <img
+                src={previewUrl}
+                alt='Vista previa'
+                style={{ maxWidth: 240, height: 'auto', display: 'block' }}
+              />
             </div>
+          </div>
         )}
 
 
@@ -235,18 +235,26 @@ const ProductForm = ({
         <label>
           Categoría
           <select
-            className="admin-select"
             name="categoryId"
             value={product.categoryId}
             onChange={onChange}
             required
           >
             <option value="">Seleccionar categoría</option>
-            {categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.description ?? `ID ${category.id}`}
-              </option>
-            ))}
+
+            {categories.map((c) => {
+              const label =
+                (c.description && c.description.trim()) ||
+                (c.label && c.label.trim()) ||
+                (c.name && c.name.trim()) ||
+                `ID ${c.id}`;
+
+              return (
+                <option key={c.id} value={c.id}>
+                  {label}
+                </option>
+              );
+            })}
           </select>
         </label>
       </div>
@@ -274,14 +282,14 @@ const ProductForm = ({
 }
 
 /* Helpers */
-function validateImageDimensions(dataUrl){
+function validateImageDimensions(dataUrl) {
   return new Promise((resolve, reject) => {
     const img = new Image();
-    img.onload = () => resolve({width: img.naturalWidth, height: img.naturalHeight});
-    
+    img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
+
     img.onerror = reject;
     img.src = dataUrl;
-    })
+  })
 }
 
 
