@@ -4,9 +4,6 @@ import {
   createProduct,
   updateProduct,
   deleteProduct,
-  createCategory,
-  updateCategory,
-  deleteCategory,
   getUsers,
   updateUser,
 } from "../services/adminService";
@@ -16,6 +13,9 @@ import {
 
 import {
   fetchCategories as fetchCategoriesThunk,
+  createCategory as createCategoryThunk,
+  updateCategory as updateCategoryThunk,
+  deleteCategory as deleteCategoryThunk
 } from "../redux/categoriesSlice"
 import {
   fetchCoupons as fetchCouponsThunk,
@@ -75,7 +75,7 @@ function THEGODPAGE() {
     notify.timeoutId = window.setTimeout(() => setStatus(null), 5000);
   };
 
-  // carga productos desde la API
+  // productos
   const loadProducts = async () => {
     try {
       await dispatch(fetchProductsThunk()).unwrap();
@@ -85,7 +85,7 @@ function THEGODPAGE() {
     }
   };
 
-  // carga categorías desde la API
+  // categorías (get publico)
   const loadCategories = async () => {
     try {
       await dispatch(fetchCategoriesThunk()).unwrap();
@@ -203,6 +203,8 @@ function THEGODPAGE() {
     return !(shouldHideAdminUsers && roleValue === "ADMIN");
   });
 
+
+  //PRODUCTOS
   // resetea el formulario de producto (propaga a ProductForm)
   const resetProductForm = () => {
     setProductForm(EMPTY_PRODUCT);
@@ -327,7 +329,7 @@ function THEGODPAGE() {
     }
   };
 
-  // maneja cambios del formulario de categoría 
+  //CATEGORIAS
   const handleCategoryChange = (event) => {
     const { name, value } = event.target;
     setCategoryForm((prev) => ({
@@ -359,15 +361,20 @@ function THEGODPAGE() {
     }
     try {
       setSavingCategory(true);
-      const resp = await updateCategory(editingCategory.id, { description: desc });
 
-      //actualizo lista local usando la descripcion confirmada
-      setCategories((prev) => prev.map((c) => c.id === editingCategory.id ? { ...c, description: desc } : c))
-      notify("success", "Categoría actualizada");
+      await dispatch(
+        updateCategoryThunk({
+          id: editingCategory.id,
+          description: desc,
+        })
+      ).unwrap();
+
+      notify("success", "Categoria actualizada");
       setEditingCategory(null);
+      await loadCategories();
     } catch (err) {
       console.error(err);
-      notify("error", err.message || "No se pudo actualizar la categoría");
+      notify("error", err || "No se pudo actualizar la categoría")
     } finally {
       setSavingCategory(false);
     }
@@ -380,11 +387,11 @@ function THEGODPAGE() {
 
     try {
       setLoading(true);
-      await deleteCategory(category.id);
+      await dispatch(deleteCategoryThunk(category.id)).unwrap();
       notify("success", "Categoría eliminada");
-      // Actualizo lista local sin recargar todo
-      setCategories((prev) => prev.filter((c) => c.id !== category.id));
+      await loadCategories();
     } catch (err) {
+      console.error(err)
       // Posible caso: categoría en uso por productos
       notify("error", err.message || "No se pudo eliminar la categoría (puede estar en uso)");
     } finally {
@@ -396,20 +403,23 @@ function THEGODPAGE() {
   const handleCategorySubmit = async (event) => {
     event.preventDefault();
     const trimmedDescription = categoryForm.description.trim();
-    if (!trimmedDescription) {
-      notify("error", "La categoría necesita una descripción");
+    if(!trimmedDescription){
+      notify("error", "La categoría necesita una descripción")
       return;
     }
     setLoading(true);
-    try {
-      await createCategory({ description: trimmedDescription });
+
+    try{
+      await dispatch(
+        createCategoryThunk({description: trimmedDescription})
+      ).unwrap();
       notify("success", "Categoría creada correctamente");
       setCategoryForm(EMPTY_CATEGORY);
       await loadCategories();
-    } catch (error) {
+    } catch(error){
       console.error(error);
-      notify("error", error.message || "No se pudo crear la categoría");
-    } finally {
+      notify("error", error || 'No se pudo crear la categoría')
+    } finally{
       setLoading(false);
     }
   };
@@ -514,7 +524,7 @@ function THEGODPAGE() {
       )}
 
       <div className="admin-grid">
-        {/*  Productos (lista + formulario)  */}
+        {/* Productos */}
         <section className="admin-section full-width">
           <Collapsible
             id="products"
@@ -535,7 +545,9 @@ function THEGODPAGE() {
             </div>
             <div className="admin-card-block">
               <ProductForm
-                title={selectedProductId ? "Editar producto" : "Crear producto"}
+                title={
+                  selectedProductId ? "Editar producto" : "Crear producto"
+                }
                 product={productForm}
                 categories={categories}
                 onChange={handleProductChange}
@@ -548,7 +560,7 @@ function THEGODPAGE() {
           </Collapsible>
         </section>
 
-        {/*  Cupones  */}
+        {/* Cupones */}
         <section className="admin-section">
           <Collapsible
             id="coupons"
@@ -568,7 +580,7 @@ function THEGODPAGE() {
           </Collapsible>
         </section>
 
-        {/*  Categorías  */}
+        {/* Categorías */}
         <section className="admin-section">
           <Collapsible
             id="categories"
@@ -667,8 +679,11 @@ function THEGODPAGE() {
         </section>
       </div>
 
-      <OrderPanel id="orders" isOpen={openPanel === "orders"} onToggle={togglePanel} />
-
+      <OrderPanel
+        id="orders"
+        isOpen={openPanel === "orders"}
+        onToggle={togglePanel}
+      />
     </div>
   );
 }
