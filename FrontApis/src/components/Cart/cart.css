@@ -179,17 +179,20 @@
 
 .cart-item__remove {
   border: none;
-  background: none;
-  color: var(--text-muted);
+  background: #e63946;
+  color: #ffffff;
   letter-spacing: var(--ls-xs);
   font-size: 0.75rem;
   text-transform: uppercase;
   cursor: pointer;
-  transition: color 0.3s ease;
-}
+  transition: background 0.3s ease, transform 0.3s ease;
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  box-shadow: 0 4px 12px rgba(230, 57, 70, 0.35);}
 
 .cart-item__remove:hover {
-  color: var(--text);
+  background: #c5303c;
+  transform: translateY(-1px);
 }
 
 .cart-item__meta {

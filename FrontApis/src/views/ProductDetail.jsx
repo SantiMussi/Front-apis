@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { hasRole } from "../services/authService"
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { getRole, isLoggedIn } from "../services/authService";
 import { formatCurrency, resolveItemPricing } from "../helpers/pricing";
 
 const ProductDetail = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { id } = useParams();
   const [loading, setLoading] = useState(true);
   const [product, setProduct] = useState(null);
@@ -62,6 +63,7 @@ const ProductDetail = () => {
   };
 
   const isOutOfStock = typeof product?.stock === "number" ? product.stock <= 0 : false;
+  const isAdmin = getRole() === "ADMIN";
   const { unitPrice, compareAtPrice, hasDiscount, discountRate } = resolveItemPricing(product);
 
   const handleOpenVirtualFitter = () => {
@@ -75,70 +77,78 @@ const ProductDetail = () => {
     navigate(`/virtual-fitter?productId=${encodeURIComponent(productId)}`);
   };
 
-  return (
-    <div className="product-detail">
-      <button className="back-button" onClick={() => navigate(-1)}>← Volver</button>
-      <h2>{product.name}</h2>
-      <img src={product.base64img} alt={product.name} />
-      <p className="description">{product.description}</p>
+  const handleAddToCart = () => {
+    if (!isLoggedIn()) {
+      localStorage.setItem("lastPath", location.pathname);
+      navigate("/login");
+      return;
+    }
+    console.info("Agregar al carrito", { product, quantity });
+  };
 
-      <div className="price-block product-detail__price">
-        <span className="price-current">{formatCurrency(unitPrice)}</span>
-        {hasDiscount && (
-          <>
-            <span className="price-original">{formatCurrency(compareAtPrice)}</span>
-            <span className="price-tag">-{Math.round(discountRate * 100)}%</span>
-          </>
-        )}
-      </div>
-      <p className="stock">Stock disponible: {product.stock}</p>
-      <div className="product-detail__actions">
-        {hasRole('USER') && (
-            <>
+  return (
+      <div className="product-detail">
+        <button className="back-button" onClick={() => navigate(-1)}>← Volver</button>
+        <h2>{product.name}</h2>
+        <img src={product.base64img} alt={product.name} />
+        <p className="description">{product.description}</p>
+
+        <div className="price-block product-detail__price">
+          <span className="price-current">{formatCurrency(unitPrice)}</span>
+          {hasDiscount && (
+              <>
+                <span className="price-original">{formatCurrency(compareAtPrice)}</span>
+                <span className="price-tag">-{Math.round(discountRate * 100)}%</span>
+              </>
+          )}
+        </div>
+        <p className="stock">Stock disponible: {product.stock}</p>
+        <div className="product-detail__actions">
+          {!isAdmin && (
               <div className="cart-action-bar">
                 <div className="quantity-control" aria-label="Selector de cantidad">
                   <button
-                    type="button"
-                    className="quantity-button"
-                    onClick={decreaseQuantity}
-                    aria-label="Disminuir cantidad"
+                      type="button"
+                      className="quantity-button"
+                      onClick={decreaseQuantity}
+                      aria-label="Disminuir cantidad"
                   >
                     -
                   </button>
                   <span className="quantity-display" aria-live="polite">{quantity}</span>
                   <button
-                    type="button"
-                    className="quantity-button"
-                    onClick={increaseQuantity}
-                    aria-label="Aumentar cantidad"
-                    disabled={
-                      typeof product.stock === "number"
-                        ? quantity >= product.stock
-                        : false
-                    }
+                      type="button"
+                      className="quantity-button"
+                      onClick={increaseQuantity}
+                      aria-label="Aumentar cantidad"
+                      disabled={
+                        typeof product.stock === "number"
+                            ? quantity >= product.stock
+                            : false
+                      }
                   >
                     +
                   </button>
                 </div>
                 <button
-                  type="button"
-                  className="add-to-cart-button"
-                  disabled={isOutOfStock}
+                    type="button"
+                    className="add-to-cart-button"
+                    disabled={isOutOfStock}
+                    onClick={handleAddToCart}
                 >
                   Agregar al carrito
                 </button>
-            </div>
-             </>)
-             }
-        <button
-          type="button"
-          className="virtual-fitter-button"
-          onClick={handleOpenVirtualFitter}
-        >
-          Probar en el probador virtual
-        </button>
+              </div>
+          )}
+          <button
+              type="button"
+              className="virtual-fitter-button"
+              onClick={handleOpenVirtualFitter}
+          >
+            Probar en el probador virtual
+          </button>
+        </div>
       </div>
-    </div>
   );
 };
 
