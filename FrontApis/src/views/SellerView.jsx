@@ -2,19 +2,14 @@ import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import {
-  createProduct,
-  updateProduct,
-  deleteProduct,
-} from "../services/adminService";
-import { getCurrentUser } from "../services/authService";
-
-import {
   fetchProducts as fetchProductsThunk,
+  createProduct as createProductThunk,
+  updateProduct as updateProductThunk,
+  deleteProduct as deleteProductThunk,
 } from "../redux/productsSlice";
-import {
-  fetchCategories as fetchCategoriesThunk,
-} from "../redux/categoriesSlice";
+import { fetchCategories as fetchCategoriesThunk } from "../redux/categoriesSlice";
 
+import { getCurrentUser } from "../services/authService";
 import ProductForm from "../components/Panels/ProductForm";
 import ProductList from "../components/Panels/ProductList";
 import StatusAlert from "../components/Panels/StatusAlert";
@@ -187,10 +182,15 @@ export default function SellerView() {
       };
 
       if (selectedProductId) {
-        await updateProduct(selectedProductId, payload);
+        await dispatch(
+          updateProductThunk({
+            id: selectedProductId,
+            payload,
+          })
+        ).unwrap();
         notify("success", "Producto actualizado correctamente");
       } else {
-        await createProduct(payload);
+        await dispatch(createProductThunk(payload)).unwrap();
         notify("success", "Producto creado correctamente");
       }
 
@@ -253,9 +253,9 @@ export default function SellerView() {
 
     setLoading(true);
     try {
-      await deleteProduct(id);
+      await dispatch(deleteProductThunk(id)).unwrap();
       notify("success", "Producto eliminado correctamente");
-      await dispatch(fetchProductsThunk()).unwrap();
+      await dispatch(fetchProductsThunk()).unwrap(); //Refetch
       if (selectedProductId === id) resetProductForm();
     } catch (error) {
       console.error(error);

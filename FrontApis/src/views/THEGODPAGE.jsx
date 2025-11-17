@@ -1,27 +1,27 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  createProduct,
-  updateProduct,
-  deleteProduct,
-  getUsers,
-  updateUser,
-} from "../services/adminService";
+
+import { getUsers, updateUser } from "../services/adminService";
 import {
   fetchProducts as fetchProductsThunk,
+  createProduct as createProductThunk,
+  updateProduct as updateProductThunk,
+  deleteProduct as deleteProductThunk,
 } from "../redux/productsSlice";
 
 import {
   fetchCategories as fetchCategoriesThunk,
   createCategory as createCategoryThunk,
   updateCategory as updateCategoryThunk,
-  deleteCategory as deleteCategoryThunk
-} from "../redux/categoriesSlice"
+  deleteCategory as deleteCategoryThunk,
+} from "../redux/categoriesSlice";
+
 import {
   fetchCoupons as fetchCouponsThunk,
   createCoupon as createCouponThunk,
   deleteCoupon as deleteCouponThunk,
 } from "../redux/couponsSlice";
+
 import { getCurrentUser, hasRole } from "../services/authService";
 import { EMPTY_PRODUCT } from "../constants/product";
 import ProductList from "../components/Panels/ProductList";
@@ -32,7 +32,7 @@ import StatusAlert from "../components/Panels/StatusAlert";
 import CouponPanel from "../components/Panels/CouponPanel";
 import { normalizeUserRecord } from "../helpers/userAdmin";
 import Collapsible from "../components/Collapsible/Collapsible";
-import OrderPanel from "../components/Panels/OrderPanel"
+import OrderPanel from "../components/Panels/OrderPanel";
 
 const EMPTY_CATEGORY = { description: "" };
 
@@ -62,13 +62,13 @@ function THEGODPAGE() {
   const [initialLoad, setInitialLoad] = useState(true);
   const [updatingUserId, setUpdatingUserId] = useState(null);
 
-  //Acordeon
-  const [openPanel, setOpenPanel] = useState('');
+  // Acordeón
+  const [openPanel, setOpenPanel] = useState("");
   const togglePanel = (id) => {
-    setOpenPanel((curr) => (curr === id ? null : id))
-  }
+    setOpenPanel((curr) => (curr === id ? null : id));
+  };
 
-  // muestra notificaciones temporales en pantalla
+  // Notificaciones
   const notify = (type, message) => {
     setStatus({ type, message });
     window.clearTimeout(notify.timeoutId);
@@ -89,11 +89,10 @@ function THEGODPAGE() {
   const loadCategories = async () => {
     try {
       await dispatch(fetchCategoriesThunk()).unwrap();
+    } catch (error) {
+      notify("error", error || "No se pudieron cargar las categorías");
     }
-    catch (error) {
-      notify("error", error || 'No se pudieron cargar las categorías')
-    }
-  }
+  };
 
   // carga cupones
   const loadCoupons = async () => {
@@ -107,13 +106,20 @@ function THEGODPAGE() {
 
   const loadOrders = async () => {
     fetchAdminOrders();
-  }
+  };
 
   // cambia de forma optimista el rol de usuario
   const handleUserRoleChange = async (user, newRole) => {
     const normalizedRole = (newRole || "").trim().toUpperCase();
 
-    alert("Cambiando el rol de " + user?.first_name + " " + user?.last_name + " a " + newRole)
+    alert(
+      "Cambiando el rol de " +
+        user?.first_name +
+        " " +
+        user?.last_name +
+        " a " +
+        newRole
+    );
 
     if (!normalizedRole) {
       notify("error", "Seleccioná un rol válido");
@@ -131,9 +137,9 @@ function THEGODPAGE() {
       prevUsers.map((item) =>
         item.id === user.id
           ? {
-            ...item,
-            role: normalizedRole,
-          }
+              ...item,
+              role: normalizedRole,
+            }
           : item
       )
     );
@@ -148,9 +154,9 @@ function THEGODPAGE() {
         prevUsers.map((item) =>
           item.id === user.id
             ? {
-              ...item,
-              role: previousRole,
-            }
+                ...item,
+                role: previousRole,
+              }
             : item
         )
       );
@@ -176,18 +182,22 @@ function THEGODPAGE() {
     }
   };
 
-  // bootstrap inicial: carga productos, categorías y usuarios
+  // bootstrap inicial
   useEffect(() => {
     const bootstrap = async () => {
       setLoading(true);
-      await Promise.all([loadProducts(), loadCategories(), loadUsers(), loadCoupons()]);
+      await Promise.all([
+        loadProducts(),
+        loadCategories(),
+        loadUsers(),
+        loadCoupons(),
+      ]);
       setLoading(false);
       setInitialLoad(false);
     };
 
-    bootstrap(); // ejecutar carga inicial
+    bootstrap();
 
-    // limpiar timeouts cuando el componente se desmonta
     return () => {
       if (notify.timeoutId) {
         window.clearTimeout(notify.timeoutId);
@@ -203,15 +213,13 @@ function THEGODPAGE() {
     return !(shouldHideAdminUsers && roleValue === "ADMIN");
   });
 
+  // PRODUCTOS
 
-  //PRODUCTOS
-  // resetea el formulario de producto (propaga a ProductForm)
   const resetProductForm = () => {
     setProductForm(EMPTY_PRODUCT);
     setSelectedProductId(null);
   };
 
-  // maneja cambios en inputs del formulario de producto
   const handleProductChange = (event) => {
     const { name, value } = event.target;
     setProductForm((prev) => ({
@@ -220,7 +228,6 @@ function THEGODPAGE() {
     }));
   };
 
-  // envío del formulario de producto (crear o actualizar)
   const handleProductSubmit = async (event) => {
     event.preventDefault();
     setLoading(true);
@@ -243,7 +250,11 @@ function THEGODPAGE() {
         productForm.discount === ""
           ? 0
           : Number.parseFloat(productForm.discount);
-      if (Number.isNaN(discountValue) || discountValue < 0 || discountValue > 1) {
+      if (
+        Number.isNaN(discountValue) ||
+        discountValue < 0 ||
+        discountValue > 1
+      ) {
         notify("error", "El descuento debe estar entre 0 y 1");
         setLoading(false);
         return;
@@ -273,7 +284,6 @@ function THEGODPAGE() {
         return;
       }
 
-      // payload normalizado para la API
       const payload = {
         name: trimmedName,
         description: productForm.description,
@@ -285,14 +295,21 @@ function THEGODPAGE() {
         base64img: productForm.base64img || null,
         creator_id: currentUser.id,
       };
+
       if (selectedProductId) {
-        await updateProduct(selectedProductId, payload);
+        await dispatch(
+          updateProductThunk({
+            id: selectedProductId,
+            payload,
+          })
+        ).unwrap();
         notify("success", "Producto actualizado correctamente");
       } else {
-        await createProduct(payload);
+        await dispatch(createProductThunk(payload)).unwrap();
         notify("success", "Producto creado correctamente");
       }
-      await loadProducts();
+
+      await dispatch(fetchProductsThunk()).unwrap();
       resetProductForm();
     } catch (error) {
       console.error(error);
@@ -302,22 +319,20 @@ function THEGODPAGE() {
     }
   };
 
-  // prepara el formulario para editar un producto (se propaga a ProductList)
   const handleEditProduct = (formValues, productId) => {
     setSelectedProductId(productId ?? null);
     setProductForm(formValues);
   };
 
-  // elimina un producto (se propaga a ProductList)
   const handleDeleteProduct = async (id) => {
     if (!id) return;
     const confirmed = window.confirm("¿Eliminar este producto?");
     if (!confirmed) return;
     setLoading(true);
     try {
-      await deleteProduct(id);
+      await dispatch(deleteProductThunk(id)).unwrap();
       notify("success", "Producto eliminado");
-      await loadProducts();
+      await dispatch(fetchProductsThunk()).unwrap();
       if (selectedProductId === id) {
         resetProductForm();
       }
@@ -329,7 +344,7 @@ function THEGODPAGE() {
     }
   };
 
-  //CATEGORIAS
+  // CATEGORÍAS
   const handleCategoryChange = (event) => {
     const { name, value } = event.target;
     setCategoryForm((prev) => ({
@@ -339,7 +354,7 @@ function THEGODPAGE() {
   };
 
   const handleEditCategoryClick = (category) => {
-    setEditingCategory({ ...category }); // copia editable
+    setEditingCategory({ ...category });
   };
 
   const handleEditCategoryChange = (e) => {
@@ -374,7 +389,7 @@ function THEGODPAGE() {
       await loadCategories();
     } catch (err) {
       console.error(err);
-      notify("error", err || "No se pudo actualizar la categoría")
+      notify("error", err || "No se pudo actualizar la categoría");
     } finally {
       setSavingCategory(false);
     }
@@ -382,7 +397,9 @@ function THEGODPAGE() {
 
   const handleDeleteCategory = async (category) => {
     if (!category?.id) return;
-    const ok = window.confirm(`¿Eliminar la categoría "${category.description}" (ID ${category.id})?`);
+    const ok = window.confirm(
+      `¿Eliminar la categoría "${category.description}" (ID ${category.id})?`
+    );
     if (!ok) return;
 
     try {
@@ -391,43 +408,50 @@ function THEGODPAGE() {
       notify("success", "Categoría eliminada");
       await loadCategories();
     } catch (err) {
-      console.error(err)
-      // Posible caso: categoría en uso por productos
-      notify("error", err.message || "No se pudo eliminar la categoría (puede estar en uso)");
+      console.error(err);
+      notify(
+        "error",
+        err.message || "No se pudo eliminar la categoría (puede estar en uso)"
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  // crea una nueva categoría
   const handleCategorySubmit = async (event) => {
     event.preventDefault();
     const trimmedDescription = categoryForm.description.trim();
-    if(!trimmedDescription){
-      notify("error", "La categoría necesita una descripción")
+    if (!trimmedDescription) {
+      notify("error", "La categoría necesita una descripción");
       return;
     }
     setLoading(true);
 
-    try{
+    try {
       await dispatch(
-        createCategoryThunk({description: trimmedDescription})
+        createCategoryThunk({ description: trimmedDescription })
       ).unwrap();
       notify("success", "Categoría creada correctamente");
       setCategoryForm(EMPTY_CATEGORY);
       await loadCategories();
-    } catch(error){
+    } catch (error) {
       console.error(error);
-      notify("error", error || 'No se pudo crear la categoría')
-    } finally{
+      notify("error", error || "No se pudo crear la categoría");
+    } finally {
       setLoading(false);
     }
   };
 
-  // recarga todo (productos, categorías, usuarios)
+  // recarga todo
   const refreshAll = () => {
     setLoading(true);
-    Promise.all([loadProducts(), loadCategories(), loadUsers(), loadCoupons(), loadOrders()])
+    Promise.all([
+      loadProducts(),
+      loadCategories(),
+      loadUsers(),
+      loadCoupons(),
+      loadOrders(),
+    ])
       .catch(() => null)
       .finally(() => setLoading(false));
   };
@@ -458,7 +482,11 @@ function THEGODPAGE() {
     }
 
     const discountValue = Number.parseFloat(couponForm.discount);
-    if (Number.isNaN(discountValue) || discountValue <= 0 || discountValue >= 1) {
+    if (
+      Number.isNaN(discountValue) ||
+      discountValue <= 0 ||
+      discountValue >= 1
+    ) {
       notify("error", "El descuento debe ser un número entre 0 y 1");
       return;
     }
@@ -470,11 +498,13 @@ function THEGODPAGE() {
 
     setLoading(true);
     try {
-      await dispatch(createCouponThunk({
-        code: trimmedCode,
-        discount: discountValue,
-        expirationDate: couponForm.expirationDate,
-      })).unwrap();
+      await dispatch(
+        createCouponThunk({
+          code: trimmedCode,
+          discount: discountValue,
+          expirationDate: couponForm.expirationDate,
+        })
+      ).unwrap();
       notify("success", "Cupón creado correctamente");
       resetCouponForm();
       await loadCoupons();
