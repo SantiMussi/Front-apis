@@ -6,48 +6,6 @@ function authHeader() {
     return token ? { 'Authorization': `Bearer ${token}` } : {};
 }
 
-//Funciones CRUD PRODUCTOS
-
-//Crear producto
-
-export async function createProduct(product) {
-    const response = await fetch(`${BASE_URL}/product`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            ...authHeader()
-        },
-        body: JSON.stringify(product)
-    });
-    if (!response.ok) throw new Error('Error al crear producto: ' + (await response.json()).message);
-    return response.json();
-}
-
-// Actualizar producto existente
-
-export async function updateProduct(id, product) {
-    const response = await fetch(`${BASE_URL}/product/${id}/modify`, {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-            ...authHeader()
-        },
-        body: JSON.stringify(product)
-    });
-    if (!response.ok) throw new Error('Error al actualizar producto');
-    return response.json();
-}
-
-// Eliminar producto
-
-export async function deleteProduct(id) {
-    const response = await fetch(`${BASE_URL}/product/${id}/delete`, {
-        method: 'DELETE',
-        headers: authHeader()
-    });
-    if (!response.ok) throw new Error('Error al eliminar producto')
-}
-
 // USUARIOS
 
 export async function getUsers() {
