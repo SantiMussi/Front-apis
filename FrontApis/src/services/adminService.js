@@ -37,36 +37,3 @@ export async function deleteUser(id) {
     });
     if (!response.ok) throw new Error('Error al eliminar usuario');
 }
-
-
-// Funciones CRUD cupones
-
-export async function getCoupons() {
-    const response = await fetch(`${BASE_URL}/coupons`, {
-        headers: authHeader()
-    });
-    if (!response.ok) throw new Error('Error al obtener cupones');
-    return response.json();
-}
-
-export async function createCoupon(coupon) {
-    const response = await fetch(`${BASE_URL}/coupons`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            ...authHeader()
-        },
-        body: JSON.stringify(coupon),
-    });
-    if (!response.ok) throw new Error('Error al crear cupon');
-    return response.json();
-}
-
-export async function deleteCoupon(id) {
-    const response = await fetch(`${BASE_URL}/coupons/${id}`, {
-        method: "DELETE",
-        headers: authHeader()
-    });
-    if (!response.ok) throw new Error('Error al eliminar cupon');
-    return response.json();
-}
