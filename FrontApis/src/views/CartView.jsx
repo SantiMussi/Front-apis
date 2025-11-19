@@ -5,13 +5,15 @@ import CartItem from "../components/Cart/CartItem";
 import "../components/Cart/cart.css";
 import { formatCurrency, resolveItemPricing } from "../helpers/pricing";
 import { isLoggedIn } from "../services/authService";
+import {useSelector} from "react-redux";
 
 const CartView = () => {
   const [items, setItems] = useState([]);
-  useEffect(() => {
+  const selector = useSelector();
+  useEffect((selector) => {
     let mounted = true;
     const loadDemoProducts = async () => {
-      if (!isLoggedIn()) return;
+      if (!isLoggedIn(selector)) return;
       try {
         const demoProduct1 = await getProductById(1);
         const demoProduct2 = await getProductById(3);

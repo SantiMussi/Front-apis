@@ -1,6 +1,8 @@
 import {
     login as loginThunk,
-    register as registerThunk
+    register as registerThunk,
+    setToken as setTokenStore,
+    setRole as setRoleStore
 } from "../redux/authSlice";
 
 
@@ -11,8 +13,8 @@ const ROLE_KEY = 'role';
 const authEmitter = new EventTarget();
 const notifyAuth = () => authEmitter.dispatchEvent(new Event('auth-change'));
 
-export function onAuthChange(cb){
-    const handler = () => cb( {isLoggedIn: isLoggedIn(), role: getRole()} );
+export function onAuthChange(selector, cb){
+    const handler = () => cb( {isLoggedIn: isLoggedIn(selector), role: getRole(selector)} );
     authEmitter.addEventListener('auth-change', handler);
 
     //cleanup
@@ -20,21 +22,30 @@ export function onAuthChange(cb){
 }
 
 //Token y headers 
-export function authHeader(){
-    const token = localStorage.getItem('token');
+export function authHeader(selector){
+    const token = getToken(selector);
     return token ? { 'Authorization': `Bearer ${token}` } : {};
 }
 
-export function setToken(token){
+export function setToken(dispatch, token){
+
+    dispatch(setTokenStore(token));
+
+    /*
+
     if(token){
         localStorage.setItem(TOKEN_KEY, token)
         notifyAuth();
-    }
+    }*/
     return token ? { 'Authorization': `Bearer ${token}` } : {};
 }
 
-export function getToken(){
-    return localStorage.getItem(TOKEN_KEY);
+export function getToken(selector){
+
+    return selector((state) => state.auth.token);
+
+
+    //return localStorage.getItem(TOKEN_KEY);
 }
 
 export function logout(){
@@ -46,29 +57,37 @@ export function logout(){
 //User / rol
 export async function getCurrentUser(){
     const res = await fetch(`${BASE_URL}/users/me`, {
-        headers: {...authHeader()}
+        headers: {...authHeader(selector)}
     });
     if(!res.ok) throw new Error(await res.text() || `Error ${res.status}`);
     return res.json();
 }
 
 //Helpers de rol
-export function setRole(role){
-    localStorage.setItem('role', role);
+export function setRole(dispatch, role){
+
+    dispatch(setRoleStore(role));
+
+    //localStorage.setItem('role', role);
     notifyAuth();
 }
 
-export function getRole(){
-    return localStorage.getItem('role');
+export function getRole(selector){
+
+    return selector((state) => state.auth.role);
+
+
+    //return localStorage.getItem('role');
 }
 
-export function hasRole(...requiredRoles){
-    const role = getRole();
+export function hasRole(selector, ...requiredRoles){
+    const role = getRole(selector);
     return !!role && requiredRoles.includes(role);
 }
 
-export function isLoggedIn() {
-  return !!localStorage.getItem('token');
+export function isLoggedIn(selector) {
+    return !!getToken(selector);
+    //return !!localStorage.getItem('token');
 }
 
 

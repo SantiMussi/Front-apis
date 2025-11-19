@@ -3,14 +3,17 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { hasRole, isLoggedIn, getRole, onAuthChange, logout, getCurrentUser, setRole } from '../services/authService'
 import UserWidget from "./UserWidget/UserWidget.jsx"
 import './UserWidget/UserWidget.css'
+import {useDispatch, useSelector} from "react-redux";
 
 export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
+  const dispatch = useDispatch();
+  const selector = useSelector();
 
   const [auth, setAuth] = useState({
-    isAuth: isLoggedIn(),
-    role: getRole()
+    isAuth: isLoggedIn(selector),
+    role: getRole(selector)
   });
 
   //Guarda el last path
@@ -21,20 +24,20 @@ export default function Navbar() {
   }, [location.pathname]);
 
   //Subscribe a cambios de auth (login, logout, role)
-  useEffect(() => {
-    const unsubscribe = onAuthChange(({ isLoggedIn, role }) => {
+  useEffect((selector) => {
+    const unsubscribe = onAuthChange(selector,({ isLoggedIn, role } ) => {
       setAuth({ isAuth: isLoggedIn, role })
     });
 
     //Estado inicial
-    setAuth({ isAuth: isLoggedIn(), role: getRole() });
+    setAuth({ isAuth: isLoggedIn(selector), role: getRole(selector) });
 
     (async () => {
       try {
-        if (isLoggedIn()) {
+        if (isLoggedIn(selector)) {
           const me = await getCurrentUser();
-          if (me?.role) setRole(me.role);
-          setAuth({ isAuth: true, role: me?.role ?? getRole() });
+          if (me?.role) setRole(dispatch, me.role);
+          setAuth({ isAuth: true, role: me?.role ?? getRole(selector) });
         }
       } catch (e) {
         logout();
@@ -69,7 +72,7 @@ export default function Navbar() {
             <Link to='/register'>Registrarse</Link>
           </>
         )}
-        {auth.isAuth && !hasRole('ADMIN', 'SELLER') && (
+        {auth.isAuth && !hasRole(selector,'ADMIN', 'SELLER') && (
           <li>
             <Link to="/cart" className="cart-link" aria-label="Carrito">
               <svg

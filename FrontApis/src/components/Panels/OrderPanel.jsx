@@ -7,7 +7,8 @@ import {
 } from "../../helpers/orderHelpers";
 import { CANON_STATES, normalizeStatusToken } from "../../helpers/statusMap";
 import OrderCard from "../OrderComponents/OrderCard";
-import Collapsible from "../Collapsible/Collapsible"; // ojo con la ruta
+import Collapsible from "../Collapsible/Collapsible";
+import {useSelector} from "react-redux"; // ojo con la ruta
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -19,6 +20,7 @@ export default function OrderPanel({ id = "orders", isOpen, onToggle, className 
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
+  const selector = useSelector();
 
   // Filtros locales
   const [statusFilter, setStatusFilter] = useState("");
@@ -38,7 +40,7 @@ export default function OrderPanel({ id = "orders", isOpen, onToggle, className 
     setErr("");
     try {
       const res = await fetch(`${BASE_URL}/orders`, {
-        headers: { "Content-Type": "application/json", ...authHeader() },
+        headers: { "Content-Type": "application/json", ...authHeader(selector) },
         credentials: "include",
       });
 
@@ -110,7 +112,7 @@ export default function OrderPanel({ id = "orders", isOpen, onToggle, className 
         )}`,
         {
           method: "PUT",
-          headers: { ...authHeader() },
+          headers: { ...authHeader(selector) },
           credentials: "include",
         }
       );

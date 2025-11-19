@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { getRole, isLoggedIn } from "../services/authService";
 import { formatCurrency, resolveItemPricing } from "../helpers/pricing";
+import {useSelector} from "react-redux";
 
 const ProductDetail = () => {
   const navigate = useNavigate();
@@ -11,7 +12,7 @@ const ProductDetail = () => {
   const [product, setProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const BASE_URL = import.meta.env.VITE_API_URL;
-
+  const selector = useSelector();
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -63,7 +64,7 @@ const ProductDetail = () => {
   };
 
   const isOutOfStock = typeof product?.stock === "number" ? product.stock <= 0 : false;
-  const isAdmin = getRole() === "ADMIN";
+  const isAdmin = getRole(selector) === "ADMIN";
   const { unitPrice, compareAtPrice, hasDiscount, discountRate } = resolveItemPricing(product);
 
   const handleOpenVirtualFitter = () => {
@@ -78,7 +79,7 @@ const ProductDetail = () => {
   };
 
   const handleAddToCart = () => {
-    if (!isLoggedIn()) {
+    if (!isLoggedIn(selector)) {
       localStorage.setItem("lastPath", location.pathname);
       navigate("/login");
       return;

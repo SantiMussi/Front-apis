@@ -4,11 +4,12 @@ import {isLoggedIn, onAuthChange, authHeader } from "../../services/authService"
 import OrderCard from "../../components/OrderComponents/OrderCard";
 import { normalizePage } from "../../helpers/orderHelpers";
 import "./Orders.css";
+import {useSelector} from "react-redux";
 
 export default function OrdersPage() {
     const navigate = useNavigate();
-
-    const [logged, setLogged] = useState(isLoggedIn());
+    const selector = useSelector();
+    const [logged, setLogged] = useState(isLoggedIn(selector));
     const [orders, setOrders] = useState([]);
     const [page, setPage] = useState(0);
     const [size] = useState(10);
@@ -37,7 +38,7 @@ export default function OrdersPage() {
             let res = await fetch(
                 `${import.meta.env.VITE_API_URL}/users/me/orders?page=${page}&size=${size}`,
                 {
-                    headers: { "Content-Type": "application/json", ...authHeader() },
+                    headers: { "Content-Type": "application/json", ...authHeader(selector) },
                     credentials: "include",
                 }
             );
@@ -45,7 +46,7 @@ export default function OrdersPage() {
             // si el backend no soporta page/size, probá sin query
             if (res.status === 400 || res.status === 404) {
                 res = await fetch(`${import.meta.env.VITE_API_URL}/users/me/orders`, {
-                    headers: { "Content-Type": "application/json", ...authHeader() },
+                    headers: { "Content-Type": "application/json", ...authHeader(selector) },
                     credentials: "include",
                 });
             }

@@ -13,7 +13,6 @@ import { hasRole } from "../../services/authService";
 import "./VirtualFitter.css";
 
 const BASE_URL = import.meta.env.VITE_API_URL;
-
 /** Calibración por capa (defaults) */
 const LAYER_DEFAULTS = {
   top:    { scale: 0.17, x: 1.2,  y: -3.5, z: 30 },
@@ -75,7 +74,9 @@ function bucketizeProducts(all) {
 }
 
 export default function VirtualFitter() {
-  const dispatch = useDispatch();
+
+    const selector = useSelector();
+    const dispatch = useDispatch();
 
   // 👇 productos desde Redux
   const {
@@ -470,7 +471,7 @@ export default function VirtualFitter() {
               Volver al estado original
             </button>
 
-            {(hasRole('USER')) &&
+            {(hasRole(selector, 'USER')) &&
               <button
                 className="vf-btn vf-btn-primary vf-btn-cart"
                 type="button"

@@ -5,13 +5,14 @@ import { logout, isLoggedIn, hasRole } from '../../services/authService';
 import './UserWidget.css';
 import userAvatar from '../../assets/user-avatar.png';
 import gigachadAvatar from '../../assets/gigachad.png';
+import {useSelector} from "react-redux";
 
 export default function UserWidget({ onLogout }) {
     const [open, setOpen] = useState(false);
-    const logged = isLoggedIn();
     const menuRef = useRef(null);
     const iconRef = useRef(null);
-
+    const selector = useSelector();
+    const logged = isLoggedIn(selector);
     const handleToggle = () => setOpen(v => !v);
     const handleLogOut = () => {
         logout();
@@ -20,7 +21,7 @@ export default function UserWidget({ onLogout }) {
     };
 
     const avatarSrc= userAvatar;
-    const roleClass = hasRole('ADMIN') ? 'admin' : hasRole('SELLER') ? 'seller' : 'user';
+    const roleClass = hasRole(selector,'ADMIN') ? 'admin' : hasRole('SELLER') ? 'seller' : 'user';
 
     // Cerrar click afuera
     useEffect(() => {
@@ -69,7 +70,7 @@ export default function UserWidget({ onLogout }) {
                     role="menu"
                     aria-label="Menú de usuario"
                 >
-                    {hasRole('USER') && (
+                    {hasRole(selector,'USER') && (
                         <>
                             <Link role="menuitem" to="/orders" onClick={() => setOpen(false)}>
                                 Mis pedidos
@@ -81,7 +82,7 @@ export default function UserWidget({ onLogout }) {
                         </>
                     )}
 
-                    {hasRole('SELLER') && (
+                    {hasRole(selector, 'SELLER') && (
                         <>
                             <Link role="menuitem" to="/seller/panel" onClick={() => setOpen(false)}>
                                 Panel vendedor
@@ -90,7 +91,7 @@ export default function UserWidget({ onLogout }) {
                         </>
                     )}
 
-                    {hasRole('ADMIN') && (
+                    {hasRole(selector, 'ADMIN') && (
                         <>
                             <Link role="menuitem" to="/admin/panel" onClick={() => setOpen(false)}>
                                 Panel admin

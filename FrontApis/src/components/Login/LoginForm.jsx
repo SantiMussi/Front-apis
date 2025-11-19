@@ -4,7 +4,7 @@ import { getCurrentUser, login, setRole, setToken} from "../../services/authServ
 import "./LoginForm.css";
 import { useNavigate } from "react-router-dom";
 
-import {useDispatch} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
 
 const LoginForm = () => {
   const navigate = useNavigate();
@@ -14,6 +14,8 @@ const LoginForm = () => {
   const [error, setError] = useState(null);
 
   const dispatch = useDispatch();
+
+  const selector = useSelector();
 
 
     const handleSubmit = async (e) => {
@@ -29,9 +31,9 @@ const LoginForm = () => {
       console.log(data)
 
 
-      if (data?.access_token) setToken(data.access_token);
+      if (data?.access_token) setToken(dispatch, data.access_token);
       const user = await getCurrentUser();
-      setRole(user.role);
+      setRole(dispatch, user.role);
 
       //Navega al ultimo path en el q estuvo
       const lastPath = localStorage.getItem("lastPath") || "/";
