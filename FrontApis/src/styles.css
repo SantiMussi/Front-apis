@@ -296,6 +296,30 @@ nav {
   color: #fff;
 }
 
+
+
+/* Sutil “scan lines” cyber */
+.productos::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: linear-gradient(to bottom,
+      rgba(255, 255, 255, 0.03) 1px,
+      transparent 1px);
+  background-size: 100% 22px;
+  opacity: 0.25;
+  mix-blend-mode: soft-light;
+}
+
+.productos-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 2.4rem;
+}
+
 .no-product {
   display: flex;
   align-items: center;
@@ -329,131 +353,308 @@ nav {
 }
 
 .productos-grid {
+  position: relative;
+  z-index: 1;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 2.4rem;
+  align-items: stretch;
+  grid-auto-rows: 1fr;
 }
 
+/* CARD BASE */
 .producto-card {
   display: flex;
   flex-direction: column;
   height: 100%;
-  border: 1px solid var(--line);
-  background: #111;
-  border-radius: 12px;
-  padding: 1.5rem;
-  text-align: center;
-  transition: all 0.3s ease;
+  padding: 1.6rem 1.4rem 1.4rem;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: radial-gradient(circle at top, #181818 0%, #0c0c0c 65%, #050505 100%);
   position: relative;
   overflow: hidden;
+  text-align: left;
+  isolation: isolate;
+  box-shadow:
+    0 12px 6px rgba(0, 0, 0, 0.05),
+    0 0 0 1px rgba(255, 255, 255, 0.02);
+  transform-origin: center bottom;
+  transform: translateY(0) scale(1);
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    border-color 0.25s ease,
+    background 0.25s ease;
+}
+
+/* Botón “Ver más” dentro del footer de la card */
+.producto-footer .detail-btn {
+  margin-top: 0;
+  margin-left: auto;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+
+  padding: 0.75rem 1.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+
+  background: transparent;
+  color: var(--text);
+  font-size: 0.8rem;
+  letter-spacing: var(--ls-xs);
+  text-transform: uppercase;
+
+  text-decoration: none;
+  cursor: pointer;
+
+  transition:
+    background 0.25s ease,
+    color 0.25s ease,
+    box-shadow 0.25s ease,
+    transform 0.15s ease;
+}
+
+/* Efecto hover */
+.producto-footer .detail-btn:hover {
+  background: var(--text);
+  color: var(--bg);
+  box-shadow: 0 10px 30px rgba(255, 255, 255, 0.18);
+  transform: translateY(-2px);
+}
+
+/* Iconito ↗ */
+.producto-footer .detail-btn::after {
+  content: "↗";
+  font-size: 0.8rem;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+  opacity: 0.8;
+}
+
+.producto-footer .detail-btn:hover::after {
+  transform: translate(2px, -1px);
+  opacity: 1;
+}
+
+.producto-title {
+  font-size: 1rem;
+  letter-spacing: 0.06rem;
+  text-transform: uppercase;
+  margin-bottom: 0.1rem;
 }
 
 .producto-card p {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: var(--text-muted);
+}
+
+
+/* Glow del card */
+.producto-card::before {
+  background: radial-gradient(circle at center,
+      rgba(255, 255, 255, 0.06),
+      transparent 60%);
+}
+
+/* Borde brillante tipo “frame” */
+
+.producto-card::after {
+  background: linear-gradient(120deg,
+      transparent,
+      rgba(255, 255, 255, 0.15),
+      transparent);
+}
+
+.producto-card:hover {
+  box-shadow:
+    0 0 25px rgba(255, 255, 255, 0.08),
+    0 0 15px rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.producto-card:hover::before {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Borde brillante diagonal */
+.producto-card:hover::after {
+  opacity: 1;
+}
+
+
+
+/* BODY */
+.producto-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+/* IMAGEN */
+.producto-media {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  border-radius: 14px;
+  background: radial-gradient(circle at 20% 0, #222 0%, #101010 50%, #050505 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.1rem;
   overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
+  position: relative;
+}
+
+.producto-media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 10% 0,
+      rgba(255, 255, 255, 0.12),
+      transparent 55%);
+  opacity: 0.4;
+  mix-blend-mode: soft-light;
+  pointer-events: none;
 }
 
 .producto-card img {
   width: 100%;
-  height: 250px;
+  height: 100%;
   object-fit: contain;
-  border-radius: 8px;
-  margin-bottom: 1rem;
-  display: block;
-  transition: all 0.4s ease;
+  transform: translateY(0) scale(1);
+  transition: transform 0.35s ease, filter 0.35s ease;
 }
+
+.producto-card:hover img {
+  transform: translateY(-4px) scale(1.04);
+  filter: brightness(1.12) contrast(1.05);
+}
+
 
 .producto-card .price-block {
   margin: 0.9rem 0;
 }
 
+/* BADGE DESCUENTO */
+.producto-badge {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  padding: 0.25rem 0.7rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: var(--ls-xs);
+  border-radius: 999px;
+  border: 1px solid rgba(0, 255, 42, 0.6);
+  background: rgba(0, 0, 0, 0.8);
+  color: #00ff4c;
+  backdrop-filter: blur(6px);
+  z-index: 2;
+}
+
+.producto-badge--sale {
+  border-color: rgba(34, 197, 94, 0.9);
+  color: #22c55e;
+}
+
+/* PRECIO */
 .price-block {
+  margin-top: 0.6rem;
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 0.5rem;
+  gap: 0.25rem;
 }
 
 .price-current {
   font-weight: 700;
-  font-size: 1.1rem;
-  color: #fff;
+  font-size: 1.15rem;
+  color: #ffffff;
 }
 
 .price-discount-details {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 0.45rem;
 }
 
 .price-original {
   text-decoration: line-through;
-  color: #aaa;
-  font-size: 0.9rem;
+  color: #777;
+  font-size: 0.85rem;
 }
 
 .price-tag {
-  color: #00ff7f;
-  font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(34, 197, 94, 0.12);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.6);
 }
 
 .product-detail__price {
   margin: 1.5rem 0;
+  align-items: center;
+  /* centra horizontalmente los hijos */
+  text-align: center;
+  /* por las dudas para textos multilínea */
 }
 
 .product-detail__price .price-current {
   font-size: 1.5rem;
 }
 
-/* Botón detalle */
+
+/* Botón “Ver más” */
 .detail-btn {
-  display: inline-block;
-  width: 100%;
-  margin-top: auto;
-  padding: 1rem 0;
-  border: 1px solid var(--text);
-  border-radius: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  z-index: 3;
+  margin-top: 0;
+  margin-left: auto;
+  padding: 0.85rem 1.4rem;
+
+  border-radius: 999px;
+  border: 1px solid var(--line);
   background: transparent;
   color: var(--text);
-  font-size: 0.9rem;
-  letter-spacing: var(--ls-sm);
+  font-size: 0.8rem;
+  letter-spacing: var(--ls-xs);
   text-transform: uppercase;
   text-decoration: none;
   cursor: pointer;
-  transition: all 0.4s ease;
-  position: relative;
-  overflow: hidden;
+
+  transition:
+    background 0.25s ease,
+    color 0.25s ease,
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
 }
 
-.detail-btn::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg,
-      rgba(255, 255, 255, 0) 0%,
-      rgba(255, 255, 255, 0.3) 50%,
-      rgba(255, 255, 255, 0) 100%);
-  transition: all 0.5s ease;
+/* Flechita */
+.detail-btn::after {
+  content: "↗";
+  font-size: 0.8rem;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+  opacity: 0.8;
 }
-
-.detail-btn:hover::before {
-  left: 100%;
-}
-
 .detail-btn:hover {
   background: var(--text);
   color: var(--bg);
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(255, 255, 255, 0.15);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+/* Flechita cuando el botón está en hover */
+.detail-btn:hover::after {
+  transform: translate(2px, -1px);
+  opacity: 1;
 }
 
 /* Hover producto-card */
@@ -481,6 +682,11 @@ nav {
       transparent 60%);
   opacity: 0;
   transition: opacity 0.4s ease;
+}
+
+.producto-card::before,
+.producto-card::after {
+  pointer-events: none;
 }
 
 .producto-card:hover::before {
