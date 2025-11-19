@@ -310,7 +310,7 @@ export default function SellerView() {
         </button>
       </header>
 
-      <StatusAlert status={status} />
+      <StatusAlert status={status} onClose={() => setStatus(null)} />
 
       {loading && initialLoad && (
         <div className="admin-loading">Cargando información...</div>

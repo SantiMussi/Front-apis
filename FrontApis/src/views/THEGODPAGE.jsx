@@ -499,8 +499,8 @@ function THEGODPAGE() {
     const discountValue = Number.parseFloat(couponForm.discount);
     if (
       Number.isNaN(discountValue) ||
-      discountValue <= 0 ||
-      discountValue >= 1
+      discountValue < 0 ||
+      discountValue > 1
     ) {
       notify("error", "El descuento debe ser un número entre 0 y 1");
       return;
@@ -575,7 +575,7 @@ function THEGODPAGE() {
         </button>
       </header>
 
-      <StatusAlert status={status} />
+      <StatusAlert status={status} onClose={() => setStatus(null)} />
 
       {loading && initialLoad && (
         <div className="admin-loading">Cargando información...</div>

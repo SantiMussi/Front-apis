@@ -1,7 +1,21 @@
-const StatusAlert = ({ status }) => {
+function StatusAlert({ status, onClose }) {
   if (!status) return null;
 
-  return <div className={`admin-alert ${status.type}`}>{status.message}</div>;
+  const { type, message } = status;
+
+  return (
+    <div className={`admin-alert ${type} fixed`}>
+      <span>{message}</span>
+      <button
+        type="button"
+        className="admin-alert-close"
+        onClick={onClose}
+        aria-label="Cerrar"
+      >
+        ×
+      </button>
+    </div>
+  );
 }
 
 export default StatusAlert;

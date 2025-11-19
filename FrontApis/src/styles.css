@@ -816,6 +816,30 @@ nav{
   color: #ffc9cf;
 }
 
+.admin-alert.fixed {
+  position: fixed;
+  top: calc(var(--nav-h, 96px) + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 720px;
+  width: calc(100% - 2rem);
+  z-index: 2000;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: .75rem;
+}
+
+.admin-alert-close {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0 0.25rem;
+}
+
+
 .admin-loading {
   text-align: center;
   color: var(--text-muted);
