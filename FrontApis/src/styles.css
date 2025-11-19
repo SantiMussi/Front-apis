@@ -751,6 +751,94 @@ nav {
   box-shadow: 0 10px 40px rgba(255, 255, 255, 0.2);
 }
 
+/* Buscador en indumentaria */
+
+.price-filter {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex: 0 1 220px;
+  justify-content: center;
+}
+
+.price-input {
+  width: 100%;
+  max-width: 110px;
+  padding: 0.5rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: #0d0d0d;
+  color: var(--text);
+  font-size: 0.85rem;
+  outline: none;
+  transition: all 0.25s ease;
+}
+
+.price-input::placeholder {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  letter-spacing: var(--ls-xs);
+}
+
+.price-input:focus {
+  border-color: var(--line-strong);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.12);
+}
+
+.price-separator {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+  .cat-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .cat-search,
+  .price-filter {
+    max-width: 100%;
+  }
+
+  .price-filter {
+    justify-content: flex-start;
+  }
+}
+
+
+.cat-search {
+  flex: 1 1 240px;
+  max-width: 320px;
+  display: flex;
+  justify-content: center;
+}
+
+.cat-search-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: #0d0d0d;
+  color: var(--text);
+  font-size: 0.9rem;
+  letter-spacing: var(--ls-xs);
+  outline: none;
+  transition: all 0.25s ease;
+}
+
+.cat-search-input::placeholder {
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-xs);
+  font-size: 0.8rem;
+}
+
+.cat-search-input:focus {
+  border-color: var(--line-strong);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.12);
+}
+
 /* LOADING */
 .loading {
   display: flex;

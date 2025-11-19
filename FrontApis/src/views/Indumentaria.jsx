@@ -5,6 +5,10 @@ import { fetchCategories } from "../redux/categoriesSlice";
 
 export default function IndumentariaPage() {
   const [sel, setSel] = useState("all");
+  const [search, setSearch] = useState("");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+
   const dispatch = useDispatch();
 
   const { categories: cats, loading, error } = useSelector(
@@ -15,12 +19,15 @@ export default function IndumentariaPage() {
     dispatch(fetchCategories());
   }, [dispatch]);
 
+  const clearFilters = () => {
+    setSearch("");
+    setMinPrice("");
+    setMaxPrice("");
+  };
+
   return (
     <main className="indumentaria-page">
-
-      {/* Barra de categorías */}
       <div className="cat-bar">
-
         {loading && (
           <div className="cat-loading">
             <span>Cargando categorías...</span>
@@ -51,9 +58,55 @@ export default function IndumentariaPage() {
         {error && (
           <span className="error-cats">Error al cargar categorías</span>
         )}
+
+        {/* 🔍 Buscador por nombre */}
+        <div className="cat-search">
+          <input
+            type="text"
+            className="cat-search-input"
+            placeholder="Buscar producto..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+
+        {/* Filtro por precio */}
+        <div className="price-filter">
+          <input
+            type="number"
+            className="price-input"
+            placeholder="Min $"
+            value={minPrice}
+            onChange={(e) => setMinPrice(e.target.value)}
+          />
+          <span className="price-separator">–</span>
+          <input
+            type="number"
+            className="price-input"
+            placeholder="Max $"
+            value={maxPrice}
+            onChange={(e) => setMaxPrice(e.target.value)}
+          />
+        </div>
+
+        {(search || minPrice || maxPrice) && (
+          <button
+            type="button"
+            className="admin-button"
+            style={{ marginLeft: "0.5rem" }}
+            onClick={clearFilters}
+          >
+            Limpiar filtros
+          </button>
+        )}
       </div>
 
-      <Products categoryId={sel === "all" ? null : sel} />
+      <Products
+        categoryId={sel === "all" ? null : sel}
+        query={search}
+        minPrice={minPrice}
+        maxPrice={maxPrice}
+      />
     </main>
   );
 }
