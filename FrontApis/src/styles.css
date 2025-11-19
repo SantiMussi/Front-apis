@@ -890,7 +890,6 @@ nav {
 /* Cuando está agregado, lo ocultamos visualmente pero mantiene el espacio */
 .btn-label-base.hidden {
   visibility: hidden;
-  /* 👈 sigue ocupando lugar */
 }
 
 /* Texto “Agregado ✓” superpuesto en el centro */
