@@ -21,7 +21,7 @@ const ProductDetail = () => {
         setProduct(data);
         setQuantity(data.stock > 0 ? 1 : 0);
       } catch (error) {
-        console.error("Error fetching product:", error);
+        //console.error("Error fetching product:", error);
       } finally {
         setLoading(false);
       }
@@ -83,7 +83,7 @@ const ProductDetail = () => {
       navigate("/login");
       return;
     }
-    console.info("Agregar al carrito", { product, quantity });
+    //console.info("Agregar al carrito", { product, quantity });
   };
 
   return (

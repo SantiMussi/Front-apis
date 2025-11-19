@@ -49,7 +49,7 @@ function Register() {
 
 
         } catch(err){
-            console.error("Error al registrar: ", err)
+            //console.error("Error al registrar: ", err)
             setError("Error al registrarse: El mail ya está registrado.")
         }
     };

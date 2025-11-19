@@ -81,7 +81,7 @@ function THEGODPAGE() {
     if (fetchProductsThunk.rejected.match(action)) {
       const msg =
         action.error?.message || "No se pudieron cargar los productos";
-      console.error(action.error);
+      //console.error(action.error);
       notify("error", msg);
     }
   };
@@ -92,7 +92,7 @@ function THEGODPAGE() {
     if (fetchCategoriesThunk.rejected.match(action)) {
       const msg =
         action.error?.message || "No se pudieron cargar las categorías";
-      console.error(action.error);
+      //console.error(action.error);
       notify("error", msg);
     }
   };
@@ -103,7 +103,7 @@ function THEGODPAGE() {
     if (fetchCouponsThunk.rejected.match(action)) {
       const msg =
         action.error?.message || "No se pudieron cargar los cupones";
-      console.error(action.error);
+      //console.error(action.error);
       notify("error", msg);
     }
   };
@@ -173,7 +173,7 @@ function THEGODPAGE() {
       const rawUsers = Array.isArray(data) ? data : data?.content || [];
       setUsers(rawUsers.map((user, index) => normalizeUserRecord(user, index)));
     } catch (error) {
-      console.error(error);
+      //console.error(error);
       notify("error", error.message || "No se pudieron cargar los usuarios");
       setUsers([]);
     }
@@ -321,7 +321,7 @@ function THEGODPAGE() {
         notify("error", errMsg);
       }
     } catch (error) {
-      console.error(error);
+      //console.error(error);
       notify("error", error.message || "Ocurrió un error con el producto");
     } finally {
       setLoading(false);
@@ -368,7 +368,7 @@ function THEGODPAGE() {
         notify("error", errMsg);
       }
     } catch (error) {
-      console.error(error);
+      //console.error(error);
       notify("error", error.message || "No se pudo eliminar el producto");
     } finally {
       setLoading(false);
@@ -426,7 +426,7 @@ function THEGODPAGE() {
         notify("error", errMsg);
       }
     } catch (err) {
-      console.error(err);
+      //console.error(err);
       notify(
         "error",
         err.message || "No se pudo actualizar la categoría"
@@ -470,7 +470,7 @@ function THEGODPAGE() {
         notify("error", errMsg);
       }
     } catch (err) {
-      console.error(err);
+      //console.error(err);
       notify(
         "error",
         err.message ||
@@ -505,7 +505,7 @@ function THEGODPAGE() {
         notify("error", errMsg);
       }
     } catch (error) {
-      console.error(error);
+      //console.error(error);
       notify(
         "error",
         error.message || "No se pudo crear la categoría"
@@ -589,7 +589,7 @@ function THEGODPAGE() {
         notify("error", errMsg);
       }
     } catch (error) {
-      console.error(error);
+      //console.error(error);
       notify("error", error.message || "No se pudo crear el cupón");
     } finally {
       setLoading(false);
@@ -626,7 +626,7 @@ function THEGODPAGE() {
         notify("error", errMsg);
       }
     } catch (error) {
-      console.error(error);
+      //console.error(error);
       notify("error", error.message || "No se pudo eliminar el cupón");
     } finally {
       setLoading(false);

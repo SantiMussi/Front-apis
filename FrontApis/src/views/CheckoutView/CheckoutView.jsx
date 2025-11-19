@@ -202,7 +202,7 @@ const CheckoutView = () => {
           const details = await getOrderById(response.orderId);
           setOrderDetails(details);
         } catch (error) {
-          console.warn("No se pudo obtener el detalle de la orden", error);
+          //console.warn("No se pudo obtener el detalle de la orden", error);
         }
       }
     } catch (error) {

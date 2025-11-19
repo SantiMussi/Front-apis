@@ -68,7 +68,7 @@ export default function SellerView() {
       }
       setCurrentUserId(user.id);
     } catch (error) {
-      console.error(error);
+      //console.error(error);
       notify(
         "error",
         error.message || "No se pudo obtener el usuario actual"
@@ -213,7 +213,7 @@ export default function SellerView() {
         notify("error", errorMessage);
       }
     } catch (error) {
-      console.error(error);
+      //console.error(error);
       notify(
         "error",
         error.message || "Ocurrió un error al cargar el producto"
@@ -293,7 +293,7 @@ export default function SellerView() {
         notify("error", errorMessage);
       }
     } catch (error) {
-      console.error(error);
+      //console.error(error);
       notify("error", error.message || "No se pudo eliminar el producto");
     } finally {
       setLoading(false);
