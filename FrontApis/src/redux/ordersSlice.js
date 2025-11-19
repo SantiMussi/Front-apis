@@ -57,6 +57,17 @@ export const createOrder = createAsyncThunk(
   }
 );
 
+export const fetchUserOrders = createAsyncThunk(
+  "orders/fetchUserOrders",
+  async () => {
+    const res = await axios.get(`${BASE_URL}/users/me/orders`, {
+      headers: { ...authHeaders() },
+    });
+
+    return resolveArray(res.data);
+  }
+);
+
 const initialState = {
   orders: [],
   loading: false,
@@ -127,8 +138,24 @@ const ordersSlice = createSlice({
         state.loading = false;
         state.error =
           action.error?.message || "Error al crear orden";
-      });
-  },
+      })
+
+
+      //User fetch
+      .addCase(fetchUserOrders.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchUserOrders.fulfilled, (state, action) => {
+        state.loading = false;
+        state.orders = action.payload || [];
+      })
+      .addCase(fetchUserOrders.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error?.message || "Error al obtener órdenes";
+        state.orders = [];
+      })
+}
 });
 
 export const { resetOrdersError } = ordersSlice.actions;
