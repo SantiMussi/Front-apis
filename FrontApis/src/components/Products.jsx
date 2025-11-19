@@ -18,7 +18,7 @@ function Products({
 
   const list = Array.isArray(products) ? products : [];
 
-  // 🔍 FILTRO LOCAL: nombre + rango de precio (sobre el precio final con descuento)
+  // FILTRO LOCAL: nombre + rango de precio (sobre el precio final con descuento)
   const filtered = useMemo(() => {
     const q = (query ?? "").trim().toLowerCase();
 

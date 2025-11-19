@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Swal from "sweetalert2"; // npm install sweetalert2
-import { getUsers, updateUser } from "../services/adminService";
+
 import {
   fetchProducts as fetchProductsThunk,
   createProduct as createProductThunk,
@@ -21,6 +21,11 @@ import {
   createCoupon as createCouponThunk,
   deleteCoupon as deleteCouponThunk,
 } from "../redux/couponsSlice";
+
+import {
+  fetchUsers as fetchUsersThunk,
+  updateUser as updateUserThunk,
+} from "../redux/usersSlice";
 
 import { getCurrentUser, hasRole } from "../services/authService";
 import { EMPTY_PRODUCT } from "../constants/product";
@@ -42,10 +47,10 @@ function THEGODPAGE() {
   const { products } = useSelector((state) => state.products);
   const { categories } = useSelector((state) => state.categories);
   const { coupons } = useSelector((state) => state.coupons);
+  const { users: rawUsers } = useSelector((state) => state.users);
 
   const [editingCategory, setEditingCategory] = useState(null);
   const [savingCategory, setSavingCategory] = useState(false);
-  const [users, setUsers] = useState([]);
 
   const [productForm, setProductForm] = useState(EMPTY_PRODUCT);
   const [selectedProductId, setSelectedProductId] = useState(null);
@@ -81,7 +86,6 @@ function THEGODPAGE() {
     if (fetchProductsThunk.rejected.match(action)) {
       const msg =
         action.error?.message || "No se pudieron cargar los productos";
-      //console.error(action.error);
       notify("error", msg);
     }
   };
@@ -92,7 +96,6 @@ function THEGODPAGE() {
     if (fetchCategoriesThunk.rejected.match(action)) {
       const msg =
         action.error?.message || "No se pudieron cargar las categorías";
-      //console.error(action.error);
       notify("error", msg);
     }
   };
@@ -103,18 +106,26 @@ function THEGODPAGE() {
     if (fetchCouponsThunk.rejected.match(action)) {
       const msg =
         action.error?.message || "No se pudieron cargar los cupones";
-      //console.error(action.error);
       notify("error", msg);
     }
   };
 
   const loadOrders = async () => {
     // si tenés una función fetchAdminOrders en otro lado, se usa acá
-    // por ahora lo dejo como estaba
     fetchAdminOrders?.();
   };
 
-  // cambia de forma optimista el rol de usuario
+  // carga usuarios (Redux)
+  const loadUsers = async () => {
+    const action = await dispatch(fetchUsersThunk());
+    if (fetchUsersThunk.rejected.match(action)) {
+      const msg =
+        action.error?.message || "No se pudieron cargar los usuarios";
+      notify("error", msg);
+    }
+  };
+
+  // cambia de forma controlada el rol de usuario usando Redux
   const handleUserRoleChange = async (user, newRole) => {
     const normalizedRole = (newRole || "").trim().toUpperCase();
 
@@ -128,54 +139,31 @@ function THEGODPAGE() {
       return;
     }
 
-    const previousRole = user.role ?? "";
-
-    setUsers((prevUsers) =>
-      prevUsers.map((item) =>
-        item.id === user.id
-          ? {
-              ...item,
-              role: normalizedRole,
-            }
-          : item
-      )
-    );
-
     setUpdatingUserId(user.id);
+
     try {
-      await updateUser(user.id, { role: normalizedRole });
-      notify("success", "Rol actualizado correctamente");
-    } catch (error) {
-      // revertir en caso de error
-      setUsers((prevUsers) =>
-        prevUsers.map((item) =>
-          item.id === user.id
-            ? {
-                ...item,
-                role: previousRole,
-              }
-            : item
-        )
+      const actionResult = await dispatch(
+        updateUserThunk({
+          id: user.id,
+          user: { role: normalizedRole },
+        })
       );
+
+      if (actionResult.meta.requestStatus === "fulfilled") {
+        notify("success", "Rol actualizado correctamente");
+      } else {
+        const errMsg =
+          actionResult.error?.message ||
+          "No se pudo actualizar el rol del usuario";
+        notify("error", errMsg);
+      }
+    } catch (error) {
       notify(
         "error",
         error.message || "No se pudo actualizar el rol del usuario"
       );
     } finally {
       setUpdatingUserId(null);
-    }
-  };
-
-  // carga usuarios
-  const loadUsers = async () => {
-    try {
-      const data = await getUsers();
-      const rawUsers = Array.isArray(data) ? data : data?.content || [];
-      setUsers(rawUsers.map((user, index) => normalizeUserRecord(user, index)));
-    } catch (error) {
-      //console.error(error);
-      notify("error", error.message || "No se pudieron cargar los usuarios");
-      setUsers([]);
     }
   };
 
@@ -205,7 +193,12 @@ function THEGODPAGE() {
   // decide si ocultar usuarios ADMIN según rol del actual
   const shouldHideAdminUsers = hasRole("ADMIN");
 
-  const visibleUsers = users.filter((user) => {
+  // normalizamos usuarios al leer desde Redux
+  const normalizedUsers = (rawUsers || []).map((user, index) =>
+    normalizeUserRecord(user, index)
+  );
+
+  const visibleUsers = normalizedUsers.filter((user) => {
     const roleValue = (user?.role ?? "").toString().trim().toUpperCase();
     return !(shouldHideAdminUsers && roleValue === "ADMIN");
   });
@@ -316,12 +309,10 @@ function THEGODPAGE() {
         resetProductForm();
       } else {
         const errMsg =
-          resultAction.error?.message ||
-          "Ocurrió un error con el producto";
+          resultAction.error?.message || "Ocurrió un error con el producto";
         notify("error", errMsg);
       }
     } catch (error) {
-      //console.error(error);
       notify("error", error.message || "Ocurrió un error con el producto");
     } finally {
       setLoading(false);
@@ -363,12 +354,10 @@ function THEGODPAGE() {
         }
       } else {
         const errMsg =
-          actionResult.error?.message ||
-          "No se pudo eliminar el producto";
+          actionResult.error?.message || "No se pudo eliminar el producto";
         notify("error", errMsg);
       }
     } catch (error) {
-      //console.error(error);
       notify("error", error.message || "No se pudo eliminar el producto");
     } finally {
       setLoading(false);
@@ -426,7 +415,6 @@ function THEGODPAGE() {
         notify("error", errMsg);
       }
     } catch (err) {
-      //console.error(err);
       notify(
         "error",
         err.message || "No se pudo actualizar la categoría"
@@ -470,7 +458,6 @@ function THEGODPAGE() {
         notify("error", errMsg);
       }
     } catch (err) {
-      //console.error(err);
       notify(
         "error",
         err.message ||
@@ -505,7 +492,6 @@ function THEGODPAGE() {
         notify("error", errMsg);
       }
     } catch (error) {
-      //console.error(error);
       notify(
         "error",
         error.message || "No se pudo crear la categoría"
@@ -589,7 +575,6 @@ function THEGODPAGE() {
         notify("error", errMsg);
       }
     } catch (error) {
-      //console.error(error);
       notify("error", error.message || "No se pudo crear el cupón");
     } finally {
       setLoading(false);
@@ -626,7 +611,6 @@ function THEGODPAGE() {
         notify("error", errMsg);
       }
     } catch (error) {
-      //console.error(error);
       notify("error", error.message || "No se pudo eliminar el cupón");
     } finally {
       setLoading(false);

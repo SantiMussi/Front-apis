@@ -6,34 +6,3 @@ function authHeader() {
     return token ? { 'Authorization': `Bearer ${token}` } : {};
 }
 
-// USUARIOS
-
-export async function getUsers() {
-    const response = await fetch(`${BASE_URL}/users`, {
-        headers: authHeader()
-    });
-    if (!response.ok) throw new Error('Error al obtener usuarios');
-    return response.json();
-}
-
-// Update user
-export async function updateUser(id, user) {
-    const response = await fetch(`${BASE_URL}/users/${id}`, {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-            ...authHeader()
-        },
-        body: JSON.stringify(user)
-    });
-    if (!response.ok) throw new Error('Error al actualizar usuario');
-    return response.json();
-}
-
-export async function deleteUser(id) {
-    const response = await fetch(`${BASE_URL}/users/${id}`, {
-        method: 'DELETE',
-        headers: authHeader()
-    });
-    if (!response.ok) throw new Error('Error al eliminar usuario');
-}
