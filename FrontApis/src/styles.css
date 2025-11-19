@@ -655,18 +655,55 @@ nav {
 }
 
 .product-detail .add-to-cart-button {
-  border: none;
+  position: relative;
+  /* para poder superponer el overlay */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0.9rem 2.4rem;
+  box-sizing: border-box;
+
+  border-radius: 8px;
+  border: 1px solid #fff;
   background: #000;
   color: #fff;
-  padding: 0 2.75rem;
+  cursor: pointer;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: var(--ls-sm);
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: background 0.3s ease, transform 0.3s ease;
+  font-size: 0.9rem;
+  transition: background 0.25s ease, color 0.25s ease, transform 0.15s ease;
 }
 
-.product-detail .add-to-cart-button:hover:not(:disabled) {
+/* El texto base define el ancho SIEMPRE */
+.btn-label-base {
+  display: inline-block;
+}
+
+/* Cuando está agregado, lo ocultamos visualmente pero mantiene el espacio */
+.btn-label-base.hidden {
+  visibility: hidden;
+  /* 👈 sigue ocupando lugar */
+}
+
+/* Texto “Agregado ✓” superpuesto en el centro */
+.btn-label-overlay {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+.btn-label-overlay.visible {
+  opacity: 1;
+}
+
+/* Hover solo cuando NO está agregado */
+.product-detail .add-to-cart-button:not(.added):hover:not(:disabled) {
   background: #222;
   transform: translateY(-2px);
 }
@@ -674,6 +711,28 @@ nav {
 .product-detail .add-to-cart-button:disabled {
   background: #333;
   cursor: not-allowed;
+}
+
+/* Estado “Agregado” */
+.product-detail .add-to-cart-button.added {
+  background: #22c55e;
+  border-color: #22c55e;
+  color: #0a0a0a;
+}
+
+.product-detail .add-to-cart-button.added:hover {
+  background: #22c55e;
+  transform: translateY(0);
+}
+
+
+.swal2-popup.swal2-toast {
+  border-radius: 999px;
+  padding: 0.5rem 1.2rem;
+  background: rgba(10, 10, 10, 0.9);
+  color: #fff;
+  backdrop-filter: blur(4px);
+  font-size: 0.9rem;
 }
 
 .product-detail .virtual-fitter-button {
