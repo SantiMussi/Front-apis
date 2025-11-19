@@ -1,3 +1,9 @@
+import {
+    login as loginThunk,
+    register as registerThunk
+} from "../redux/authSlice";
+
+
 const BASE_URL = import.meta.env.VITE_API_URL;
 const TOKEN_KEY = 'token';
 const ROLE_KEY = 'role';
@@ -67,9 +73,27 @@ export function isLoggedIn() {
 
 
 // AUTH API
-export async function login(email, password){
+export async function login(dispatch, email, password){
+
+    const payload = {
+        email: email,
+        password: password
+
+    }
+
+    const result = await dispatch(loginThunk(payload)).unwrap();
+
+    return result.data;
+
+
+
+    //
+    // METODO ANTIGUO DE LOGIN, TODAVIA NO LO SACO
+    //
+
+
     // Usa la variable de entorno para la URL base
-    const response = await fetch(`${BASE_URL}/api/v1/auth/authenticate`, {
+    /*const response = await fetch(`${BASE_URL}/api/v1/auth/authenticate`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({email, password})
@@ -83,10 +107,26 @@ export async function login(email, password){
     throw new Error(errorData.message);
   }
 
-  return response.json();
+  return response.json();*/
+
 }
-export async function register(firstname, lastname, email, password){
-    const response = await fetch(`${BASE_URL}/api/v1/auth/register`, {
+export async function register(dispatch, firstname, lastname, email, password){
+
+    const payload = {
+        firstname: firstname,
+        lastname: lastname,
+        email: email,
+        password: password,
+        role: 'USER'
+    }
+
+    const response = await dispatch(registerThunk(payload)).unwrap();
+
+    return response.data;
+
+
+
+    /*const response = await fetch(`${BASE_URL}/api/v1/auth/register`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({firstname, lastname, email, password, role: 'USER'})
@@ -97,5 +137,5 @@ export async function register(firstname, lastname, email, password){
         const message = errorData?.message || `Error ${response.status}`
         throw new Error(message);
     }
-    return response.json();
+    return response.json();*/
 }

@@ -1,11 +1,13 @@
 import {useState} from "react";
 import { register } from "../../services/authService"
 import {useNavigate} from "react-router-dom";
+import {useDispatch} from "react-redux";
 
 
 
 function Register() {
     const navigate = useNavigate();
+    const dispatch = useDispatch();
 
     const [formData, setFormData] = useState({
         lastname: "",
@@ -36,13 +38,17 @@ function Register() {
         e.preventDefault();
         try{
             setError("");
+
+
             const data = await register(
+                dispatch,
                 formData.firstname,
                 formData.lastname,
                 formData.email,
                 formData.password 
             );
 
+            console.log(data);
 
             //nav al login con un mensaje de cuenta creada exitosamente
             navigate("/login", {replace:true, state: {justRegistered: true}})

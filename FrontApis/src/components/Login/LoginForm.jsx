@@ -4,6 +4,8 @@ import { getCurrentUser, login, setRole, setToken} from "../../services/authServ
 import "./LoginForm.css";
 import { useNavigate } from "react-router-dom";
 
+import {useDispatch} from "react-redux";
+
 const LoginForm = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -11,7 +13,10 @@ const LoginForm = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const handleSubmit = async (e) => {
+  const dispatch = useDispatch();
+
+
+    const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
@@ -19,7 +24,11 @@ const LoginForm = () => {
     try {
 
       //Loggea al usuario y guarda la data en localstorage
-      const data = await login(email, password);
+      const data = await login(dispatch, email, password);
+
+      console.log(data)
+
+
       if (data?.access_token) setToken(data.access_token);
       const user = await getCurrentUser();
       setRole(user.role);
