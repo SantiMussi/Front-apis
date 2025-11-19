@@ -39,6 +39,8 @@ export const updateOrderStatus = createAsyncThunk(
         params: payload,
       }
     );
+
+    // Devolvés lo necesario para actualizar el estado
     return { orderId, status };
   }
 );
