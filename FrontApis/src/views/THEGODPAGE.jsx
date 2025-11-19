@@ -37,6 +37,8 @@ import OrderPanel from "../components/Panels/OrderPanel";
 const EMPTY_CATEGORY = { description: "" };
 
 function THEGODPAGE() {
+
+    const selector = useSelector();
   const dispatch = useDispatch();
 
   const { products } = useSelector((state) => state.products);
@@ -206,7 +208,7 @@ function THEGODPAGE() {
   }, []);
 
   // decide si ocultar usuarios ADMIN según rol del actual
-  const shouldHideAdminUsers = hasRole("ADMIN");
+  const shouldHideAdminUsers = hasRole(selector, "ADMIN");
 
   const visibleUsers = users.filter((user) => {
     const roleValue = (user?.role ?? "").toString().trim().toUpperCase();
