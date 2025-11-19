@@ -3,53 +3,37 @@ import axios from "axios";
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 
+// Funcion para que, si viene paginado como { content: [...] }, tomamos content. Si es array, lo usamos directo.
 const resolveArray = (payload) => {
-  if (Array.isArray(payload)) return payload;
   if (Array.isArray(payload?.content)) return payload.content;
+  if (Array.isArray(payload)) return payload;
   return [];
 };
 
+const resolveCouponId = (coupon) => coupon?.id ?? null;
+
+// HASTA TENER AUTH EN REDUX
 const authHeaders = () => {
   const token = localStorage.getItem("token");
   return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
-// Get orders
-export const fetchOrders = createAsyncThunk(
-  "orders/fetchOrders",
+// GET de cupones
+export const fetchCoupons = createAsyncThunk(
+  "coupons/fetchCoupons",
   async () => {
-    const { data } = await axios.get(`${BASE_URL}/orders`, {
+    const { data } = await axios.get(`${BASE_URL}/coupons`, {
       headers: { ...authHeaders() },
     });
     return resolveArray(data);
   }
 );
 
-// Update order status
-export const updateOrderStatus = createAsyncThunk(
-  "orders/updateOrderStatus",
-  async ({ orderId, status }) => {
-    const payload = { status };
-
-    await axios.put(
-      `${BASE_URL}/orders/${orderId}/status`,
-      null,
-      {
-        headers: { ...authHeaders() },
-        params: payload,
-      }
-    );
-
-    // Devolvés lo necesario para actualizar el estado
-    return { orderId, status };
-  }
-);
-
-// Create order
-export const createOrder = createAsyncThunk(
-  "orders/createOrder",
+// POST de cupon
+export const createCoupon = createAsyncThunk(
+  "coupons/createCoupon",
   async (payload) => {
-    const { data } = await axios.post(`${BASE_URL}/purchase`, payload, {
+    const { data } = await axios.post(`${BASE_URL}/coupons`, payload, {
       headers: {
         "Content-Type": "application/json",
         ...authHeaders(),
@@ -59,79 +43,100 @@ export const createOrder = createAsyncThunk(
   }
 );
 
+// DELETE de cupon
+export const deleteCoupon = createAsyncThunk(
+  "coupons/deleteCoupon",
+  async (id) => {
+    await axios.delete(`${BASE_URL}/coupons/${id}`, {
+      headers: { ...authHeaders() },
+    });
+    // devolvemos el id borrado para usarlo en el reducer
+    return id;
+  }
+);
+
 const initialState = {
-  orders: [],
+  coupons: [],
   loading: false,
   error: null,
+  saving: false,
+  saveError: null,
 };
 
-const ordersSlice = createSlice({
-  name: "orders",
+const couponsSlice = createSlice({
+  name: "coupons",
   initialState,
   reducers: {
-    resetOrdersError: (state) => {
+    resetCouponErrors: (state) => {
       state.error = null;
+      state.saveError = null;
     },
   },
   extraReducers: (builder) => {
     builder
-      // Fetch
-      .addCase(fetchOrders.pending, (state) => {
+      // FETCH
+      .addCase(fetchCoupons.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchOrders.fulfilled, (state, action) => {
+      .addCase(fetchCoupons.fulfilled, (state, action) => {
         state.loading = false;
-        state.orders = action.payload || [];
+        state.coupons = action.payload || [];
       })
-      .addCase(fetchOrders.rejected, (state, action) => {
+      .addCase(fetchCoupons.rejected, (state, action) => {
         state.loading = false;
         state.error =
-          action.error?.message || "Error al obtener órdenes";
-        state.orders = [];
+          action.error?.message || "Error al obtener cupones";
+        state.coupons = [];
       })
 
-      // Update
-      .addCase(updateOrderStatus.pending, (state) => {
-        state.loading = true;
-        state.error = null;
+      // CREATE
+      .addCase(createCoupon.pending, (state) => {
+        state.saving = true;
+        state.saveError = null;
       })
-      .addCase(updateOrderStatus.fulfilled, (state, action) => {
-        state.loading = false;
-        const { orderId, status } = action.payload || {};
-        const index = state.orders.findIndex((o) => o.id === orderId);
-
-        if (index !== -1) {
-          state.orders[index] = {
-            ...state.orders[index],
-            status,
-          };
+      .addCase(createCoupon.fulfilled, (state, action) => {
+        state.saving = false;
+        const created = action.payload;
+        if (created && typeof created === "object") {
+          const newId = resolveCouponId(created);
+          if (newId !== null) {
+            const index = state.coupons.findIndex(
+              (item) => resolveCouponId(item) === newId
+            );
+            if (index >= 0) {
+              state.coupons[index] = created;
+            } else {
+              state.coupons.push(created);
+            }
+          }
         }
       })
-      .addCase(updateOrderStatus.rejected, (state, action) => {
-        state.loading = false;
-        state.error =
-          action.error?.message || "Error al actualizar estado";
+      .addCase(createCoupon.rejected, (state, action) => {
+        state.saving = false;
+        state.saveError =
+          action.error?.message || "Error al crear cupón";
       })
 
-      // Create
-      .addCase(createOrder.pending, (state) => {
-        state.loading = true;
-        state.error = null;
+      // DELETE
+      .addCase(deleteCoupon.pending, (state) => {
+        state.saving = true;
+        state.saveError = null;
       })
-      .addCase(createOrder.fulfilled, (state, action) => {
-        state.loading = false;
-        const created = action.payload;
-        if (!created) return;
-        state.orders.push(created);
+      .addCase(deleteCoupon.fulfilled, (state, action) => {
+        state.saving = false;
+        const removedId = action.payload;
+        state.coupons = state.coupons.filter(
+          (coupon) => resolveCouponId(coupon) !== removedId
+        );
       })
-      .addCase(createOrder.rejected, (state, action) => {
-        state.loading = false;
-        state.error =
-          action.error?.message || "Error al crear orden";
+      .addCase(deleteCoupon.rejected, (state, action) => {
+        state.saving = false;
+        state.saveError =
+          action.error?.message || "Error al eliminar el cupón";
       });
   },
 });
 
-export const { resetOrdersError } = ordersSlice.actions;
-export default ordersSlice.reducer;
+export const { resetCouponErrors } = couponsSlice.actions;
+export default couponsSlice.reducer;
