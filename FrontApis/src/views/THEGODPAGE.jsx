@@ -77,35 +77,41 @@ function THEGODPAGE() {
 
   // productos
   const loadProducts = async () => {
-    try {
-      await dispatch(fetchProductsThunk()).unwrap();
-    } catch (error) {
-      console.error(error);
-      notify("error", error || "No se pudieron cargar los productos");
+    const action = await dispatch(fetchProductsThunk());
+    if (fetchProductsThunk.rejected.match(action)) {
+      const msg =
+        action.error?.message || "No se pudieron cargar los productos";
+      console.error(action.error);
+      notify("error", msg);
     }
   };
 
-  // categorías (get publico)
+  // categorías (get público)
   const loadCategories = async () => {
-    try {
-      await dispatch(fetchCategoriesThunk()).unwrap();
-    } catch (error) {
-      notify("error", error || "No se pudieron cargar las categorías");
+    const action = await dispatch(fetchCategoriesThunk());
+    if (fetchCategoriesThunk.rejected.match(action)) {
+      const msg =
+        action.error?.message || "No se pudieron cargar las categorías";
+      console.error(action.error);
+      notify("error", msg);
     }
   };
 
   // carga cupones
   const loadCoupons = async () => {
-    try {
-      await dispatch(fetchCouponsThunk()).unwrap();
-    } catch (error) {
-      console.error(error);
-      notify("error", error || "No se pudieron cargar los cupones");
+    const action = await dispatch(fetchCouponsThunk());
+    if (fetchCouponsThunk.rejected.match(action)) {
+      const msg =
+        action.error?.message || "No se pudieron cargar los cupones";
+      console.error(action.error);
+      notify("error", msg);
     }
   };
 
   const loadOrders = async () => {
-    fetchAdminOrders();
+    // si tenés una función fetchAdminOrders en otro lado, se usa acá
+    // por ahora lo dejo como estaba
+    fetchAdminOrders?.();
   };
 
   // cambia de forma optimista el rol de usuario
@@ -128,9 +134,9 @@ function THEGODPAGE() {
       prevUsers.map((item) =>
         item.id === user.id
           ? {
-            ...item,
-            role: normalizedRole,
-          }
+              ...item,
+              role: normalizedRole,
+            }
           : item
       )
     );
@@ -145,9 +151,9 @@ function THEGODPAGE() {
         prevUsers.map((item) =>
           item.id === user.id
             ? {
-              ...item,
-              role: previousRole,
-            }
+                ...item,
+                role: previousRole,
+              }
             : item
         )
       );
@@ -287,21 +293,33 @@ function THEGODPAGE() {
         creator_id: currentUser.id,
       };
 
+      let resultAction;
       if (selectedProductId) {
-        await dispatch(
+        resultAction = await dispatch(
           updateProductThunk({
             id: selectedProductId,
             payload,
           })
-        ).unwrap();
-        notify("success", "Producto actualizado correctamente");
+        );
       } else {
-        await dispatch(createProductThunk(payload)).unwrap();
-        notify("success", "Producto creado correctamente");
+        resultAction = await dispatch(createProductThunk(payload));
       }
 
-      await dispatch(fetchProductsThunk()).unwrap();
-      resetProductForm();
+      if (resultAction.meta.requestStatus === "fulfilled") {
+        notify(
+          "success",
+          selectedProductId
+            ? "Producto actualizado correctamente"
+            : "Producto creado correctamente"
+        );
+        await dispatch(fetchProductsThunk());
+        resetProductForm();
+      } else {
+        const errMsg =
+          resultAction.error?.message ||
+          "Ocurrió un error con el producto";
+        notify("error", errMsg);
+      }
     } catch (error) {
       console.error(error);
       notify("error", error.message || "Ocurrió un error con el producto");
@@ -335,11 +353,19 @@ function THEGODPAGE() {
 
     setLoading(true);
     try {
-      await dispatch(deleteProductThunk(id)).unwrap();
-      notify("success", "Producto eliminado");
-      await dispatch(fetchProductsThunk()).unwrap();
-      if (selectedProductId === id) {
-        resetProductForm();
+      const actionResult = await dispatch(deleteProductThunk(id));
+
+      if (actionResult.meta.requestStatus === "fulfilled") {
+        notify("success", "Producto eliminado");
+        await dispatch(fetchProductsThunk());
+        if (selectedProductId === id) {
+          resetProductForm();
+        }
+      } else {
+        const errMsg =
+          actionResult.error?.message ||
+          "No se pudo eliminar el producto";
+        notify("error", errMsg);
       }
     } catch (error) {
       console.error(error);
@@ -348,6 +374,7 @@ function THEGODPAGE() {
       setLoading(false);
     }
   };
+
   // CATEGORÍAS
   const handleCategoryChange = (event) => {
     const { name, value } = event.target;
@@ -381,19 +408,29 @@ function THEGODPAGE() {
     try {
       setSavingCategory(true);
 
-      await dispatch(
+      const actionResult = await dispatch(
         updateCategoryThunk({
           id: editingCategory.id,
           description: desc,
         })
-      ).unwrap();
+      );
 
-      notify("success", "Categoria actualizada");
-      setEditingCategory(null);
-      await loadCategories();
+      if (actionResult.meta.requestStatus === "fulfilled") {
+        notify("success", "Categoria actualizada");
+        setEditingCategory(null);
+        await loadCategories();
+      } else {
+        const errMsg =
+          actionResult.error?.message ||
+          "No se pudo actualizar la categoría";
+        notify("error", errMsg);
+      }
     } catch (err) {
       console.error(err);
-      notify("error", err || "No se pudo actualizar la categoría");
+      notify(
+        "error",
+        err.message || "No se pudo actualizar la categoría"
+      );
     } finally {
       setSavingCategory(false);
     }
@@ -419,14 +456,25 @@ function THEGODPAGE() {
 
     try {
       setLoading(true);
-      await dispatch(deleteCategoryThunk(category.id)).unwrap();
-      notify("success", "Categoría eliminada");
-      await loadCategories();
+      const actionResult = await dispatch(
+        deleteCategoryThunk(category.id)
+      );
+
+      if (actionResult.meta.requestStatus === "fulfilled") {
+        notify("success", "Categoría eliminada");
+        await loadCategories();
+      } else {
+        const errMsg =
+          actionResult.error?.message ||
+          "No se pudo eliminar la categoría (puede estar en uso)";
+        notify("error", errMsg);
+      }
     } catch (err) {
       console.error(err);
       notify(
         "error",
-        err.message || "No se pudo eliminar la categoría (puede estar en uso)"
+        err.message ||
+          "No se pudo eliminar la categoría (puede estar en uso)"
       );
     } finally {
       setLoading(false);
@@ -443,15 +491,25 @@ function THEGODPAGE() {
     setLoading(true);
 
     try {
-      await dispatch(
+      const actionResult = await dispatch(
         createCategoryThunk({ description: trimmedDescription })
-      ).unwrap();
-      notify("success", "Categoría creada correctamente");
-      setCategoryForm(EMPTY_CATEGORY);
-      await loadCategories();
+      );
+
+      if (actionResult.meta.requestStatus === "fulfilled") {
+        notify("success", "Categoría creada correctamente");
+        setCategoryForm(EMPTY_CATEGORY);
+        await loadCategories();
+      } else {
+        const errMsg =
+          actionResult.error?.message || "No se pudo crear la categoría";
+        notify("error", errMsg);
+      }
     } catch (error) {
       console.error(error);
-      notify("error", error || "No se pudo crear la categoría");
+      notify(
+        "error",
+        error.message || "No se pudo crear la categoría"
+      );
     } finally {
       setLoading(false);
     }
@@ -513,19 +571,26 @@ function THEGODPAGE() {
 
     setLoading(true);
     try {
-      await dispatch(
+      const actionResult = await dispatch(
         createCouponThunk({
           code: trimmedCode,
           discount: discountValue,
           expirationDate: couponForm.expirationDate,
         })
-      ).unwrap();
-      notify("success", "Cupón creado correctamente");
-      resetCouponForm();
-      await loadCoupons();
+      );
+
+      if (actionResult.meta.requestStatus === "fulfilled") {
+        notify("success", "Cupón creado correctamente");
+        resetCouponForm();
+        await loadCoupons();
+      } else {
+        const errMsg =
+          actionResult.error?.message || "No se pudo crear el cupón";
+        notify("error", errMsg);
+      }
     } catch (error) {
       console.error(error);
-      notify("error", error || "No se pudo crear el cupón");
+      notify("error", error.message || "No se pudo crear el cupón");
     } finally {
       setLoading(false);
     }
@@ -550,12 +615,19 @@ function THEGODPAGE() {
 
     setLoading(true);
     try {
-      await dispatch(deleteCouponThunk(couponId)).unwrap();
-      notify("success", "Cupón eliminado correctamente");
-      await loadCoupons();
+      const actionResult = await dispatch(deleteCouponThunk(couponId));
+
+      if (actionResult.meta.requestStatus === "fulfilled") {
+        notify("success", "Cupón eliminado correctamente");
+        await loadCoupons();
+      } else {
+        const errMsg =
+          actionResult.error?.message || "No se pudo eliminar el cupón";
+        notify("error", errMsg);
+      }
     } catch (error) {
       console.error(error);
-      notify("error", error || "No se pudo eliminar el cupón");
+      notify("error", error.message || "No se pudo eliminar el cupón");
     } finally {
       setLoading(false);
     }
