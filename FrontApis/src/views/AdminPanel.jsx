@@ -553,6 +553,9 @@ function THEGODPAGE() {
     if (!couponForm.expirationDate) {
       notify("error", "Seleccioná una fecha de expiración");
       return;
+    } else if(couponForm.expirationDate < new Date().toISOString().split('T')[0]) {
+      notify("error", "La fecha de expiración no puede ser en el pasado");
+      return;
     }
 
     setLoading(true);
