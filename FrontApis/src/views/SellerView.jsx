@@ -29,23 +29,23 @@ export default function SellerView() {
     (state) => state.categories
   );
 
-  // ID del usuario logueado
+  //ID del user logged
   const [currentUserId, setCurrentUserId] = useState(null);
 
-  // Form de producto
+  //Form de prod
   const [productForm, setProductForm] = useState({ ...EMPTY_PRODUCT });
   const [selectedProductId, setSelectedProductId] = useState(null);
 
-  // UI
+  //UI
   const [status, setStatus] = useState(EMPTY_STATUS);
   const [loading, setLoading] = useState(false);
   const [initialLoad, setInitialLoad] = useState(true);
 
-  // Acordeón
+  //Acordeón
   const [openPanel, setOpenPanel] = useState("products");
   const togglePanel = (id) => setOpenPanel((curr) => (curr === id ? null : id));
 
-  // Notificaciones
+  //Notif
   const notify = (type, message) => {
     setStatus({ type, message });
     window.clearTimeout(notify.timeoutId);
@@ -57,7 +57,7 @@ export default function SellerView() {
     setSelectedProductId(null);
   };
 
-  // Cargar usuario actual (solo una vez)
+  //Cargar usuario actual
   const loadCurrentUser = async () => {
     try {
       const user = await getCurrentUser();
@@ -69,7 +69,10 @@ export default function SellerView() {
       setCurrentUserId(user.id);
     } catch (error) {
       console.error(error);
-      notify("error", error.message || "No se pudo obtener el usuario actual");
+      notify(
+        "error",
+        error.message || "No se pudo obtener el usuario actual"
+      );
       setCurrentUserId(null);
     }
   };
@@ -79,8 +82,8 @@ export default function SellerView() {
     const bootstrap = async () => {
       setLoading(true);
       await Promise.all([
-        dispatch(fetchCategoriesThunk()).unwrap(),
-        dispatch(fetchProductsThunk()).unwrap(),
+        dispatch(fetchCategoriesThunk()),
+        dispatch(fetchProductsThunk()),
         loadCurrentUser(),
       ]);
       setLoading(false);
@@ -94,7 +97,7 @@ export default function SellerView() {
     };
   }, [dispatch]);
 
-  // Productos del vendedor (filtrados)
+  // Productos del vendedor filtredos
   const sellerProducts = useMemo(() => {
     if (!currentUserId) return [];
     return products.filter((p) => {
@@ -181,22 +184,34 @@ export default function SellerView() {
         creator_id: currentUserId,
       };
 
+      let resultAction;
       if (selectedProductId) {
-        await dispatch(
+        resultAction = await dispatch(
           updateProductThunk({
             id: selectedProductId,
             payload,
           })
-        ).unwrap();
-        notify("success", "Producto actualizado correctamente");
+        );
       } else {
-        await dispatch(createProductThunk(payload)).unwrap();
-        notify("success", "Producto creado correctamente");
+        resultAction = await dispatch(createProductThunk(payload));
       }
 
-      // refresco productos globales -> sellerProducts se recalcula solo
-      await dispatch(fetchProductsThunk()).unwrap();
-      resetProductForm();
+      if (resultAction.meta.requestStatus === "fulfilled") {
+        notify(
+          "success",
+          selectedProductId
+            ? "Producto actualizado correctamente"
+            : "Producto creado correctamente"
+        );
+        //refresco productos globales, sellerProducts se recalcula solo
+        await dispatch(fetchProductsThunk());
+        resetProductForm();
+      } else {
+        const errorMessage =
+          resultAction.error?.message ||
+          "Ocurrió un error al cargar el producto";
+        notify("error", errorMessage);
+      }
     } catch (error) {
       console.error(error);
       notify(
@@ -265,10 +280,18 @@ export default function SellerView() {
 
     setLoading(true);
     try {
-      await dispatch(deleteProductThunk(id)).unwrap();
-      notify("success", "Producto eliminado correctamente");
-      await dispatch(fetchProductsThunk()).unwrap(); //Refetch
-      if (selectedProductId === id) resetProductForm();
+      const actionResult = await dispatch(deleteProductThunk(id));
+
+      if (actionResult.meta.requestStatus === "fulfilled") {
+        notify("success", "Producto eliminado correctamente");
+        await dispatch(fetchProductsThunk()); //Refetch
+        if (selectedProductId === id) resetProductForm();
+      } else {
+        const errorMessage =
+          actionResult.error?.message ||
+          "No se pudo eliminar el producto";
+        notify("error", errorMessage);
+      }
     } catch (error) {
       console.error(error);
       notify("error", error.message || "No se pudo eliminar el producto");
@@ -281,8 +304,8 @@ export default function SellerView() {
   const handleRefresh = () => {
     setLoading(true);
     Promise.all([
-      dispatch(fetchCategoriesThunk()).unwrap(),
-      dispatch(fetchProductsThunk()).unwrap(),
+      dispatch(fetchCategoriesThunk()),
+      dispatch(fetchProductsThunk()),
       loadCurrentUser(),
     ])
       .catch(() => null)
