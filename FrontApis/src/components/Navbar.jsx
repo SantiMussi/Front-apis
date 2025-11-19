@@ -1,16 +1,18 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { hasRole, isLoggedIn, getRole, onAuthChange, logout, getCurrentUser, setRole } from '../services/authService'
+import { hasRole, IsLoggedIn, GetRole, onAuthChange, logout, getCurrentUser, SetRole } from '../services/authService'
 import UserWidget from "./UserWidget/UserWidget.jsx"
 import './UserWidget/UserWidget.css'
+import {useDispatch} from "react-redux";
 
 export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
+  const dispatch = useDispatch();
 
   const [auth, setAuth] = useState({
-    isAuth: isLoggedIn(),
-    role: getRole()
+    isAuth: IsLoggedIn(),
+    role: GetRole()
   });
 
   //Guarda el last path
@@ -27,14 +29,14 @@ export default function Navbar() {
     });
 
     //Estado inicial
-    setAuth({ isAuth: isLoggedIn(), role: getRole() });
+    setAuth({ isAuth: IsLoggedIn(), role: GetRole() });
 
     (async () => {
       try {
-        if (isLoggedIn()) {
+        if (IsLoggedIn()) {
           const me = await getCurrentUser();
-          if (me?.role) setRole(me.role);
-          setAuth({ isAuth: true, role: me?.role ?? getRole() });
+          if (me?.role) SetRole(me.role, dispatch);
+          setAuth({ isAuth: true, role: me?.role ?? GetRole() });
         }
       } catch (e) {
         logout();

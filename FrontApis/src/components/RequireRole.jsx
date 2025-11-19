@@ -1,11 +1,11 @@
 import { Navigate, useLocation } from "react-router-dom";
-import { hasRole, isLoggedIn } from "../services/authService";
+import { hasRole, IsLoggedIn } from "../services/authService";
 
 export default function RequireRole({ roles, children }) {
   const location = useLocation();
 
   // si no está logueado lo manda al login
-  if (!isLoggedIn()) {
+  if (!IsLoggedIn()) {
     localStorage.setItem("lastPath", location.pathname);
     return <Navigate to="/login" replace />;
   }

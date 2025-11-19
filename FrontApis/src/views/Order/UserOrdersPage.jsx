@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {isLoggedIn, onAuthChange, authHeader } from "../../services/authService";
+import {IsLoggedIn, onAuthChange, authHeader } from "../../services/authService";
 import OrderCard from "../../components/OrderComponents/OrderCard";
 import { normalizePage } from "../../helpers/orderHelpers";
 import "./Orders.css";
@@ -8,7 +8,7 @@ import "./Orders.css";
 export default function OrdersPage() {
     const navigate = useNavigate();
 
-    const [logged, setLogged] = useState(isLoggedIn());
+    const [logged, setLogged] = useState(IsLoggedIn());
     const [orders, setOrders] = useState([]);
     const [page, setPage] = useState(0);
     const [size] = useState(10);

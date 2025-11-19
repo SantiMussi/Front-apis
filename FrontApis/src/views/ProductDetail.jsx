@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { getRole, isLoggedIn } from "../services/authService";
+import { GetRole, IsLoggedIn } from "../services/authService";
 import { formatCurrency, resolveItemPricing } from "../helpers/pricing";
 
 const ProductDetail = () => {
@@ -63,7 +63,7 @@ const ProductDetail = () => {
   };
 
   const isOutOfStock = typeof product?.stock === "number" ? product.stock <= 0 : false;
-  const isAdmin = getRole() === "ADMIN";
+  const isAdmin = GetRole() === "ADMIN";
   const { unitPrice, compareAtPrice, hasDiscount, discountRate } = resolveItemPricing(product);
 
   const handleOpenVirtualFitter = () => {
@@ -78,7 +78,7 @@ const ProductDetail = () => {
   };
 
   const handleAddToCart = () => {
-    if (!isLoggedIn()) {
+    if (!IsLoggedIn()) {
       localStorage.setItem("lastPath", location.pathname);
       navigate("/login");
       return;
