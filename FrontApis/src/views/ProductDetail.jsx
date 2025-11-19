@@ -7,8 +7,6 @@ import { getRole, isLoggedIn } from "../services/authService";
 import { formatCurrency, resolveItemPricing } from "../helpers/pricing";
 import { flyImageToCart } from "../utils/flyToCart";
 
-// import { addToCart } from "../redux/cartSlice";
-
 const ProductDetail = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -18,9 +16,9 @@ const ProductDetail = () => {
   const [loading, setLoading] = useState(true);
   const [product, setProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
-  const [added, setAdded] = useState(false); // 🔹 estado para botón verde
+  const [added, setAdded] = useState(false);
 
-  const imgRef = useRef(null); // 🔹 referencia a la imagen
+  const imgRef = useRef(null);
   const BASE_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
@@ -74,7 +72,7 @@ const ProductDetail = () => {
 
   const isOutOfStock =
     typeof product?.stock === "number" ? product.stock <= 0 : false;
-  const isAdmin = getRole() === "ADMIN";
+  const isAdmin = getRole() === "ADMIN" || getRole() === 'SELLER';
   const { unitPrice, compareAtPrice, hasDiscount, discountRate } =
     resolveItemPricing(product);
 
