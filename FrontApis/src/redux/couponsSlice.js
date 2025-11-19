@@ -3,144 +3,133 @@ import axios from "axios";
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 
-// Funcion para que, si viene paginado como { content: [...] }, tomamos content. Si es array, lo usamos directo.
 const resolveArray = (payload) => {
-  if (Array.isArray(payload?.content)) return payload.content;
   if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload?.content)) return payload.content;
   return [];
 };
-
-const resolveCouponId = (coupon) => coupon?.id ??  null;
 
 const authHeaders = () => {
   const token = localStorage.getItem("token");
   return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
-export const fetchCoupons = createAsyncThunk(
-  "coupons/fetchCoupons",
-  async (_, { rejectWithValue }) => { // usamos rejectWithValue para manejar errores
-    try {
-      const { data } = await axios.get(`${BASE_URL}/coupons`, {
-        headers: { ...authHeaders() },
-      });
-      return resolveArray(data);
-    } catch (error) {
-      const message =
-        error?.response?.data?.message || error?.message || "Error al obtener cupones";
-      return rejectWithValue(message);
-    }
+// Get orders
+export const fetchOrders = createAsyncThunk(
+  "orders/fetchOrders",
+  async () => {
+    const { data } = await axios.get(`${BASE_URL}/orders`, {
+      headers: { ...authHeaders() },
+    });
+    return resolveArray(data);
   }
 );
 
-export const createCoupon = createAsyncThunk(
-  "coupons/createCoupon",
-  async (payload, { rejectWithValue }) => {
-    try {
-      const { data } = await axios.post(`${BASE_URL}/coupons`, payload, {
-        headers: {
-          "Content-Type": "application/json",
-          ...authHeaders(),
-        },
-      });
-      return data;
-    } catch (error) {
-      const message =
-        error?.response?.data?.message || error?.message || "Error al crear cupón";
-      return rejectWithValue(message);
-    }
+// Update order status
+export const updateOrderStatus = createAsyncThunk(
+  "orders/updateOrderStatus",
+  async ({ orderId, status }) => {
+    const payload = { status };
+
+    await axios.put(
+      `${BASE_URL}/orders/${orderId}/status`,
+      null,
+      {
+        headers: { ...authHeaders() },
+        params: payload,
+      }
+    );
+    return { orderId, status };
   }
 );
 
-export const deleteCoupon = createAsyncThunk(
-  "coupons/deleteCoupon",
-  async (id, { rejectWithValue }) => {
-    try {
-      await axios.delete(`${BASE_URL}/coupons/${id}`, {
-        headers: { ...authHeaders() },
-      });
-      return id;
-    } catch (error) {
-      const message =
-        error?.response?.data?.message || error?.message || "Error al eliminar el cupón";
-      return rejectWithValue(message);
-    }
+// Create order
+export const createOrder = createAsyncThunk(
+  "orders/createOrder",
+  async (payload) => {
+    const { data } = await axios.post(`${BASE_URL}/purchase`, payload, {
+      headers: {
+        "Content-Type": "application/json",
+        ...authHeaders(),
+      },
+    });
+    return data;
   }
 );
 
 const initialState = {
-  coupons: [],
+  orders: [],
   loading: false,
   error: null,
-  saving: false,
-  saveError: null,
 };
 
-const couponsSlice = createSlice({
-  name: "coupons",
+const ordersSlice = createSlice({
+  name: "orders",
   initialState,
   reducers: {
-    resetCouponErrors: (state) => {
+    resetOrdersError: (state) => {
       state.error = null;
-      state.saveError = null;
     },
   },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchCoupons.pending, (state) => {
+      // Fetch
+      .addCase(fetchOrders.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchCoupons.fulfilled, (state, action) => {
+      .addCase(fetchOrders.fulfilled, (state, action) => {
         state.loading = false;
-        state.coupons = action.payload;
+        state.orders = action.payload || [];
       })
-      .addCase(fetchCoupons.rejected, (state, action) => {
+      .addCase(fetchOrders.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload || action.error.message;
-        state.coupons = [];
+        state.error =
+          action.error?.message || "Error al obtener órdenes";
+        state.orders = [];
       })
-      .addCase(createCoupon.pending, (state) => {
-        state.saving = true;
-        state.saveError = null;
+
+      // Update
+      .addCase(updateOrderStatus.pending, (state) => {
+        state.loading = true;
+        state.error = null;
       })
-      .addCase(createCoupon.fulfilled, (state, action) => {
-        state.saving = false;
-        const created = action.payload;
-        if (created && typeof created === "object") {
-          const newId = resolveCouponId(created);
-          if (newId !== null) {
-            const index = state.coupons.findIndex((item) => resolveCouponId(item) === newId);
-            if (index >= 0) {
-              state.coupons[index] = created;
-            } else {
-              state.coupons.push(created);
-            }
-          }
+      .addCase(updateOrderStatus.fulfilled, (state, action) => {
+        state.loading = false;
+        const { orderId, status } = action.payload || {};
+        const index = state.orders.findIndex((o) => o.id === orderId);
+
+        if (index !== -1) {
+          state.orders[index] = {
+            ...state.orders[index],
+            status,
+          };
         }
       })
-      .addCase(createCoupon.rejected, (state, action) => {
-        state.saving = false;
-        state.saveError = action.payload || action.error.message;
+      .addCase(updateOrderStatus.rejected, (state, action) => {
+        state.loading = false;
+        state.error =
+          action.error?.message || "Error al actualizar estado";
       })
-      .addCase(deleteCoupon.pending, (state) => {
-        state.saving = true;
-        state.saveError = null;
+
+      // Create
+      .addCase(createOrder.pending, (state) => {
+        state.loading = true;
+        state.error = null;
       })
-      .addCase(deleteCoupon.fulfilled, (state, action) => {
-        state.saving = false;
-        const removedId = action.payload;
-        state.coupons = state.coupons.filter(
-          (coupon) => resolveCouponId(coupon) !== removedId
-        );
+      .addCase(createOrder.fulfilled, (state, action) => {
+        state.loading = false;
+        const created = action.payload;
+        if (!created) return;
+        state.orders.push(created);
       })
-      .addCase(deleteCoupon.rejected, (state, action) => {
-        state.saving = false;
-        state.saveError = action.payload || action.error.message;
+      .addCase(createOrder.rejected, (state, action) => {
+        state.loading = false;
+        state.error =
+          action.error?.message || "Error al crear orden";
       });
   },
 });
 
-export const { resetCouponErrors } = couponsSlice.actions;
-
-export default couponsSlice.reducer;
+export const { resetOrdersError } = ordersSlice.actions;
+export default ordersSlice.reducer;
