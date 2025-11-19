@@ -19,8 +19,11 @@ export default function UserWidget({ onLogout }) {
         setOpen(false);
     };
 
-    const avatarSrc= userAvatar;
+    let avatarSrc= userAvatar;
     const roleClass = hasRole('ADMIN') ? 'admin' : hasRole('SELLER') ? 'seller' : 'user';
+    if(hasRole('ADMIN')) {
+        avatarSrc = gigachadAvatar;
+    }
 
     // Cerrar click afuera
     useEffect(() => {
