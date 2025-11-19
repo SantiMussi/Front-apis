@@ -18,22 +18,19 @@ const authHeaders = () => {
 };
 
 // Get de productos, general o por categoria
-export const fetchProducts = createAsyncThunk(
+  export const fetchProducts = createAsyncThunk(
   "products/fetchProducts",
-  //Payload opcional: categoryId
   async ({ categoryId = null } = {}) => {
-    //Si no hay una cat establecida, directamente va a product
     if (!categoryId) {
       const { data } = await axios.get(`${BASE_URL}/product`);
       const items = resolveArray(data);
       return items;
     }
 
-    //Si hay categorai
     const { data } = await axios.get(`${BASE_URL}/categories/${categoryId}`);
-    return Array.isArray(data?.products) ? data.products : [];
-  })
-
+    return Array.isArray(data?.product) ? data.product : [];
+  }
+);
 //Post de productos
 export const createProduct = createAsyncThunk(
   "products/createProduct",
