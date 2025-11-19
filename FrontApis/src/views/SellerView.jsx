@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-
+import Swal from "sweetalert2";
 import {
   fetchProducts as fetchProductsThunk,
   createProduct as createProductThunk,
@@ -248,8 +248,20 @@ export default function SellerView() {
   // Eliminar
   const handleDeleteProduct = async (id) => {
     if (!id) return;
-    const confirmed = window.confirm("¿Eliminar este producto?");
-    if (!confirmed) return;
+    const result = await Swal.fire({
+      title: "¿Eliminar este producto?",
+      text: "Esta acción no se puede deshacer",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Eliminar",
+      cancelButtonText: "Cancelar",
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#444",
+      background: "#111",
+      color: "#fff",
+    });
+
+    if (!result.isConfirmed) return;
 
     setLoading(true);
     try {

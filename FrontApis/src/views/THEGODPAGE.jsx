@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-
+import Swal from "sweetalert2"; // npm install sweetalert2
 import { getUsers, updateUser } from "../services/adminService";
 import {
   fetchProducts as fetchProductsThunk,
@@ -112,15 +112,6 @@ function THEGODPAGE() {
   const handleUserRoleChange = async (user, newRole) => {
     const normalizedRole = (newRole || "").trim().toUpperCase();
 
-    alert(
-      "Cambiando el rol de " +
-        user?.first_name +
-        " " +
-        user?.last_name +
-        " a " +
-        newRole
-    );
-
     if (!normalizedRole) {
       notify("error", "Seleccioná un rol válido");
       return;
@@ -137,9 +128,9 @@ function THEGODPAGE() {
       prevUsers.map((item) =>
         item.id === user.id
           ? {
-              ...item,
-              role: normalizedRole,
-            }
+            ...item,
+            role: normalizedRole,
+          }
           : item
       )
     );
@@ -154,9 +145,9 @@ function THEGODPAGE() {
         prevUsers.map((item) =>
           item.id === user.id
             ? {
-                ...item,
-                role: previousRole,
-              }
+              ...item,
+              role: previousRole,
+            }
             : item
         )
       );
@@ -326,8 +317,22 @@ function THEGODPAGE() {
 
   const handleDeleteProduct = async (id) => {
     if (!id) return;
-    const confirmed = window.confirm("¿Eliminar este producto?");
-    if (!confirmed) return;
+
+    const result = await Swal.fire({
+      title: "¿Eliminar este producto?",
+      text: "Esta acción no se puede deshacer",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Eliminar",
+      cancelButtonText: "Cancelar",
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#444",
+      background: "#111",
+      color: "#fff",
+    });
+
+    if (!result.isConfirmed) return;
+
     setLoading(true);
     try {
       await dispatch(deleteProductThunk(id)).unwrap();
@@ -343,7 +348,6 @@ function THEGODPAGE() {
       setLoading(false);
     }
   };
-
   // CATEGORÍAS
   const handleCategoryChange = (event) => {
     const { name, value } = event.target;
@@ -397,10 +401,21 @@ function THEGODPAGE() {
 
   const handleDeleteCategory = async (category) => {
     if (!category?.id) return;
-    const ok = window.confirm(
-      `¿Eliminar la categoría "${category.description}" (ID ${category.id})?`
-    );
-    if (!ok) return;
+
+    const result = await Swal.fire({
+      title: "¿Eliminar categoría?",
+      text: `Se va a eliminar "${category.label}" (ID ${category.id})`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Eliminar",
+      cancelButtonText: "Cancelar",
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#444",
+      background: "#111",
+      color: "#fff",
+    });
+
+    if (!result.isConfirmed) return;
 
     try {
       setLoading(true);
@@ -518,8 +533,21 @@ function THEGODPAGE() {
 
   const handleCouponDelete = async (couponId) => {
     if (!couponId) return;
-    const confirmed = window.confirm("¿Eliminar este cupón?");
-    if (!confirmed) return;
+
+    const result = await Swal.fire({
+      title: "¿Eliminar este cupón?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Eliminar",
+      cancelButtonText: "Cancelar",
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#444",
+      background: "#111",
+      color: "#fff",
+    });
+
+    if (!result.isConfirmed) return;
+
     setLoading(true);
     try {
       await dispatch(deleteCouponThunk(couponId)).unwrap();
