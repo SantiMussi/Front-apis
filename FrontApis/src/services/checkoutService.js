@@ -59,7 +59,7 @@ export async function purchaseOrder({ userId, items, couponCode, paymentMethod, 
         productIds: items.map(item => item.id),
         quantities: items.map(item => item.quantity),
         paymentMethod, // Debe ser uno de: "CREDITO", "DEBITO", "TRANSFERENCIA"
-        shippingMethod, // Debe ser uno de: "EXPRESS", "STANDARD", "PICKUP"
+        shippingMethod // Debe ser uno de: "EXPRESS", "STANDARD", "PICKUP"
     };
 
     if (couponCode) {
