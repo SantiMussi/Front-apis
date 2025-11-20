@@ -5,6 +5,8 @@ import categoriesReducer from "./categoriesSlice";
 import ordersReducer from "./ordersSlice.js"
 import usersReducer from "./usersSlice.js"
 
+import cartReducer from "./cartSlice";
+
 export const store = configureStore({
   reducer: {
     products: productsReducer, // registra el slice
@@ -12,6 +14,7 @@ export const store = configureStore({
     categories: categoriesReducer,
     orders: ordersReducer,
     users: usersReducer,
+    cart: cartReducer,
   },
 });
 

@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
+import { addToCart } from "../redux/cartSlice";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { getRole, isLoggedIn } from "../services/authService";
 import { formatCurrency, resolveItemPricing } from "../helpers/pricing";
 
 const ProductDetail = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const location = useLocation();
   const { id } = useParams();
   const [loading, setLoading] = useState(true);
@@ -83,7 +86,20 @@ const ProductDetail = () => {
       navigate("/login");
       return;
     }
-    //console.info("Agregar al carrito", { product, quantity });
+    if (isOutOfStock) return;
+    // Agrega el producto al carrito con la cantidad seleccionada y talle si aplica
+    dispatch(addToCart({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      originalPrice: product.originalPrice,
+      discount: product.discount,
+      size: product.size,
+      base64img: product.base64img,
+      description: product.description,
+      categoryName: product.categoryName,
+      quantity,
+    }));
   };
 
   return (

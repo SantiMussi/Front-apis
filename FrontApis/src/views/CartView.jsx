@@ -1,53 +1,29 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { getProductById } from "../services/checkoutService";
+// import { getProductById } from "../services/checkoutService";
 import CartItem from "../components/Cart/CartItem";
 import "../components/Cart/cart.css";
 import { formatCurrency, resolveItemPricing } from "../helpers/pricing";
 import { isLoggedIn } from "../services/authService";
 
-const CartView = () => {
-  const [items, setItems] = useState([]);
-  useEffect(() => {
-    let mounted = true;
-    const loadDemoProducts = async () => {
-      if (!isLoggedIn()) return;
-      try {
-        const demoProduct1 = await getProductById(1);
-        const demoProduct2 = await getProductById(3);
-        // assign example quantities
-        if (demoProduct1 && mounted) demoProduct1.quantity = 2;
-        if (demoProduct2 && mounted) demoProduct2.quantity = 1;
-        if (mounted) setItems([demoProduct1, demoProduct2]);
-      } catch {
-        // fail silently for demo load
-      } finally {
-        if (mounted) {
-          // no-op
-        }
-      }
-    };
 
-    loadDemoProducts();
-    return () => {
-      mounted = false;
-    };
-  }, []);
+const CartView = () => {
+  const dispatch = useDispatch();
+  const items = useSelector((state) => state.cart.items);
 
   const navigate = useNavigate();
 
-  /* maneja el cambio de cantidad de un artículo en el carrito. Se lo pasa como prop al cartItem */
-  const handleQuantityChange = (id, nextQuantity) => {
-    setItems((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, quantity: Math.max(1, nextQuantity) } : item
-      )
-    );
+
+  // Cambia la cantidad de un artículo en el carrito
+  const handleQuantityChange = (id, nextQuantity, size) => {
+    dispatch({ type: "cart/updateQuantity", payload: { id, size, quantity: nextQuantity } });
   };
 
-  /* maneja eliminación de un artículo del carrito */
-  const handleRemove = (id) => {
-    setItems((prev) => prev.filter((item) => item.id !== id));
+
+  // Elimina un artículo del carrito
+  const handleRemove = (id, size) => {
+    dispatch({ type: "cart/removeFromCart", payload: { id, size } });
   };
 
   /* calcula subtotal, ahorros y total de artículos en el carrito */
@@ -108,11 +84,11 @@ const CartView = () => {
             ) : (
               items.map((item) => (
                 <CartItem
-                  key={item.id}
+                  key={item.id + (item.size || "")}
                   item={item}
-                    quantity={Number(item.quantity ?? 1)}
-                  onQuantityChange={handleQuantityChange}
-                  onRemove={handleRemove}
+                  quantity={Number(item.quantity ?? 1)}
+                  onQuantityChange={(id, nextQuantity) => handleQuantityChange(id, nextQuantity, item.size)}
+                  onRemove={(id) => handleRemove(id, item.size)}
                 />
               ))
             )}

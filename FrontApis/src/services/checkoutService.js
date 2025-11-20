@@ -53,14 +53,16 @@ export async function getOrderById(id){
     return response.json();
 }
 
-export async function purchaseOrder({ userId, items, couponCode}){
+export async function purchaseOrder({ userId, items, couponCode, paymentMethod, shippingMethod }) {
     const payload = {
         userId,
         productIds: items.map(item => item.id),
         quantities: items.map(item => item.quantity),
+        paymentMethod, // Debe ser uno de: "CREDITO", "DEBITO", "TRANSFERENCIA"
+        shippingMethod, // Debe ser uno de: "EXPRESS", "STANDARD", "PICKUP"
     };
 
-    if(couponCode){
+    if (couponCode) {
         payload.couponCode = couponCode;
     }
 
@@ -73,13 +75,13 @@ export async function purchaseOrder({ userId, items, couponCode}){
         body: JSON.stringify(payload)
     });
 
-  if (!response.ok) {
-    const errorBody = await response.json().catch(() => null);
-    const message = "Error al procesar la compra: " + (errorBody?.message || response.status);
-    throw new Error(message);
-  }
+    if (!response.ok) {
+        const errorBody = await response.json().catch(() => null);
+        const message = "Error al procesar la compra: " + (errorBody?.message || response.status);
+        throw new Error(message);
+    }
 
-  return response.json();
+    return response.json();
 }
 
 
