@@ -26,7 +26,7 @@ const LoginForm = () => {
       //Loggea al usuario y guarda la data en localstorage
       const data = await login(dispatch, email, password);
 
-      console.log(data)
+      //console.log(data)
 
 
       if (data?.access_token) SetToken(data.access_token, dispatch);

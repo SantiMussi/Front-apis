@@ -75,7 +75,6 @@ function bucketizeProducts(all) {
 
 export default function VirtualFitter() {
 
-    const selector = useSelector();
     const dispatch = useDispatch();
 
   // 👇 productos desde Redux
@@ -471,7 +470,7 @@ export default function VirtualFitter() {
               Volver al estado original
             </button>
 
-            {(hasRole(selector, 'USER')) &&
+            {(hasRole('USER')) &&
               <button
                 className="vf-btn vf-btn-primary vf-btn-cart"
                 type="button"

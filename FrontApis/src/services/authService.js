@@ -45,8 +45,10 @@ export function GetToken(){
     return store.getState().auth.token;
 }
 
-export function logout(){
+export function logout(dispatch){
     //localStorage.removeItem(TOKEN_KEY);
+    SetRole("", dispatch);
+    SetToken("", dispatch)
     //localStorage.removeItem(ROLE_KEY);
     notifyAuth();
 }
@@ -63,7 +65,7 @@ export async function getCurrentUser(){
 //Helpers de rol
 export function SetRole(role, dispatch){
 
-
+    console.log(role)
 
     dispatch(setRole(role))
 

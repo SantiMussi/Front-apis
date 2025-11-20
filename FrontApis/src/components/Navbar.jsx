@@ -39,7 +39,7 @@ export default function Navbar() {
           setAuth({ isAuth: true, role: me?.role ?? GetRole() });
         }
       } catch (e) {
-        logout();
+        logout(dispatch);
         setAuth({ isAuth: false, role: null })
       }
     })();
@@ -48,7 +48,7 @@ export default function Navbar() {
   }, [])
 
   const handleLogout = () => {
-    logout();
+    logout(dispatch);
     navigate('/', { replace: true });
   }
 
