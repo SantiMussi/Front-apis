@@ -8,21 +8,21 @@ import { normalizeBase64Image } from "../../helpers/image";
 
 const shippingOptions = [
   {
-    id: "express",
+    id: "EXPRESS",
     title: "Envío Express",
     eta: "24-48 hs",
     description: "Entrega prioritaria en centros urbanos",
     price: 14.99,
   },
   {
-    id: "standard",
+    id: "STANDARD",
     title: "Envío Standard",
     eta: "3-5 días",
     description: "Envío regular con seguimiento",
     price: 6.5,
   },
   {
-    id: "pickup",
+    id: "PICKUP",
     title: "Retiro en tienda",
     eta: "Disponible en 2 hs",
     description: "Retirá gratis por nuestra tienda",
@@ -32,17 +32,17 @@ const shippingOptions = [
 
 const paymentMethods = [
   {
-    id: "card",
+    id: "CREDITO",
     title: "Tarjeta de crédito",
     description: "Visa, Mastercard, AMEX en hasta 12 cuotas",
   },
   {
-    id: "debit",
+    id: "DEBITO",
     title: "Tarjeta de débito",
     description: "Acreditación inmediata",
   },
   {
-    id: "cash",
+    id: "TRANSFERENCIA",
     title: "Transferencia o depósito",
     description: "Mostraremos los datos bancarios una vez confirmes la compra",
   },
@@ -193,6 +193,8 @@ const CheckoutView = () => {
           userId,
           items,
           couponCode: appliedCoupon?.code,
+          paymentMethod: selectedPayment.id,
+          shippingMethod: selectedShipping.id
       });
 
       setOrderResult(response);

@@ -1,5 +1,3 @@
-import { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
 import { addToCart } from "../redux/cartSlice";
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
