@@ -1,16 +1,17 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { isLoggedIn, onAuthChange, authHeader } from "../../services/authService";
+import { isLoggedIn, onAuthChange } from "../../services/authService";
 import OrderCard from "../../components/OrderComponents/OrderCard";
 import "./Orders.css";
+import {useDispatch, useSelector} from "react-redux";
+import {fetchUserOrders} from "../../redux/ordersSlice.js";
 
 export default function OrdersPage() {
   const navigate = useNavigate();
 
   const [logged, setLogged] = useState(isLoggedIn());
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState("");
+  const {orders, loading, err } = useSelector((state) => state.orders);
+  const dispatch = useDispatch();
 
   // Escuchar cambios de login hasta pasar auth a Redux
   useEffect(() => {
@@ -22,70 +23,10 @@ export default function OrdersPage() {
 
   // Cargar órdenes del usuario logueado
   useEffect(() => {
-    const fetchOrders = async () => {
-      if (!logged) {
-        setOrders([]);
-        setErr("");
-        setLoading(false);
-        return;
-      }
+    if (!logged) return;
 
-      setLoading(true);
-      setErr("");
-
-      try {
-        const res = await fetch(
-          `${import.meta.env.VITE_API_URL}/users/me/orders`,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              ...authHeader(),
-            },
-            credentials: "include",
-          }
-        );
-
-        // 401: sesión inválida
-        if (res.status === 401) {
-          setOrders([]);
-          setErr("");
-          setLoading(false);
-          return;
-        }
-
-        // 204/404: sin órdenes
-        if (res.status === 204 || res.status === 404) {
-          setOrders([]);
-          setErr("");
-          setLoading(false);
-          return;
-        }
-
-        if (!res.ok) {
-          await res.text().catch(() => null);
-          throw new Error("No pudimos cargar tus órdenes. Probá más tarde.");
-        }
-
-        const data = await res.json();
-        const list = Array.isArray(data)
-          ? data
-          : Array.isArray(data?.content)
-          ? data.content
-          : [];
-
-        setOrders(list);
-      } catch (e) {
-        setErr(
-          e?.message || "No pudimos cargar tus órdenes. Probá más tarde."
-        );
-        setOrders([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchOrders();
-  }, [logged]);
+    dispatch(fetchUserOrders())
+  }, [dispatch, logged]);
 
   // Si no está logueado
   if (!logged) {

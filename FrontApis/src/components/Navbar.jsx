@@ -13,20 +13,17 @@ export default function Navbar() {
     role: getRole()
   });
 
-  //Guarda el last path
   useEffect(() => {
     if (!['/login', '/register'].includes(location.pathname)) {
       localStorage.setItem('lastPath', location.pathname)
     }
   }, [location.pathname]);
 
-  //Subscribe a cambios de auth (login, logout, role)
   useEffect(() => {
     const unsubscribe = onAuthChange(({ isLoggedIn, role }) => {
       setAuth({ isAuth: isLoggedIn, role })
     });
 
-    //Estado inicial
     setAuth({ isAuth: isLoggedIn(), role: getRole() });
 
     (async () => {
@@ -54,7 +51,9 @@ export default function Navbar() {
 
   return (
     <nav>
-      <div className="logo"><Link to="/" className="logo-link">SZAFRANKUS</Link></div>
+      <div className="logo">
+        <Link to="/" className="logo-link">SZAFRANKUS</Link>
+      </div>
 
       <ul className="nav-links center">
         <li><Link to="/nueva">Nueva</Link></li>
@@ -69,9 +68,15 @@ export default function Navbar() {
             <Link to='/register'>Registrarse</Link>
           </>
         )}
+
         {auth.isAuth && !hasRole('ADMIN', 'SELLER') && (
           <li>
-            <Link to="/cart" className="cart-link" aria-label="Carrito">
+            <Link
+              to="/cart"
+              className="cart-link"
+              aria-label="Carrito"
+              id="cart-icon"
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="27"
@@ -90,8 +95,8 @@ export default function Navbar() {
             </Link>
           </li>
         )}
-        {auth.isAuth && (<UserWidget onLogout={handleLogout} />)}
 
+        {auth.isAuth && (<UserWidget onLogout={handleLogout} />)}
       </ul>
     </nav>
   );

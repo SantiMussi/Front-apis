@@ -77,35 +77,51 @@ function Products({
 
           return (
             <div key={p.id} className="producto-card">
-              <img src={p.base64img} alt={p.name} />
-              <h3>{p.name}</h3>
-              <div className="price-block">
-                <span className="price-current">
-                  $
-                  {finalPrice.toLocaleString(undefined, {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
+              {/* Badge de oferta / descuento */}
+              {hasDiscount && (
+                <span className="producto-badge producto-badge--sale">
+                  -{Math.round(discountValue * 100)}%
                 </span>
+              )}
 
-                {hasDiscount && (
-                  <div className="price-discount-details">
-                    <span className="price-original">
-                      $
-                      {priceValue.toLocaleString(undefined, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
-                    </span>
-                    <span className="price-tag">
-                      -{Math.round(discountValue * 100)}%
-                    </span>
-                  </div>
-                )}
+              <div className="producto-media">
+                <img src={p.base64img} alt={p.name} />
               </div>
-              <Link to={`/product/${p.id}`} className="detail-btn">
-                Ver más
-              </Link>
+
+              <div className="producto-body">
+                <h3 className="producto-title">{p.name}</h3>
+
+                <div className="price-block">
+                  <span className="price-current">
+                    $
+                    {finalPrice.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </span>
+
+                  {hasDiscount && (
+                    <div className="price-discount-details">
+                      <span className="price-original">
+                        $
+                        {priceValue.toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </span>
+                      <span className="price-tag">
+                        -{Math.round(discountValue * 100)}%
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="producto-footer ">
+                <Link to={`/product/${p.id}`} className="detail-btn">
+                  Ver más
+                </Link>
+              </div>
             </div>
           );
         })}
