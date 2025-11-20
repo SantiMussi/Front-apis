@@ -7,10 +7,7 @@ import {
 } from "../redux/authSlice";
 import {store} from "../redux/store.js";
 
-
 const BASE_URL = import.meta.env.VITE_API_URL;
-
-
 const authEmitter = new EventTarget();
 const notifyAuth = () => authEmitter.dispatchEvent(new Event('auth-change'));
 
