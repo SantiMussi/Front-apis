@@ -1,24 +1,24 @@
-import { useEffect, useMemo, useState } from "react";
-import { authHeader } from "../../services/authService";
+import {useCallback, useEffect, useMemo, useState} from "react";
 import {
-  normalizePage,
   resolveOrderId,
   resolveOrderStatus,
 } from "../../helpers/orderHelpers";
 import { CANON_STATES, normalizeStatusToken } from "../../helpers/statusMap";
 import OrderCard from "../OrderComponents/OrderCard";
 import Collapsible from "../Collapsible/Collapsible"; // ojo con la ruta
+import {useDispatch, useSelector} from "react-redux";
+import {
+  fetchOrders as fetchOrdersThunk,
+  updateOrderStatus as updateOrderStatusThunk
+} from "../../redux/ordersSlice.js";
 
-const BASE_URL = import.meta.env.VITE_API_URL;
 
 export default function OrderPanel({ id = "orders", isOpen, onToggle, className = "" }) {
   // Data
-  const [orders, setOrders] = useState([]);
   const [page, setPage] = useState(0);
-  const [size] = useState(10);
-  const [totalPages, setTotalPages] = useState(1);
-  const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState("");
+  const {orders = [], loading, error} = useSelector((state) => state.orders);
+  const dispatch = useDispatch();
+  const size = 10;
 
   // Filtros locales
   const [statusFilter, setStatusFilter] = useState("");
@@ -26,55 +26,25 @@ export default function OrderPanel({ id = "orders", isOpen, onToggle, className 
 
   // Notificación simple local
   const [toast, setToast] = useState(null);
-  const notify = (type, message) => {
+  const notify = useCallback((type, message) => {
     setToast({ type, message });
     window.clearTimeout(notify.timeoutId);
     notify.timeoutId = window.setTimeout(() => setToast(null), 3500);
-  };
-
-  // Carga paginada de órdenes
-  const fetchOrders = async () => {
-    setLoading(true);
-    setErr("");
-    try {
-      const res = await fetch(`${BASE_URL}/orders`, {
-        headers: { "Content-Type": "application/json", ...authHeader() },
-        credentials: "include",
-      });
-
-      if (res.status === 401 || res.status === 204 || res.status === 404) {
-        setOrders([]);
-        setTotalPages(1);
-        setErr("");
-        return;
-      }
-
-      if (!res.ok) {
-        const txt = await res.text().catch(() => null);
-        throw new Error(txt || "No pudimos cargar las órdenes");
-      }
-
-      const data = await res.json();
-      const n = normalizePage(data);
-      const items = Array.isArray(n.items) ? n.items : [];
-      setOrders(items);
-      setTotalPages(n.totalPages || 1);
-      setErr("");
-    } catch (e) {
-      setErr(e?.message || "No pudimos cargar las órdenes");
-      setTotalPages(1);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchOrders();
+    const loadOrders = async () => {
+      const action = await dispatch(fetchOrdersThunk());
+
+      if (fetchOrdersThunk.rejected.match(action)) {
+        notify("error", action?.error?.message || "No pudimos cargar las ordenes")
+      }
+    }
+    loadOrders();
     return () => {
       if (notify.timeoutId) window.clearTimeout(notify.timeoutId);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page]);
+  }, [dispatch, notify]);
 
   // Lista de estados disponibles (canónicos ES)
   const availableStatuses = useMemo(() => CANON_STATES, []);
@@ -94,41 +64,39 @@ export default function OrderPanel({ id = "orders", isOpen, onToggle, className 
     });
   }, [orders, orderQuery, statusFilter]);
 
-  // Update optimista de estado (el back espera ES)
-  const handleOrderStatusChange = async (orderId, nextToken) => {
-    const prev = orders;
-    setOrders((old) =>
-      old.map((o) =>
-        (o?.id ?? o?.orderId) === orderId ? { ...o, status: nextToken } : o
-      )
-    );
+  const totalPages = useMemo(
+      () => Math.max(1, Math.ceil(filteredOrders.length / size)),
+      [filteredOrders.length, size]
+  );
 
+  const paginatedOrders = useMemo(() => {
+    const start = page * size;
+    return filteredOrders.slice(start, start + size);
+  }, [filteredOrders, page, size]);
+
+  useEffect(() => {
+    setPage((prev) => Math.min(prev, Math.max(0, totalPages - 1)));
+  }, [totalPages]);
+
+  useEffect(() => {
+    setPage(0);
+  }, [statusFilter, orderQuery]);
+
+  const handleOrderStatusChange = async(orderId, nextToken) => {
     try {
-      const res = await fetch(
-        `${BASE_URL}/orders/${orderId}/status?status=${encodeURIComponent(
-          nextToken
-        )}`,
-        {
-          method: "PUT",
-          headers: { ...authHeader() },
-          credentials: "include",
-        }
-      );
+      const action = await dispatch(updateOrderStatusThunk({orderId, status: nextToken}));
 
-      if (!res.ok) {
-        const txt = await res.text().catch(() => "");
-        throw new Error(txt || "No se pudo actualizar el estado");
+      if (updateOrderStatusThunk.fulfilled.match(action)) {
+        notify("success", `Estado de la orden #${orderId} → ${nextToken}`)
+      } else {
+        throw new Error(action?.error?.message || "No se pudo actualizar el estado")
       }
-
-      notify("success", `Estado de la orden #${orderId} → ${nextToken}`);
     } catch (err) {
-      setOrders(prev);
       notify("error", err?.message || "Error al actualizar el estado");
-      throw err;
     }
   };
 
-  const rightInfo = loading ? "—" : `${filteredOrders.length} en esta página`;
+  const rightInfo = loading ? "—" : `${paginatedOrders.length} en esta página`;
 
   return (
     <section className="admin-section">
@@ -205,15 +173,15 @@ export default function OrderPanel({ id = "orders", isOpen, onToggle, className 
 
         {loading && <div className="admin-loading">Cargando órdenes...</div>}
 
-        {!loading && err && <div className="admin-alert error">{err}</div>}
+        {!loading && error && <div className="admin-alert error">{error}</div>}
 
-        {!loading && !err && orders.length === 0 && (
+        {!loading && !error && orders.length === 0 && (
           <div className="no-product">Aún no hay órdenes</div>
         )}
 
-        {!loading && !err && filteredOrders.length > 0 && (
+        {!loading && !error && filteredOrders.length > 0 && (
           <section className="orders-list">
-            {filteredOrders.map((o) => (
+            {paginatedOrders.map((o) => (
               <OrderCard
                 key={o?.id ?? o?.orderId ?? crypto.randomUUID()}
                 order={o}

@@ -9,6 +9,8 @@ const resolveArray = (payload) => {
   return [];
 };
 
+const matchesOrderId = (order, orderId) => (order?.id ?? order?.orderId) === orderId;
+
 const authHeaders = () => {
   const token = localStorage.getItem("token");
   return token ? { Authorization: `Bearer ${token}` } : {};
@@ -108,7 +110,7 @@ const ordersSlice = createSlice({
       .addCase(updateOrderStatus.fulfilled, (state, action) => {
         state.loading = false;
         const { orderId, status } = action.payload || {};
-        const index = state.orders.findIndex((o) => o.id === orderId);
+        const index = state.orders.findIndex((o) => matchesOrderId(o, orderId));
 
         if (index !== -1) {
           state.orders[index] = {
@@ -154,8 +156,8 @@ const ordersSlice = createSlice({
         state.loading = false;
         state.error = action.error?.message || "Error al obtener órdenes";
         state.orders = [];
-      })
-}
+      });
+  },
 });
 
 export const { resetOrdersError } = ordersSlice.actions;
