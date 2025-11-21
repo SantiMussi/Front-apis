@@ -117,6 +117,7 @@ const ProductDetail = () => {
         description: product.description,
         categoryName: product.categoryName,
         quantity: safeQuantity,
+        stock: product.stock,
       })
     );
 
