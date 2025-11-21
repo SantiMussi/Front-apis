@@ -17,7 +17,7 @@ const authHeaders = () => {
 };
 
 // Get de productos, general o por categoria
-  export const fetchProducts = createAsyncThunk(
+export const fetchProducts = createAsyncThunk(
   "products/fetchProducts",
   async ({ categoryId = null } = {}) => {
     if (!categoryId) {
@@ -30,6 +30,15 @@ const authHeaders = () => {
     return Array.isArray(data?.product) ? data.product : [];
   }
 );
+
+//Fetch por id
+export const fetchProductById = createAsyncThunk(
+  'products/fetchProductById',
+  async (id) => {
+    const { data } = await axios.get(`${BASE_URL}/product/${id}`);
+    return data;
+  });
+
 //Post de productos
 export const createProduct = createAsyncThunk(
   "products/createProduct",
@@ -79,7 +88,11 @@ const initialState = {
   products: [],
   loading: false,
   error: null,
+  currentProduct: null,
+  currentProductLoading: false,
+  currentProductError: null,
 };
+
 const productsSlice = createSlice({
   name: "products",
   initialState,
@@ -105,6 +118,21 @@ const productsSlice = createSlice({
         state.products = [];
       })
 
+      //FETCH BY ID
+      .addCase(fetchProductById.pending, (state) => { 
+        state.currentProductLoading = true;
+        state.currentProductError = null;
+      })
+      .addCase(fetchProductById.fulfilled, (state, action) => {
+        state.currentProductLoading = false;
+        state.currentProduct = action.payload || null;
+      })
+      .addCase(fetchProductById.rejected, (state, action) => {
+        state.currentProductLoading = false;
+        state.currentProductError = action.payload || action.error?.message || "Error al obtener producto";
+        state.currentProduct = null;
+      })
+      
       // CREATE
       .addCase(createProduct.pending, (state) => {
         state.loading = true;
