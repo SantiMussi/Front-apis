@@ -19,11 +19,23 @@ const ProductDetail = () => {
   const [added, setAdded] = useState(false);
 
   const imgRef = useRef(null);
+
   const {
     currentProduct: product,
     currentProductLoading: loading,
     currentProductError: productError,
   } = useSelector((state) => state.products);
+
+  const cartItems = useSelector((state) => state.cart?.items ?? []);
+
+  const qtyInCart = product
+    ? cartItems.find((it) => it.id === product.id)?.quantity ?? 0
+    : 0;
+
+  const remainingStock =
+    typeof product?.stock === "number"
+      ? Math.max(product.stock - qtyInCart, 0)
+      : 0;
 
   useEffect(() => {
     if (!id) return;
@@ -32,10 +44,11 @@ const ProductDetail = () => {
 
   useEffect(() => {
     if (!product) return;
-    const initialQty =
-      typeof product.stock === "number" && product.stock > 0 ? 1 : 0;
+
+    // si no queda stock disponible, cantidad 0, si no, arrancamos en 1
+    const initialQty = remainingStock > 0 ? 1 : 0;
     setQuantity(initialQty);
-  }, [product]);
+  }, [product, remainingStock]);
 
   if (loading) {
     return (
@@ -55,26 +68,18 @@ const ProductDetail = () => {
   }
 
   const decreaseQuantity = () => {
-    const minQuantity =
-      typeof product?.stock === "number" && product.stock <= 0 ? 0 : 1;
-
+    const minQuantity = remainingStock > 0 ? 1 : 0;
     setQuantity((prevQuantity) => Math.max(minQuantity, prevQuantity - 1));
   };
 
   const increaseQuantity = () => {
     if (!product) return;
-
     setQuantity((prevQuantity) => {
-      if (typeof product.stock !== "number") {
-        return prevQuantity + 1;
-      }
-      // lock en el máximo stock
-      return Math.min(product.stock, prevQuantity + 1);
+      return Math.min(remainingStock, prevQuantity + 1);
     });
   };
 
-  const isOutOfStock =
-    typeof product?.stock === "number" ? product.stock <= 0 : false;
+  const isOutOfStock = remainingStock <= 0;
   const isAdmin = GetRole() === "ADMIN" || GetRole() === "SELLER";
   const { unitPrice, compareAtPrice, hasDiscount, discountRate } =
     resolveItemPricing(product);
@@ -96,14 +101,25 @@ const ProductDetail = () => {
       return;
     }
 
-    if (isOutOfStock) return;
+    if (isOutOfStock) {
+      Swal.fire({
+        icon: "warning",
+        title: "Sin stock disponible",
+        text: "Ya agregaste la cantidad máxima de este producto.",
+      });
+      return;
+    }
 
-    const safeQuantity =
-      typeof product.stock === "number"
-        ? Math.min(quantity, product.stock)
-        : quantity;
+    const safeQuantity = Math.min(quantity, remainingStock);
 
-    if (safeQuantity <= 0) return;
+    if (safeQuantity <= 0) {
+      Swal.fire({
+        icon: "warning",
+        title: "Sin stock disponible",
+        text: "Ya no podés agregar más unidades de este producto.",
+      });
+      return;
+    }
 
     dispatch(
       addToCart({
@@ -135,6 +151,9 @@ const ProductDetail = () => {
       timer: 1500,
       timerProgressBar: true,
     });
+
+    const nextRemaining = remainingStock - safeQuantity;
+    setQuantity(nextRemaining > 0 ? 1 : 0);
   };
 
   return (
@@ -168,7 +187,10 @@ const ProductDetail = () => {
             )}
           </div>
 
-          <p className="stock">Stock disponible: {product.stock}</p>
+          <p className="stock">
+            Stock disponible: {product.stock}{" "}
+            {qtyInCart > 0 && `(ya tenés ${qtyInCart} en el carrito)`}
+          </p>
 
           <div className="product-detail__actions">
             {!isAdmin && (
@@ -182,6 +204,7 @@ const ProductDetail = () => {
                     className="quantity-button"
                     onClick={decreaseQuantity}
                     aria-label="Disminuir cantidad"
+                    disabled={isOutOfStock}
                   >
                     -
                   </button>
@@ -193,11 +216,7 @@ const ProductDetail = () => {
                     className="quantity-button"
                     onClick={increaseQuantity}
                     aria-label="Aumentar cantidad"
-                    disabled={
-                      typeof product.stock === "number"
-                        ? quantity >= product.stock
-                        : false
-                    }
+                    disabled={isOutOfStock || quantity >= remainingStock}
                   >
                     +
                   </button>
@@ -210,7 +229,9 @@ const ProductDetail = () => {
                   onClick={handleAddToCart}
                 >
                   <span className={`btn-label-base ${added ? "hidden" : ""}`}>
-                    Agregar al carrito
+                    {isOutOfStock
+                      ? "Sin stock"
+                      : "Agregar al carrito"}
                   </span>
 
                   <span
