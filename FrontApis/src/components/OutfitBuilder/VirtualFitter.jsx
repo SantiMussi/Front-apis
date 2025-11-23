@@ -314,8 +314,14 @@ export default function VirtualFitter() {
       icon: 'success',
       title: `Se agregó ${count} prenda${count >1 ? "s" : ""} al carrito.`,
       showConfirmButton: false,
-      timer: 1800,
+      timer: 2000,
       timerProgressBar: true,
+      background: "#ffffffff",
+      color: "#012400ff",
+      iconColor: "#007a4eff",
+      customClass: {
+        popup: 'swal-add-toast'
+      }
     });
   }
 
@@ -469,8 +475,7 @@ export default function VirtualFitter() {
                 className="vf-btn vf-btn-primary vf-btn-cart"
                 type="button"
                 onClick={addOutfitToCart}
-                disabled={adding || selectedProducts.length === 0}
-                title={selectedProducts.length === 0 ? "Elegí al menos 1 prenda" : "Agregar outfit al carrito"}
+                title={"Agregar outfit al carrito"}
                 style={{ marginLeft: 8 }}
               >
                 {adding ? "Agregando..." : "Agregar outfit al carrito"}
