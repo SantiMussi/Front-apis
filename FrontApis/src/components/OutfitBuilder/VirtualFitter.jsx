@@ -13,7 +13,6 @@ import mannequin from "../../assets/mannequin.png";
 import { hasRole, GetToken } from "../../services/authService";
 import "./VirtualFitter.css";
 
-const BASE_URL = import.meta.env.VITE_API_URL;
 /** Calibración por capa (defaults) */
 const LAYER_DEFAULTS = {
   top: { scale: 0.17, x: 1.2, y: -3.5, z: 30 },
@@ -294,7 +293,7 @@ export default function VirtualFitter() {
           name: p.name,
           price: p.price ?? 0,
           size: '',
-          quantity: '1',
+          quantity: 1,
           base64img: p.image,
         })
       )
