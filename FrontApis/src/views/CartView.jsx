@@ -5,6 +5,7 @@ import CartItem from "../components/Cart/CartItem";
 import "../components/Cart/cart.css";
 import { formatCurrency, resolveItemPricing } from "../helpers/pricing";
 import { IsLoggedIn } from "../services/authService";
+import {useDispatch, useSelector} from "react-redux";
 
 const CartView = () => {
   const dispatch = useDispatch();
