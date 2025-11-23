@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { fetchCouponByCode } from "../../redux/couponsSlice";
 import { fetchOrderById, purchaseOrder } from "../../redux/ordersSlice";
 import { fetchCurrentUser } from "../../redux/usersSlice";
+import { clearCart} from "../../redux/cartSlice.js";
 import "./checkout.css";
 import { formatCurrency, resolveItemPricing } from "../../helpers/pricing";
 import { normalizeBase64Image } from "../../helpers/image";
@@ -206,6 +207,7 @@ const CheckoutView = () => {
     if (purchaseOrder.fulfilled.match(action)) {
       const response = action.payload;
       setOrderResult(response);
+      dispatch(clearCart());
 
       if (response?.orderId) {
         const detailsAction = dispatch(fetchOrderById(response.orderId));
