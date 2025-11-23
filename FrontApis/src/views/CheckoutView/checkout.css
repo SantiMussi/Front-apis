@@ -224,8 +224,10 @@
 }
 
 .coupon-error {
-  color: #ff8c8c;
-  font-size: 0.8rem;
+  margin-top: 0.75rem;
+  color: #ff4d4f;
+  font-weight: 700;
+  letter-spacing: var(--ls-xs);
 }
 
 .coupon-success {
