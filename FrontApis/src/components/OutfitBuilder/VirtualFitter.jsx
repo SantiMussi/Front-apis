@@ -10,7 +10,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchProducts } from "../../redux/productsSlice";
 import { addToCart } from "../../redux/cartSlice"
 import mannequin from "../../assets/mannequin.png";
-import { hasRole, GetToken } from "../../services/authService";
+import { hasRole } from "../../services/authService";
+import Swal from 'sweetalert2'
 import "./VirtualFitter.css";
 
 /** Calibración por capa (defaults) */
@@ -89,7 +90,6 @@ export default function VirtualFitter() {
   const [editKey, setEditKey] = useState("top");
 
   const [adding, setAdding] = useState(false);
-  const [addMsg, setAddMsg] = useState("");
 
   // derivamos itemsByCat de products (no se guarda más en state)
   const itemsByCat = useMemo(
@@ -279,27 +279,44 @@ export default function VirtualFitter() {
 
   //  agregar outfit al carrito
   async function addOutfitToCart() {
-    setAddMsg("");
 
+    //Si no hay prendas seleccionadas
     if (selectedProducts.length === 0) {
-      setAddMsg("Elegí al menos 1 prenda para agregar al carrito");
+      Swal.fire({
+        icon: 'info',
+        title: 'Elegí alguna prenda',
+        text: 'Seleccioná al menos una prenda antes de agregar el outfit al carrito.'
+      })
       return;
     }
+
+    setAdding(true)
 
     selectedProducts.forEach((p) => {
       dispatch(
         addToCart({
-          id: p.id,
-          name: p.name,
-          price: p.price ?? 0,
-          size: '',
-          quantity: 1,
-          base64img: p.image,
-        })
-      )
+        id: p.id,
+        name: p.name,
+        price: p.price ?? 0,
+        size: '',
+        quantity: 1,
+        base64img: p.image,
+      }))
     })
 
-    setAddMsg('Outfit agregado al carrito')
+    setAdding(false)
+
+    const count = selectedProducts.length
+
+    Swal.fire({
+      toast: true,
+      position: 'top-end',
+      icon: 'success',
+      title: `Se agregó ${count} prenda${count >1 ? "s" : ""} al carrito.`,
+      showConfirmButton: false,
+      timer: 1800,
+      timerProgressBar: true,
+    });
   }
 
   if (loading) return <div className="vf-loading">Cargando prendas…</div>;
@@ -459,7 +476,6 @@ export default function VirtualFitter() {
                 {adding ? "Agregando..." : "Agregar outfit al carrito"}
               </button>
             }
-            {addMsg && <span className="vf-hint" style={{ marginLeft: 8 }}>{addMsg}</span>}
           </div>
         </header>
 
