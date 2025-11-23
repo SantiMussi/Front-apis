@@ -1,5 +1,5 @@
 import {useState} from "react";
-import { register } from "../../services/authService"
+import {GetRole, register, SetRole, SetToken} from "../../services/authService"
 import {useNavigate} from "react-router-dom";
 import {useDispatch} from "react-redux";
 
@@ -48,10 +48,13 @@ function Register() {
                 formData.password 
             );
 
-            console.log(data);
+            SetToken(data.access_token, dispatch);
+            SetRole('USER', dispatch);
+            //SetToken(data.access)
+            //()
 
             //nav al login con un mensaje de cuenta creada exitosamente
-            navigate("/login", {replace:true, state: {justRegistered: true}})
+            navigate("/", {replace:true, state: {justRegistered: true}})
 
 
         } catch(err){
