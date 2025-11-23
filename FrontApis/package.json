@@ -15,6 +15,7 @@
     "prop-types": "^15.8.1",
     "react": "^19.2.0",
     "react-dom": "^19.1.1",
+    "react-persist": "^1.0.2",
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.9.4",
     "redux": "^5.0.1",

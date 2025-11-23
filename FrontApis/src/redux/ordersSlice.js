@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
+import { GetToken } from "../services/authService";
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -12,7 +13,7 @@ const resolveArray = (payload) => {
 const matchesOrderId = (order, orderId) => (order?.id ?? order?.orderId) === orderId;
 
 const authHeaders = () => {
-  const token = localStorage.getItem("token");
+  const token = GetToken();
   return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
