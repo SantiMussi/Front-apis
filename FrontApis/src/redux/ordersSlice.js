@@ -71,10 +71,52 @@ export const fetchUserOrders = createAsyncThunk(
   }
 );
 
+export const purchaseOrder = createAsyncThunk(
+  "orders/purchaseOrder",
+  async ({ userId, items, couponCode, paymentMethod, shippingMethod }) => {
+    const payload = {
+      userId,
+      productIds: items.map((item) => item.id),
+      quantities: items.map((item) => item.quantity),
+      paymentMethod,
+      shippingMethod,
+    };
+
+    if (couponCode) {
+      payload.couponCode = couponCode;
+    }
+
+    const { data } = await axios.post(`${BASE_URL}/product/purchase`, payload, {
+      headers: {
+        "Content-Type": "application/json",
+        ...authHeaders(),
+      },
+    });
+
+    return data;
+  }
+);
+
+export const fetchOrderById = createAsyncThunk(
+  "orders/fetchOrderById",
+  async (orderId) => {
+    const { data } = await axios.get(`${BASE_URL}/orders/${orderId}`, {
+      headers: { ...authHeaders() },
+    });
+    return data;
+  }
+);
+
+
 const initialState = {
   orders: [],
   loading: false,
   error: null,
+  currentOrder: null,
+  currentOrderLoading: false,
+  currentOrderError: null,
+  purchasing: false,
+  purchaseError: null,
 };
 
 const ordersSlice = createSlice({
@@ -157,6 +199,41 @@ const ordersSlice = createSlice({
         state.loading = false;
         state.error = action.error?.message || "Error al obtener órdenes";
         state.orders = [];
+      })
+
+      // Purchase
+      .addCase(purchaseOrder.pending, (state) => {
+        state.purchasing = true;
+        state.purchaseError = null;
+      })
+      .addCase(purchaseOrder.fulfilled, (state, action) => {
+        state.purchasing = false;
+        const created = action.payload;
+        if (created) {
+          state.orders.push(created);
+        }
+      })
+      .addCase(purchaseOrder.rejected, (state, action) => {
+        state.purchasing = false;
+        state.purchaseError =
+          action.error?.message || "Error al crear orden";
+      })
+
+      // Fetch by id
+      .addCase(fetchOrderById.pending, (state) => {
+        state.currentOrderLoading = true;
+        state.currentOrderError = null;
+      })
+      .addCase(fetchOrderById.fulfilled, (state, action) => {
+        state.currentOrderLoading = false;
+        state.currentOrder = action.payload ?? null;
+      })
+      .addCase(fetchOrderById.rejected, (state, action) => {
+        state.currentOrderLoading = false;
+        state.currentOrderError =
+          action.error?.message || "Error al obtener orden";
+        state.currentOrder = null;
+
       });
   },
 });

@@ -47,6 +47,15 @@ export const updateUser = createAsyncThunk(
     }
 );
 
+export const fetchCurrentUser = createAsyncThunk(
+  "users/fetchCurrentUser",
+  async () => {
+    const { data } = await axios.get(`${BASE_URL}/users/me`, {
+      headers: authHeader(),
+    });
+    return data;
+  }
+);
 
 //Slice
 
@@ -56,12 +65,15 @@ const initialState = {
     error: null,
     saving: false,
     saveError: null,
+    currentUser: null,
+    currentUserLoading: false,
+    currentUserError: null,
 }
 
 const usersSlice = createSlice({
     name: 'users',
     initialState,
-    redures: {
+    reducers: {
         resetUserErrors: (state) => {
             state.error = null;
             state.saveError = null;
@@ -110,6 +122,20 @@ const usersSlice = createSlice({
                 state.saving = false;
                 state.saveError =
                     action.error?.message || "Error al actualizar usuario";
+            })
+            .addCase(fetchCurrentUser.pending, (state) => {
+              state.currentUserLoading = true;
+              state.currentUserError = null;
+            })
+            .addCase(fetchCurrentUser.fulfilled, (state, action) => {
+              state.currentUserLoading = false;
+              state.currentUser = action.payload ?? null;
+            })
+            .addCase(fetchCurrentUser.rejected, (state, action) => {
+              state.currentUserLoading = false;
+              state.currentUserError =
+                action.error?.message || "Error al obtener usuario";
+              state.currentUser = null;
             })
     },
 });

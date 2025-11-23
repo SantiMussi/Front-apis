@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
-import { getCouponByCode, getOrderById, purchaseOrder } from "../../services/checkoutService";
-import { getCurrentUser } from "../../services/authService";
+import { fetchCouponByCode } from "../../redux/couponsSlice";
+import { fetchOrderById, purchaseOrder } from "../../redux/ordersSlice";
+import { fetchCurrentUser } from "../../redux/usersSlice";
 import "./checkout.css";
 import { formatCurrency, resolveItemPricing } from "../../helpers/pricing";
 import { normalizeBase64Image } from "../../helpers/image";
@@ -51,24 +53,25 @@ const paymentMethods = [
 const CheckoutView = () => {
   const navigate = useNavigate();
   const location = useLocation(); // useLocation para que el programa guarde de donde venimos (ruta)
+  const dispatch = useDispatch();
+  const { couponByCodeLoading: couponLoading } = useSelector(
+    (state) => state.coupons
+  );
+  const { currentUser } = useSelector((state) => state.users);
   const [items] = useState(() => location.state?.items ?? []);
   const [selectedShipping, setSelectedShipping] = useState(shippingOptions[0]);
   const [selectedPayment, setSelectedPayment] = useState(paymentMethods[0]);
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [couponError, setCouponError] = useState("");
-  const [couponLoading, setCouponLoading] = useState(false);
   const [checkoutError, setCheckoutError] = useState("");
   const [processing, setProcessing] = useState(false);
   const [orderResult, setOrderResult] = useState(null);
   const [orderDetails, setOrderDetails] = useState(null);
-  const [user, setUser] = useState(null);
 
   useEffect(() => {
-    getCurrentUser()
-      .then(setUser)
-      .catch(() => setUser(null));
-  }, []);
+    dispatch(fetchCurrentUser());
+  }, [dispatch]);
 
   useEffect(() => {
     // Ajusta el ancho base de .shipping-option__info según el texto más largo
@@ -141,27 +144,29 @@ const CheckoutView = () => {
       return;
     }
 
-    setCouponLoading(true);
     setCouponError("");
+    const trimmedCode = couponCode.trim().toUpperCase();
 
-    try {
-      const coupon = await getCouponByCode(couponCode.trim());
-      const expiration = coupon.expirationDate ?? coupon.expirationdate;
+    const action = await dispatch(fetchCouponByCode(trimmedCode));
+
+    if (fetchCouponByCode.fulfilled.match(action)) {
+      const coupon = action.payload;
+      const expiration = coupon?.expirationDate ?? coupon?.expirationdate;
       if (expiration) {
         const isExpired = new Date(expiration) < new Date();
         if (isExpired) {
-          throw new Error("El cupón se encuentra vencido.");
+          setAppliedCoupon(null);
+          setCouponError("El cupón se encuentra vencido.");
+          return;
         }
       }
       setAppliedCoupon({
         ...coupon,
-        code: coupon.code?.toUpperCase?.() ?? coupon.code,
+        code: coupon?.code?.toUpperCase?.() ?? coupon?.code,
       });
-    } catch (error) {
+    } else {
       setAppliedCoupon(null);
-      setCouponError(error.message || "No pudimos validar el cupón.");
-    } finally {
-      setCouponLoading(false);
+      setCouponError(action.error?.message || "No pudimos validar el cupón.");
     }
   };
 
@@ -181,37 +186,40 @@ const CheckoutView = () => {
 
     setProcessing(true);
     setCheckoutError("");
+    const userId = currentUser?.id ?? location.state?.userId;
+    if (!userId) {
+      setCheckoutError("Necesitás iniciar sesión para finalizar la compra.");
+      setProcessing(false);
+      return;
+    }
 
+    const action = await dispatch(
+      purchaseOrder({
+        userId,
+        items,
+        couponCode: appliedCoupon?.code,
+        paymentMethod: selectedPayment.id,
+        shippingMethod: selectedShipping.id,
+      })
+    );
 
-    try {
-        const userId = user?.id ?? location.state?.userId;
-        if (!userId) {
-          throw new Error("Necesitás iniciar sesión para finalizar la compra.");
-        }
-        
-        const response = await purchaseOrder({
-          userId,
-          items,
-          couponCode: appliedCoupon?.code,
-          paymentMethod: selectedPayment.id,
-          shippingMethod: selectedShipping.id
-      });
-
+    if (purchaseOrder.fulfilled.match(action)) {
+      const response = action.payload;
       setOrderResult(response);
 
       if (response?.orderId) {
-        try {
-          const details = await getOrderById(response.orderId);
-          setOrderDetails(details);
-        } catch (error) {
-          //console.warn("No se pudo obtener el detalle de la orden", error);
+        const detailsAction = dispatch(fetchOrderById(response.orderId));
+        if (fetchOrderById.fulfilled.match(detailsAction)) {
+          setOrderDetails(detailsAction.payload)
         }
       }
-    } catch (error) {
-      setCheckoutError(error.message || "No pudimos completar tu compra.");
-    } finally {
-      setProcessing(false);
+    } else {
+      setCheckoutError(
+        action.error?.message || "No pudimos completar tu compra."
+      );
     }
+
+    setProcessing(false);
   };
 
   const handleBackToCart = () => {
