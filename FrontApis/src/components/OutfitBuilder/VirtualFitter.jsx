@@ -8,33 +8,27 @@ import {
 import { useSearchParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProducts } from "../../redux/productsSlice";
+import { addToCart } from "../../redux/cartSlice"
 import mannequin from "../../assets/mannequin.png";
-import { hasRole, GetRole, GetToken } from "../../services/authService";
+import { hasRole, GetToken } from "../../services/authService";
 import "./VirtualFitter.css";
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 /** Calibración por capa (defaults) */
 const LAYER_DEFAULTS = {
-  top:    { scale: 0.17, x: 1.2,  y: -3.5, z: 30 },
-  bottom: { scale: 0.40, x: 0.8,  y: 17.5, z: 20 },
-  coat:   { scale: 0.24, x: 1.0,  y: -4.5, z: 40 },
+  top: { scale: 0.17, x: 1.2, y: -3.5, z: 30 },
+  bottom: { scale: 0.40, x: 0.8, y: 17.5, z: 20 },
+  coat: { scale: 0.24, x: 1.0, y: -4.5, z: 40 },
 };
 
 /** Mapeo de categorías lógicas */
 const CATEGORIES = [
-  { key: "top",    label: "Prenda superior", apiValues: ["Remera"] },
+  { key: "top", label: "Prenda superior", apiValues: ["Remera"] },
   { key: "bottom", label: "Prenda inferior", apiValues: ["Pantalon", "Short", "Jean"] },
-  { key: "coat",   label: "Abrigo",          apiValues: ["Abrigo", "Polar", "Hoodie"] },
+  { key: "coat", label: "Abrigo", apiValues: ["Abrigo", "Polar", "Hoodie"] },
 ];
 
-/** LS helpers */
-function getOverridesFromLS() {
-  try { return JSON.parse(localStorage.getItem("vf_overrides")) || {}; }
-  catch { return {}; }
-}
-function saveOverridesToLS(map) {
-  localStorage.setItem("vf_overrides", JSON.stringify(map));
-}
+
 
 /** Normaliza producto del backend */
 function mapProduct(p) {
@@ -48,6 +42,7 @@ function mapProduct(p) {
     name: p.name ?? p.title ?? "Producto",
     image,
     categoryName: p.category?.name ?? p.categoryName ?? p.category ?? "",
+    price: p.price ?? 0,
   };
 }
 
@@ -58,26 +53,26 @@ function bucketizeProducts(all) {
   const isIn = (name, list) =>
     list.some((x) => x.toLowerCase() === String(name).toLowerCase());
 
-  const tops    = CATEGORIES.find(c => c.key === "top").apiValues;
+  const tops = CATEGORIES.find(c => c.key === "top").apiValues;
   const bottoms = CATEGORIES.find(c => c.key === "bottom").apiValues;
-  const coats   = CATEGORIES.find(c => c.key === "coat").apiValues;
+  const coats = CATEGORIES.find(c => c.key === "coat").apiValues;
 
   for (const raw of all) {
     const p = mapProduct(raw);
     if (!p.image) continue;
 
-    if (isIn(p.categoryName, tops))    out.top.push(p);
+    if (isIn(p.categoryName, tops)) out.top.push(p);
     if (isIn(p.categoryName, bottoms)) out.bottom.push(p);
-    if (isIn(p.categoryName, coats))   out.coat.push(p);
+    if (isIn(p.categoryName, coats)) out.coat.push(p);
   }
   return out;
 }
 
 export default function VirtualFitter() {
 
-    const dispatch = useDispatch();
+  const dispatch = useDispatch();
 
-  // 👇 productos desde Redux
+  // productos desde Redux
   const {
     products = [],
     loading,
@@ -91,19 +86,19 @@ export default function VirtualFitter() {
   const appliedPreselectIdRef = useRef(null);
 
   const [cal, setCal] = useState(LAYER_DEFAULTS);
-  const [overrides, setOverrides] = useState(getOverridesFromLS);
+  const [overrides, setOverrides] = useState({});
   const [editKey, setEditKey] = useState("top");
 
   const [adding, setAdding] = useState(false);
   const [addMsg, setAddMsg] = useState("");
 
-  // 👇 derivamos itemsByCat de products (no se guarda más en state)
+  // derivamos itemsByCat de products (no se guarda más en state)
   const itemsByCat = useMemo(
     () => bucketizeProducts(products),
     [products]
   );
 
-  // 👇 si no hay productos cargados, disparo fetchProducts al montar
+  // si no hay productos cargados, disparo fetchProducts al montar
   useEffect(() => {
     if (!products || products.length === 0) {
       dispatch(fetchProducts());
@@ -181,7 +176,6 @@ export default function VirtualFitter() {
     };
     const updated = { ...overrides, [cur.id]: next };
     setOverrides(updated);
-    saveOverridesToLS(updated);
   };
 
   // ESCALA
@@ -195,7 +189,6 @@ export default function VirtualFitter() {
     const next = { x: (prev.x ?? base.x), y: (prev.y ?? base.y), scale: nextScale };
     const updated = { ...overrides, [cur.id]: next };
     setOverrides(updated);
-    saveOverridesToLS(updated);
   };
 
   const setScaleAbs = (key, value) => {
@@ -207,7 +200,6 @@ export default function VirtualFitter() {
     const next = { x: (prev.x ?? base.x), y: (prev.y ?? base.y), scale: clamped };
     const updated = { ...overrides, [cur.id]: next };
     setOverrides(updated);
-    saveOverridesToLS(updated);
   };
 
   // atajos de teclado (mover + escalar)
@@ -233,7 +225,7 @@ export default function VirtualFitter() {
   // estilo final = base por capa + override por producto (si existe)
   function styleFor(layerKey, prod) {
     const base = cal[layerKey];
-    const ov   = prod ? overrides[prod.id] : null;
+    const ov = prod ? overrides[prod.id] : null;
     const x = ov?.x ?? base.x;
     const y = ov?.y ?? base.y;
     const scale = ov?.scale ?? base.scale;
@@ -248,16 +240,15 @@ export default function VirtualFitter() {
     setIndexes({ top: -1, bottom: -1, coat: -1 });
     setCal(LAYER_DEFAULTS);
     setOverrides({});
-    localStorage.removeItem("vf_overrides");
   };
 
   // estado derivado para UI de escala de la capa activa
-  const activeProd  = editKey === "top" ? currentTop : editKey === "bottom" ? currentBottom : currentCoat;
-  const activeBase  = cal[editKey];
-  const activeOv    = activeProd ? overrides[activeProd.id] : null;
+  const activeProd = editKey === "top" ? currentTop : editKey === "bottom" ? currentBottom : currentCoat;
+  const activeBase = cal[editKey];
+  const activeOv = activeProd ? overrides[activeProd.id] : null;
   const activeScale = activeOv?.scale ?? activeBase.scale;
 
-  // --- helpers UI (press & hold + slider fill) ---
+  // helpers UI (press & hold + slider fill)
   const holdRef = useRef({ t: null, f: null });
 
   function startHold(e, fn) {
@@ -287,47 +278,33 @@ export default function VirtualFitter() {
     if (input) updateRangeFill(input);
   }, [activeScale, activeProd]);
 
-  // --- agregar outfit al carrito ---
+  //  agregar outfit al carrito
   async function addOutfitToCart() {
     setAddMsg("");
+
     if (selectedProducts.length === 0) {
-      setAddMsg("Elegí al menos 1 prenda para agregar al carrito.");
+      setAddMsg("Elegí al menos 1 prenda para agregar al carrito");
       return;
     }
-    setAdding(true);
-    try {
-      const items = selectedProducts.map(p => ({ productId: p.id, qty: 1 }));
-      //const token =
-      //  localStorage.getItem("token") ||
-      //  localStorage.getItem("authToken") ||
-      //  localStorage.getItem("jwt");
-      const token = GetToken();
 
-      const res = await fetch(`${BASE_URL}/cart/items`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { "Authorization": `Bearer ${token}` } : {})
-        },
-        body: JSON.stringify({ items })
-      });
+    selectedProducts.forEach((p) => {
+      dispatch(
+        addToCart({
+          id: p.id,
+          name: p.name,
+          price: p.price ?? 0,
+          size: '',
+          quantity: '1',
+          base64img: p.image,
+        })
+      )
+    })
 
-      if (!res.ok) {
-        const pending = JSON.parse(localStorage.getItem("pending_cart_outfit") || "[]");
-        pending.push({ ts: Date.now(), items });
-        localStorage.setItem("pending_cart_outfit", JSON.stringify(pending));
-        throw new Error(`Outfit agregado al carrito.`);
-      }
-    } catch (e) {
-      setAddMsg(`${e.message}`);
-    } finally {
-      setAdding(false);
-    }
+    setAddMsg('Outfit agregado al carrito')
   }
 
-  // early returns (sin hooks después!)
   if (loading) return <div className="vf-loading">Cargando prendas…</div>;
-  if (error)   return <div className="vf-error">Error: {error}</div>;
+  if (error) return <div className="vf-error">Error: {error}</div>;
 
 
   return (
@@ -351,12 +328,12 @@ export default function VirtualFitter() {
               </select>
             </div>
 
-            {/* Controles de tamaño (PRO) */}
+            {/* Controles de tamaño */}
             <div className="vf-scale-group">
               <label className="vf-label">Tamaño</label>
 
               <div className="vf-scale-controls pro">
-                {/* Botón menos (press & hold) */}
+                {/* Botón menos */}
                 <button
                   className="vf-icon-btn"
                   type="button"

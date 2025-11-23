@@ -62,7 +62,7 @@ export async function getCurrentUser(){
 //Helpers de rol
 export function SetRole(role, dispatch){
 
-    console.log(role)
+    // console.log(role)
 
     dispatch(setRole(role))
 

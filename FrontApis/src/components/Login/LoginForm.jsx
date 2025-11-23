@@ -28,7 +28,6 @@ const LoginForm = () => {
 
       //console.log(data)
 
-
       if (data?.access_token) SetToken(data.access_token, dispatch);
       const user = await getCurrentUser();
       SetRole(user.role, dispatch);
