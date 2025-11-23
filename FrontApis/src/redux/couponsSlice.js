@@ -31,6 +31,24 @@ export const fetchCoupons = createAsyncThunk(
   }
 );
 
+// GET cupón por código
+export const fetchCouponByCode = createAsyncThunk(
+  "coupons/fetchCouponByCode",
+  async (code) => {
+    const trimmedCode = (code || "").toString().trim();
+    if (!trimmedCode) {
+      throw new Error("Código de cupón inválido");
+    }
+
+    const encodedCode = encodeURIComponent(trimmedCode);
+    const { data } = await axios.get(`${BASE_URL}/coupons/${encodedCode}`, {
+      headers: { ...authHeaders() },
+    });
+
+    return data;
+  }
+);
+
 // POST de cupon
 export const createCoupon = createAsyncThunk(
   "coupons/createCoupon",
@@ -63,6 +81,9 @@ const initialState = {
   error: null,
   saving: false,
   saveError: null,
+  couponByCode: null,
+  couponByCodeLoading: false,
+  couponByCodeError: null,
 };
 
 const couponsSlice = createSlice({
@@ -90,6 +111,41 @@ const couponsSlice = createSlice({
         state.error =
           action.error?.message || "Error al obtener cupones";
         state.coupons = [];
+      })
+
+      // FETCH BY CODE
+      .addCase(fetchCouponByCode.pending, (state) => {
+        state.couponByCodeLoading = true;
+        state.couponByCodeError = null;
+      })
+      .addCase(fetchCouponByCode.fulfilled, (state, action) => {
+        state.couponByCodeLoading = false;
+        state.couponByCode = action.payload ?? null;
+
+        if (action.payload && typeof action.payload === "object") {
+          const fetchedCoupon = action.payload;
+          const fetchedId = resolveCouponId(fetchedCoupon);
+          const fetchedCode = fetchedCoupon?.code;
+          const index = state.coupons.findIndex((coupon) => {
+            const hasIdMatch =
+              fetchedId !== null && resolveCouponId(coupon) === fetchedId;
+            const hasCodeMatch =
+              !!fetchedCode && coupon?.code === fetchedCode;
+            return hasIdMatch || hasCodeMatch;
+          });
+
+          if (index >= 0) {
+            state.coupons[index] = fetchedCoupon;
+          } else {
+            state.coupons.push(fetchedCoupon);
+          }
+        }
+      })
+      .addCase(fetchCouponByCode.rejected, (state, action) => {
+        state.couponByCodeLoading = false;
+        state.couponByCodeError =
+          action.error?.message || "Error al obtener cupón";
+        state.couponByCode = null;
       })
 
       // CREATE
