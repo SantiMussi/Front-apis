@@ -42,6 +42,8 @@ import OrderPanel from "../components/Panels/OrderPanel";
 const EMPTY_CATEGORY = { description: "" };
 
 function THEGODPAGE() {
+
+    const selector = useSelector();
   const dispatch = useDispatch();
 
   const { products } = useSelector((state) => state.products);
@@ -191,7 +193,7 @@ function THEGODPAGE() {
   }, []);
 
   // decide si ocultar usuarios ADMIN según rol del actual
-  const shouldHideAdminUsers = hasRole("ADMIN");
+  const shouldHideAdminUsers = hasRole(selector, "ADMIN");
 
   // normalizamos usuarios al leer desde Redux
   const normalizedUsers = (rawUsers || []).map((user, index) =>

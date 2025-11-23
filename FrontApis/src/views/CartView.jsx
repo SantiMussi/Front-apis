@@ -1,10 +1,10 @@
-import { useMemo } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 import CartItem from "../components/Cart/CartItem";
 import "../components/Cart/cart.css";
 import { formatCurrency, resolveItemPricing } from "../helpers/pricing";
+import { IsLoggedIn } from "../services/authService";
 
 const CartView = () => {
   const dispatch = useDispatch();

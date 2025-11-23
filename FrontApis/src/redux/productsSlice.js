@@ -1,5 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
+import { captureOwnerStack } from "react";
+import {GetToken} from "../services/authService.js";
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -12,7 +14,8 @@ const resolveArray = (payload) => {
 
 //HASTA TENER EL AUTH EN REDUX
 const authHeaders = () => {
-  const token = localStorage.getItem("token");
+  //const token = localStorage.getItem("token");
+  const token = GetToken();
   return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
@@ -119,7 +122,7 @@ const productsSlice = createSlice({
       })
 
       //FETCH BY ID
-      .addCase(fetchProductById.pending, (state) => { 
+      .addCase(fetchProductById.pending, (state) => {
         state.currentProductLoading = true;
         state.currentProductError = null;
       })
@@ -132,7 +135,7 @@ const productsSlice = createSlice({
         state.currentProductError = action.payload || action.error?.message || "Error al obtener producto";
         state.currentProduct = null;
       })
-      
+
       // CREATE
       .addCase(createProduct.pending, (state) => {
         state.loading = true;

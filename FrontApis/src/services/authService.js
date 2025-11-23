@@ -1,12 +1,18 @@
-const BASE_URL = import.meta.env.VITE_API_URL;
-const TOKEN_KEY = 'token';
-const ROLE_KEY = 'role';
+import {
+    login as loginThunk,
+    register as registerThunk,
+    setRole,
+    setToken,
 
+} from "../redux/authSlice";
+import {store} from "../redux/store.js";
+
+const BASE_URL = import.meta.env.VITE_API_URL;
 const authEmitter = new EventTarget();
 const notifyAuth = () => authEmitter.dispatchEvent(new Event('auth-change'));
 
 export function onAuthChange(cb){
-    const handler = () => cb( {isLoggedIn: isLoggedIn(), role: getRole()} );
+    const handler = () => cb( {isLoggedIn: IsLoggedIn(), role: GetRole()} );
     authEmitter.addEventListener('auth-change', handler);
 
     //cleanup
@@ -15,25 +21,32 @@ export function onAuthChange(cb){
 
 //Token y headers 
 export function authHeader(){
-    const token = localStorage.getItem('token');
+    const token = GetToken();
     return token ? { 'Authorization': `Bearer ${token}` } : {};
 }
 
-export function setToken(token){
-    if(token){
-        localStorage.setItem(TOKEN_KEY, token)
-        notifyAuth();
-    }
+export function SetToken(token, dispatch){
+
+
+
+    dispatch(setToken(token))
+
+    //localStorage.setItem(TOKEN_KEY, token)
+
+    notifyAuth();
+
     return token ? { 'Authorization': `Bearer ${token}` } : {};
 }
 
-export function getToken(){
-    return localStorage.getItem(TOKEN_KEY);
+export function GetToken(){
+    return store.getState().auth.token;
 }
 
-export function logout(){
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(ROLE_KEY);
+export function logout(dispatch){
+    //localStorage.removeItem(TOKEN_KEY);
+    SetRole("", dispatch);
+    SetToken("", dispatch)
+    //localStorage.removeItem(ROLE_KEY);
     notifyAuth();
 }
 
@@ -47,29 +60,55 @@ export async function getCurrentUser(){
 }
 
 //Helpers de rol
-export function setRole(role){
-    localStorage.setItem('role', role);
+export function SetRole(role, dispatch){
+
+    console.log(role)
+
+    dispatch(setRole(role))
+
+    //localStorage.setItem('role', role);
     notifyAuth();
 }
 
-export function getRole(){
-    return localStorage.getItem('role');
+export function GetRole(){
+
+    return store.getState().auth.role;
+
+    //return localStorage.getItem('role');
 }
 
 export function hasRole(...requiredRoles){
-    const role = getRole();
+    const role = GetRole();
     return !!role && requiredRoles.includes(role);
 }
 
-export function isLoggedIn() {
-  return !!localStorage.getItem('token');
+export function IsLoggedIn() {
+  return !!GetToken();
 }
 
 
 // AUTH API
-export async function login(email, password){
+export async function login(dispatch, email, password){
+
+    const payload = {
+        email: email,
+        password: password
+
+    }
+
+    const result = await dispatch(loginThunk(payload)).unwrap();
+
+    return result.data;
+
+
+
+    //
+    // METODO ANTIGUO DE LOGIN, TODAVIA NO LO SACO
+    //
+
+
     // Usa la variable de entorno para la URL base
-    const response = await fetch(`${BASE_URL}/api/v1/auth/authenticate`, {
+    /*const response = await fetch(`${BASE_URL}/api/v1/auth/authenticate`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({email, password})
@@ -83,10 +122,26 @@ export async function login(email, password){
     throw new Error(errorData.message);
   }
 
-  return response.json();
+  return response.json();*/
+
 }
-export async function register(firstname, lastname, email, password){
-    const response = await fetch(`${BASE_URL}/api/v1/auth/register`, {
+export async function register(dispatch, firstname, lastname, email, password){
+
+    const payload = {
+        firstname: firstname,
+        lastname: lastname,
+        email: email,
+        password: password,
+        role: 'USER'
+    }
+
+    const response = await dispatch(registerThunk(payload)).unwrap();
+
+    return response.data;
+
+
+
+    /*const response = await fetch(`${BASE_URL}/api/v1/auth/register`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({firstname, lastname, email, password, role: 'USER'})
@@ -97,5 +152,5 @@ export async function register(firstname, lastname, email, password){
         const message = errorData?.message || `Error ${response.status}`
         throw new Error(message);
     }
-    return response.json();
+    return response.json();*/
 }

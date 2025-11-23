@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { isLoggedIn, onAuthChange } from "../../services/authService";
+import {IsLoggedIn, onAuthChange} from "../../services/authService";
 import OrderCard from "../../components/OrderComponents/OrderCard";
 import "./Orders.css";
 import {useDispatch, useSelector} from "react-redux";
@@ -9,7 +9,7 @@ import {fetchUserOrders} from "../../redux/ordersSlice.js";
 export default function OrdersPage() {
   const navigate = useNavigate();
 
-  const [logged, setLogged] = useState(isLoggedIn());
+  const [logged, setLogged] = useState(IsLoggedIn());
   const {orders, loading, err } = useSelector((state) => state.orders);
   const dispatch = useDispatch();
 

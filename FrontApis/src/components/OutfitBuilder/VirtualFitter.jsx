@@ -9,11 +9,10 @@ import { useSearchParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProducts } from "../../redux/productsSlice";
 import mannequin from "../../assets/mannequin.png";
-import { hasRole } from "../../services/authService";
+import { hasRole, GetRole, GetToken } from "../../services/authService";
 import "./VirtualFitter.css";
 
 const BASE_URL = import.meta.env.VITE_API_URL;
-
 /** Calibración por capa (defaults) */
 const LAYER_DEFAULTS = {
   top:    { scale: 0.17, x: 1.2,  y: -3.5, z: 30 },
@@ -75,7 +74,8 @@ function bucketizeProducts(all) {
 }
 
 export default function VirtualFitter() {
-  const dispatch = useDispatch();
+
+    const dispatch = useDispatch();
 
   // 👇 productos desde Redux
   const {
@@ -297,10 +297,11 @@ export default function VirtualFitter() {
     setAdding(true);
     try {
       const items = selectedProducts.map(p => ({ productId: p.id, qty: 1 }));
-      const token =
-        localStorage.getItem("token") ||
-        localStorage.getItem("authToken") ||
-        localStorage.getItem("jwt");
+      //const token =
+      //  localStorage.getItem("token") ||
+      //  localStorage.getItem("authToken") ||
+      //  localStorage.getItem("jwt");
+      const token = GetToken();
 
       const res = await fetch(`${BASE_URL}/cart/items`, {
         method: "POST",

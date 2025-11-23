@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchProductById as fetchProductByIdThunk } from "../redux/productsSlice";
 import Swal from "sweetalert2";
 
-import { getRole, isLoggedIn } from "../services/authService";
+import { GetRole, IsLoggedIn } from "../services/authService";
 import { formatCurrency, resolveItemPricing } from "../helpers/pricing";
 import { flyImageToCart } from "../utils/flyToCart";
 
@@ -75,7 +75,7 @@ const ProductDetail = () => {
 
   const isOutOfStock =
     typeof product?.stock === "number" ? product.stock <= 0 : false;
-  const isAdmin = getRole() === "ADMIN" || getRole() === "SELLER";
+  const isAdmin = GetRole() === "ADMIN" || GetRole() === "SELLER";
   const { unitPrice, compareAtPrice, hasDiscount, discountRate } =
     resolveItemPricing(product);
 
@@ -90,7 +90,7 @@ const ProductDetail = () => {
   };
 
   const handleAddToCart = () => {
-    if (!isLoggedIn()) {
+    if (!IsLoggedIn()) {
       localStorage.setItem("lastPath", location.pathname);
       navigate("/login");
       return;
