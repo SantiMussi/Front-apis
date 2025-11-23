@@ -23,12 +23,12 @@ const ProductDetail = () => {
     currentProduct: product,
     currentProductLoading: loading,
     currentProductError: productError,
-  } = useSelector((state) => state.products)
+  } = useSelector((state) => state.products);
 
   useEffect(() => {
-    if(!id) return;
+    if (!id) return;
     dispatch(fetchProductByIdThunk(id));
-  }, [dispatch, id])
+  }, [dispatch, id]);
 
   useEffect(() => {
     if (!product) return;
@@ -143,85 +143,96 @@ const ProductDetail = () => {
         ← Volver
       </button>
 
-      <h2>{product.name}</h2>
+      <div className="product-detail__layout">
+        <div className="product-detail__media">
+          <img ref={imgRef} src={product.base64img} alt={product.name} />
+        </div>
 
-      <img ref={imgRef} src={product.base64img} alt={product.name} />
+        <div className="product-detail__info">
+          <h2>{product.name}</h2>
 
-      <p className="description">{product.description}</p>
+          <p className="description">{product.description}</p>
 
-      <div className="price-block product-detail__price">
-        <span className="price-current">{formatCurrency(unitPrice)}</span>
-        {hasDiscount && (
-          <>
-            <span className="price-original">
-              {formatCurrency(compareAtPrice)}
-            </span>
-            <span className="price-tag">
-              -{Math.round(discountRate * 100)}%
-            </span>
-          </>
-        )}
-      </div>
+          <div className="price-block product-detail__price">
+            <span className="price-current">{formatCurrency(unitPrice)}</span>
 
-      <p className="stock">Stock disponible: {product.stock}</p>
+            {hasDiscount && (
+              <>
+                <span className="price-original">
+                  {formatCurrency(compareAtPrice)}
+                </span>
+                <span className="price-tag">
+                  -{Math.round(discountRate * 100)}%
+                </span>
+              </>
+            )}
+          </div>
 
-      <div className="product-detail__actions">
-        {!isAdmin && (
-          <div className="cart-action-bar">
-            <div
-              className="quantity-control"
-              aria-label="Selector de cantidad"
-            >
-              <button
-                type="button"
-                className="quantity-button"
-                onClick={decreaseQuantity}
-                aria-label="Disminuir cantidad"
-              >
-                -
-              </button>
-              <span className="quantity-display" aria-live="polite">
-                {quantity}
-              </span>
-              <button
-                type="button"
-                className="quantity-button"
-                onClick={increaseQuantity}
-                aria-label="Aumentar cantidad"
-                disabled={
-                  typeof product.stock === "number"
-                    ? quantity >= product.stock
-                    : false
-                }
-              >
-                +
-              </button>
-            </div>
+          <p className="stock">Stock disponible: {product.stock}</p>
+
+          <div className="product-detail__actions">
+            {!isAdmin && (
+              <div className="cart-action-bar">
+                <div
+                  className="quantity-control"
+                  aria-label="Selector de cantidad"
+                >
+                  <button
+                    type="button"
+                    className="quantity-button"
+                    onClick={decreaseQuantity}
+                    aria-label="Disminuir cantidad"
+                  >
+                    -
+                  </button>
+                  <span className="quantity-display" aria-live="polite">
+                    {quantity}
+                  </span>
+                  <button
+                    type="button"
+                    className="quantity-button"
+                    onClick={increaseQuantity}
+                    aria-label="Aumentar cantidad"
+                    disabled={
+                      typeof product.stock === "number"
+                        ? quantity >= product.stock
+                        : false
+                    }
+                  >
+                    +
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  className={`add-to-cart-button ${added ? "added" : ""}`}
+                  disabled={isOutOfStock}
+                  onClick={handleAddToCart}
+                >
+                  <span className={`btn-label-base ${added ? "hidden" : ""}`}>
+                    Agregar al carrito
+                  </span>
+
+                  <span
+                    className={`btn-label-overlay ${
+                      added ? "visible" : ""
+                    }`}
+                  >
+                    Agregado ✓
+                  </span>
+                </button>
+              </div>
+            )}
 
             <button
               type="button"
-              className={`add-to-cart-button ${added ? "added" : ""}`}
-              disabled={isOutOfStock}
-              onClick={handleAddToCart}
+              className="virtual-fitter-button"
+              onClick={handleOpenVirtualFitter}
             >
-              <span className={`btn-label-base ${added ? "hidden" : ""}`}>
-                Agregar al carrito
-              </span>
-
-              <span className={`btn-label-overlay ${added ? "visible" : ""}`}>
-                Agregado ✓
-              </span>
+              Probar en el probador virtual
             </button>
           </div>
-        )}
-
-        <button
-          type="button"
-          className="virtual-fitter-button"
-          onClick={handleOpenVirtualFitter}
-        >
-          Probar en el probador virtual
-        </button>
+        </div>
       </div>
     </div>
   );
