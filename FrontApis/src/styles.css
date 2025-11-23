@@ -312,14 +312,6 @@ nav {
   mix-blend-mode: soft-light;
 }
 
-.productos-grid {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-  gap: 2.4rem;
-}
-
 .no-product {
   display: flex;
   align-items: center;
@@ -356,10 +348,10 @@ nav {
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(230px, 260px));
   gap: 2.4rem;
   align-items: stretch;
-  grid-auto-rows: 1fr;
+  justify-content: center; 
 }
 
 /* CARD BASE */
