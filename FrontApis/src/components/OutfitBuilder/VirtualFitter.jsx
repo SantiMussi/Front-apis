@@ -37,13 +37,17 @@ function mapProduct(p) {
     ? (b64.startsWith("data:") ? b64 : `data:image/png;base64,${b64}`)
     : (p.image ?? p.imageUrl ?? p.thumbnail ?? null);
 
+  const stockValue = p.stock ?? p.availableStock ?? p.quantity ?? null;
+  const stock = Number.isFinite(Number(stockValue)) ? Number(stockValue) : null;
+
   return {
     id: p.id ?? p.productId ?? p.code,
     name: p.name ?? p.title ?? "Producto",
     image,
     categoryName: p.category?.name ?? p.categoryName ?? p.category ?? "",
     price: p.price ?? 0,
-    size: p.size
+    size: p.size,
+    stock,
   };
 }
 
@@ -79,6 +83,8 @@ export default function VirtualFitter() {
     loading,
     error
   } = useSelector((state) => state.products);
+
+  const cartItems = useSelector((state) => state.cart?.items ?? []);
 
   // estado local
   const [indexes, setIndexes] = useState({ top: -1, bottom: -1, coat: -1 }); // -1 = ninguna
@@ -144,6 +150,19 @@ export default function VirtualFitter() {
   const selectedProducts = useMemo(
     () => [currentTop, currentBottom, currentCoat].filter(Boolean),
     [currentTop, currentBottom, currentCoat]
+  );
+
+  const remainingStockFor = useCallback(
+    (product) => {
+      if (!product) return 0;
+      const stock = typeof product.stock === "number" ? product.stock : 0;
+      const existingQty = cartItems.find(
+        (item) => item.id === product.id && item.size === product.size
+      )?.quantity ?? 0;
+
+      return Math.max(stock - existingQty, 0);
+    },
+    [cartItems]
   );
 
   // ciclo que incluye ninguna (-1)
@@ -293,23 +312,43 @@ export default function VirtualFitter() {
 
     setAdding(true)
 
+    const unavailable = selectedProducts.filter((product) => remainingStockFor(product) <= 0);
+    if (unavailable.length > 0) {
+      const names = unavailable.map((p) => p.name).join(", ");
+      Swal.fire({
+        icon: 'warning',
+        title: 'Sin stock disponible',
+        text: `No queda stock para: ${names}. Revisá tu carrito o elegí otra prenda.`,
+      });
+
+      if (unavailable.length === selectedProducts.length) {
+        setAdding(false);
+        return;
+      }
+    }
+
+    let addedCount = 0;
 
     selectedProducts.forEach((p) => {
-      console.log(p)
+      const remaining = remainingStockFor(p);
+      if (remaining <= 0) return;
       dispatch(
         addToCart({
           id: p.id,
           name: p.name,
           price: p.price ?? 0,
           size: p.size,
-          quantity: 1,
+          quantity: Math.min(1, remaining),
           base64img: p.image,
+          stock: p.stock,
+          categoryName: p.categoryName,
         }))
+      addedCount += 1;
     })
 
     setAdding(false)
 
-    const count = selectedProducts.length
+    const count = addedCount
 
     Swal.fire({
       toast: true,

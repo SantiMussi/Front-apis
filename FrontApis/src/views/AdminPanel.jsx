@@ -83,7 +83,7 @@ function THEGODPAGE() {
 
   // productos
   const loadProducts = async () => {
-    const action = await dispatch(fetchProductsThunk());
+    const action = dispatch(fetchProductsThunk());
     if (fetchProductsThunk.rejected.match(action)) {
       const msg =
         action.error?.message || "No se pudieron cargar los productos";
@@ -93,7 +93,7 @@ function THEGODPAGE() {
 
   // categorías (get público)
   const loadCategories = async () => {
-    const action = await dispatch(fetchCategoriesThunk());
+    const action = dispatch(fetchCategoriesThunk());
     if (fetchCategoriesThunk.rejected.match(action)) {
       const msg =
         action.error?.message || "No se pudieron cargar las categorías";
@@ -103,7 +103,7 @@ function THEGODPAGE() {
 
   // carga cupones
   const loadCoupons = async () => {
-    const action = await dispatch(fetchCouponsThunk());
+    const action = dispatch(fetchCouponsThunk());
     if (fetchCouponsThunk.rejected.match(action)) {
       const msg =
         action.error?.message || "No se pudieron cargar los cupones";
@@ -118,7 +118,7 @@ function THEGODPAGE() {
 
   // carga usuarios (Redux)
   const loadUsers = async () => {
-    const action = await dispatch(fetchUsersThunk());
+    const action = dispatch(fetchUsersThunk());
     if (fetchUsersThunk.rejected.match(action)) {
       const msg =
         action.error?.message || "No se pudieron cargar los usuarios";
