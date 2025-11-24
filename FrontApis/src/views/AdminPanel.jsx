@@ -489,7 +489,7 @@ function THEGODPAGE() {
         await loadCategories();
       } else {
         const errMsg =
-          actionResult.error?.message || "No se pudo crear la categoría";
+          actionResult.error?.response?.data?.message || "No se pudo crear la categoría";
         notify("error", errMsg);
       }
     } catch (error) {
