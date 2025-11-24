@@ -18,9 +18,9 @@ const mapProductToForm = (product) => ({
   categoryId: toNumberOrEmpty(product?.categoryId),
   image_url: toDisplayValue(product?.base64img),
   creator_id: toNumberOrEmpty(product?.creatorId),
-  base64img: toDisplayValue(product?.base64img),
+  base64img: "",
   image_preview_url: toDisplayValue(
-    product?.image_preview_url || product?.base64img || product?.imageUrl
+    product?.base64img || product?.imageUrl
   ),
 });
 
@@ -33,7 +33,7 @@ const ProductList = ({ products, categories, onEdit, onDelete }) => {
     <div className="admin-list">
       {products.map((product) => {
         const categoryLabel = product.categoryName;
-        const imageSource = product.base64img;
+        const imageSource = product.base64img || product.imageUrl;
         const productLabel = product.name || product.title || `Producto #${product.id}`;
 
         return (

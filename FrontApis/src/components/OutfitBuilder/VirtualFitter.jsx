@@ -155,16 +155,37 @@ export default function VirtualFitter() {
   const remainingStockFor = useCallback(
     (product) => {
       if (!product) return 0;
-      const stock = typeof product.stock === "number" ? product.stock : 0;
-      const existingQty = cartItems.find(
-        (item) => item.id === product.id && item.size === product.size
-      )?.quantity ?? 0;
 
-      return Math.max(stock - existingQty, 0);
+      // stock total del producto (como en ProductDetail)
+      const stock =
+        typeof product.stock === "number" ? product.stock : 0;
+
+      if (stock <= 0) return 0;
+
+      // sumo todo lo que ya tengo en el carrito de este producto
+      // si el producto tiene talle, matcheo por id + size
+      // si NO tiene talle en el VirtualFitter, matcheo solo por id
+      const relevantItems = cartItems.filter((item) => {
+        if (item.id !== product.id) return false;
+
+        if (product.size == null || product.size === "") {
+          // no tengo size en el VF → cuento todas las unidades de ese id
+          return true;
+        }
+
+        // tengo size → matcheo también por talle
+        return item.size === product.size;
+      });
+
+      const qtyInCart = relevantItems.reduce(
+        (sum, item) => sum + (item.quantity ?? 0),
+        0
+      );
+
+      return Math.max(stock - qtyInCart, 0);
     },
     [cartItems]
   );
-
   // ciclo que incluye ninguna (-1)
   const cycle = useCallback(
     (key, dir = 1) => {
@@ -299,39 +320,51 @@ export default function VirtualFitter() {
 
   //  agregar outfit al carrito
   async function addOutfitToCart() {
-
-    //Si no hay prendas seleccionadas
+    // 1) Si no hay prendas seleccionadas
     if (selectedProducts.length === 0) {
       Swal.fire({
         icon: 'info',
         title: 'Elegí alguna prenda',
-        text: 'Seleccioná al menos una prenda antes de agregar el outfit al carrito.'
-      })
+        text: 'Seleccioná al menos una prenda antes de agregar el outfit al carrito.',
+      });
       return;
     }
 
-    setAdding(true)
+    // 2) Verifico stock antes de entrar en "Agregando..."
+    const unavailable = selectedProducts.filter(
+      (product) => remainingStockFor(product) <= 0
+    );
 
-    const unavailable = selectedProducts.filter((product) => remainingStockFor(product) <= 0);
+    // Si TODAS las seleccionadas no tienen stock, no tiene sentido seguir
+    if (unavailable.length === selectedProducts.length) {
+      const names = unavailable.map((p) => p.name).join(", ");
+      Swal.fire({
+        icon: "warning",
+        title: "Sin stock disponible",
+        text: `Ya no queda stock para: ${names}. Revisá tu carrito o elegí otras prendas.`,
+      });
+      return;
+    }
+
+    // 3) Si algunas no tienen stock, aviso, pero sigo con las que sí
     if (unavailable.length > 0) {
       const names = unavailable.map((p) => p.name).join(", ");
       Swal.fire({
-        icon: 'warning',
-        title: 'Sin stock disponible',
-        text: `No queda stock para: ${names}. Revisá tu carrito o elegí otra prenda.`,
+        icon: "info",
+        title: "Algunas prendas sin stock",
+        text: `No se agregaron: ${names}. Solo se agregan las que aún tienen stock disponible.`,
       });
-
-      if (unavailable.length === selectedProducts.length) {
-        setAdding(false);
-        return;
-      }
     }
+
+    setAdding(true);
 
     let addedCount = 0;
 
+    // 4) Agrego solo las que tengan stock disponible restante
     selectedProducts.forEach((p) => {
       const remaining = remainingStockFor(p);
       if (remaining <= 0) return;
+
       dispatch(
         addToCart({
           id: p.id,
@@ -342,19 +375,28 @@ export default function VirtualFitter() {
           base64img: p.image,
           stock: p.stock,
           categoryName: p.categoryName,
-        }))
+        })
+      );
       addedCount += 1;
-    })
+    });
 
-    setAdding(false)
+    setAdding(false);
 
-    const count = addedCount
+    // 5) Si no se agregó ninguna, no tiro toast de éxito
+    if (addedCount === 0) {
+      Swal.fire({
+        icon: "warning",
+        title: "Sin stock disponible",
+        text: "Ya no podés agregar más unidades de estas prendas.",
+      });
+      return;
+    }
 
     Swal.fire({
       toast: true,
-      position: 'top-end',
-      icon: 'success',
-      title: `Se agregó ${count} prenda${count > 1 ? "s" : ""} al carrito.`,
+      position: "top-end",
+      icon: "success",
+      title: `Se agregó ${addedCount} prenda${addedCount > 1 ? "s" : ""} al carrito.`,
       showConfirmButton: false,
       timer: 2000,
       timerProgressBar: true,
@@ -362,10 +404,11 @@ export default function VirtualFitter() {
       color: "#012400ff",
       iconColor: "#007a4eff",
       customClass: {
-        popup: 'swal-add-toast'
-      }
+        popup: "swal-add-toast",
+      },
     });
   }
+
 
   if (loading) return <div className="vf-loading">Cargando prendas…</div>;
   if (error) return <div className="vf-error">Error: {error}</div>;
