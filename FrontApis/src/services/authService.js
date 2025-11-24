@@ -32,8 +32,6 @@ export function SetToken(token, dispatch){
 
     dispatch(setToken(token))
 
-    //localStorage.setItem(TOKEN_KEY, token)
-
     notifyAuth();
 
     return token ? { 'Authorization': `Bearer ${token}` } : {};
@@ -49,11 +47,9 @@ export function GetToken(){
 }
 
 export function logout(dispatch){
-    //localStorage.removeItem(TOKEN_KEY);
     SetRole("", dispatch);
     SetToken("", dispatch)
     SetIdentifier(null, dispatch);
-    //localStorage.removeItem(ROLE_KEY);
     notifyAuth();
 }
 
@@ -73,7 +69,6 @@ export function SetRole(role, dispatch){
 
     dispatch(setRole(role))
 
-    //localStorage.setItem('role', role);
     notifyAuth();
 }
 
@@ -81,7 +76,6 @@ export function GetRole(){
 
     return store.getState().auth.role;
 
-    //return localStorage.getItem('role');
 }
 
 export function hasRole(...requiredRoles){

@@ -13,9 +13,7 @@ const resolveArray = (payload) => {
 
 const resolveCouponId = (coupon) => coupon?.id ?? null;
 
-// HASTA TENER AUTH EN REDUX
 const authHeaders = () => {
-  //const token = localStorage.getItem("token");
   const token = GetToken();
   return token ? { Authorization: `Bearer ${token}` } : {};
 };

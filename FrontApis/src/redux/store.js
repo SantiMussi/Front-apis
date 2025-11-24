@@ -19,6 +19,7 @@ import authReducer from "./authSlice.js";
 import ordersReducer from "./ordersSlice.js"
 import usersReducer from "./usersSlice.js"
 import cartReducer from "./cartSlice";
+import navReducer from "./navSlice.js"
 
 const rootReducer = combineReducers({
     products: productsReducer, // registra el slice
@@ -28,6 +29,7 @@ const rootReducer = combineReducers({
     users: usersReducer,
     cart: cartReducer,
     auth: authReducer,
+    nav: navReducer,
 })
 
 

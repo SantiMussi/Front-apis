@@ -11,12 +11,8 @@ const resolveArray = (payload) => {
     return [];
 }
 
-// FUNCION HASTA IMPLEMENTAR EL AUTH DE USUARIOS CON REDUX
 const authHeaders = () => {
-    //const token = localStorage.getItem("token");
-
     const token = GetToken();
-
     return token ? { Authorization: `Bearer ${token}` } : {};
 };
 

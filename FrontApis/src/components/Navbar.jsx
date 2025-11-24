@@ -3,7 +3,8 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { hasRole, IsLoggedIn, GetRole, onAuthChange, logout, getCurrentUser, SetRole } from '../services/authService'
 import UserWidget from "./UserWidget/UserWidget.jsx"
 import './UserWidget/UserWidget.css'
-import {useDispatch} from "react-redux";
+import { useDispatch } from "react-redux";
+import { setLastPath } from '../redux/navSlice.js';
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -17,7 +18,7 @@ export default function Navbar() {
 
   useEffect(() => {
     if (!['/login', '/register'].includes(location.pathname)) {
-      localStorage.setItem('lastPath', location.pathname)
+      dispatch(setLastPath(location.pathname));
     }
   }, [location.pathname]);
 

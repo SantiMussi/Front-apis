@@ -14,7 +14,6 @@ const resolveArray = (payload) => {
 
 //HASTA TENER EL AUTH EN REDUX
 const authHeaders = () => {
-  //const token = localStorage.getItem("token");
   const token = GetToken();
   return token ? { Authorization: `Bearer ${token}` } : {};
 };

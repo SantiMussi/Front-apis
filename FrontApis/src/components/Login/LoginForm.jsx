@@ -23,7 +23,7 @@ const LoginForm = () => {
 
     try {
 
-      //Loggea al usuario y guarda la data en localstorage
+      //Loggea al usuario y guarda la data
       const data = await login(dispatch, email, password);
 
       //console.log(data)
@@ -34,7 +34,7 @@ const LoginForm = () => {
       SetRole(user.role, dispatch);
 
       //Navega al ultimo path en el q estuvo
-      const lastPath = localStorage.getItem("lastPath") || "/";
+      const lastPath = useSelector(state => state.nav.lastPath)
       navigate(lastPath, { replace: true });
 
     } catch (err) {

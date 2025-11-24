@@ -8,7 +8,7 @@ import Swal from "sweetalert2";
 import { GetRole, IsLoggedIn } from "../services/authService";
 import { formatCurrency, resolveItemPricing } from "../helpers/pricing";
 import { flyImageToCart } from "../utils/flyToCart";
-
+import { setLastPath } from "../redux/navSlice";
 const ProductDetail = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -96,7 +96,7 @@ const ProductDetail = () => {
 
   const handleAddToCart = () => {
     if (!IsLoggedIn()) {
-      localStorage.setItem("lastPath", location.pathname);
+      dispatch(setLastPath(location.pathname))
       navigate("/login");
       return;
     }
