@@ -862,6 +862,7 @@ nav {
   gap: 0.9rem;
   align-items: stretch;
 }
+
 .product-detail .cart-action-bar {
   display: inline-flex;
   justify-content: center;
@@ -1242,6 +1243,7 @@ nav {
   gap: 3rem;
 }
 
+
 .admin-header {
   display: flex;
   flex-wrap: wrap;
@@ -1334,7 +1336,6 @@ nav {
   display: flex;
   flex-direction: column;
   gap: 2rem;
-  height: 100%;
 }
 
 .admin-grid {
@@ -1409,7 +1410,6 @@ nav {
   box-shadow: 0 10px 40px rgba(255, 255, 255, 0.06);
   display: flex;
   flex-direction: column;
-  height: 100%;
 }
 
 .admin-card-header {
@@ -1438,6 +1438,11 @@ nav {
   max-height: 520px;
   overflow-y: auto;
   padding-right: 0.4rem;
+}
+.orders-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .admin-list.categories {
@@ -1780,17 +1785,20 @@ nav {
 /* media + anims */
 
 
-@keyframes chucuFade{
-  from{
+@keyframes chucuFade {
+  from {
     transform: translateY(-8px);
     opacity: 0;
     box-shadow: 0 0 0 rgba(0, 226, 255, 0);
-  } to{
+  }
+
+  to {
     transform: translateY(0);
     opacity: 1;
     box-shadow: 0 0 12px rgba(0, 226, 255, 0.5)
   }
 }
+
 @media (max-width: 960px) {
   .admin-section.two-columns {
     grid-template-columns: 1fr;

@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useMemo, useState} from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   resolveOrderId,
   resolveOrderStatus,
@@ -6,7 +6,7 @@ import {
 import { CANON_STATES, normalizeStatusToken } from "../../helpers/statusMap";
 import OrderCard from "../OrderComponents/OrderCard";
 import Collapsible from "../Collapsible/Collapsible"; // ojo con la ruta
-import {useDispatch, useSelector} from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
   fetchOrders as fetchOrdersThunk,
   updateOrderStatus as updateOrderStatusThunk
@@ -16,7 +16,7 @@ import {
 export default function OrderPanel({ id = "orders", isOpen, onToggle, className = "" }) {
   // Data
   const [page, setPage] = useState(0);
-  const {orders = [], loading, error} = useSelector((state) => state.orders);
+  const { orders = [], loading, error } = useSelector((state) => state.orders);
   const dispatch = useDispatch();
   const size = 10;
 
@@ -65,8 +65,8 @@ export default function OrderPanel({ id = "orders", isOpen, onToggle, className 
   }, [orders, orderQuery, statusFilter]);
 
   const totalPages = useMemo(
-      () => Math.max(1, Math.ceil(filteredOrders.length / size)),
-      [filteredOrders.length, size]
+    () => Math.max(1, Math.ceil(filteredOrders.length / size)),
+    [filteredOrders.length, size]
   );
 
   const paginatedOrders = useMemo(() => {
@@ -82,9 +82,9 @@ export default function OrderPanel({ id = "orders", isOpen, onToggle, className 
     setPage(0);
   }, [statusFilter, orderQuery]);
 
-  const handleOrderStatusChange = async(orderId, nextToken) => {
+  const handleOrderStatusChange = async (orderId, nextToken) => {
     try {
-      const action = await dispatch(updateOrderStatusThunk({orderId, status: nextToken}));
+      const action = await dispatch(updateOrderStatusThunk({ orderId, status: nextToken }));
 
       if (updateOrderStatusThunk.fulfilled.match(action)) {
         notify("success", `Estado de la orden #${orderId} → ${nextToken}`)
@@ -162,9 +162,8 @@ export default function OrderPanel({ id = "orders", isOpen, onToggle, className 
 
         {toast && (
           <div
-            className={`admin-alert ${
-              toast.type === "error" ? "error" : "success"
-            }`}
+            className={`admin-alert ${toast.type === "error" ? "error" : "success"
+              }`}
             style={{ marginBottom: 12 }}
           >
             {toast.message}
