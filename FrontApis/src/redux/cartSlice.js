@@ -1,7 +1,9 @@
 import { createSlice } from "@reduxjs/toolkit";
+import {setIdentifier} from "./authSlice.js";
 
 const initialState = {
   items: [], // [{id, name, price, size, quantity, ...}]
+  ownerId: null,
 };
 
 const cartSlice = createSlice({
@@ -30,7 +32,17 @@ const cartSlice = createSlice({
     },
     clearCart: (state) => {
         state.items = [];
+        state.ownerId = null;
     },
+    },
+    extraReducers: (builder) => {
+        builder.addCase(setIdentifier, (state, action) => {
+            const newOwner = action.payload ?? null;
+            if (state.ownerId !== newOwner) {
+                state.items = [];
+                state.ownerId = newOwner;
+            }
+        });
     },
 });
 

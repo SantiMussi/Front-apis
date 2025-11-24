@@ -1,5 +1,5 @@
 import {useState} from "react";
-import {GetRole, register, SetRole, SetToken} from "../../services/authService"
+import {GetRole, register, SetRole, SetToken, SetIdentifier} from "../../services/authService"
 import {useNavigate} from "react-router-dom";
 import {useDispatch} from "react-redux";
 
@@ -45,10 +45,11 @@ function Register() {
                 formData.firstname,
                 formData.lastname,
                 formData.email,
-                formData.password 
+                formData.password
             );
 
             SetToken(data.access_token, dispatch);
+            SetIdentifier(formData.email, dispatch);
             SetRole('USER', dispatch);
             //SetToken(data.access)
             //()

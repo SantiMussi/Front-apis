@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import AuthLoader from "./AuthLoader"; // <-- ruta relativa a este archivo
-import { getCurrentUser, login, SetRole, SetToken} from "../../services/authService";
+import { getCurrentUser, login, SetRole, SetToken, SetIdentifier} from "../../services/authService";
 import "./LoginForm.css";
 import { useNavigate } from "react-router-dom";
 
@@ -30,6 +30,7 @@ const LoginForm = () => {
 
       if (data?.access_token) SetToken(data.access_token, dispatch);
       const user = await getCurrentUser();
+      SetIdentifier(user?.email ?? email, dispatch);
       SetRole(user.role, dispatch);
 
       //Navega al ultimo path en el q estuvo
