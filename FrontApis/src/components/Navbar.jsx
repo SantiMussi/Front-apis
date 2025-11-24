@@ -58,7 +58,6 @@ export default function Navbar() {
       </div>
 
       <ul className="nav-links center">
-        <li><Link to="/nueva">Nueva</Link></li>
         <li><Link to="/indumentaria">Indumentaria</Link></li>
         <li><Link to="/virtual-fitter">Arma tu outfit</Link></li>
       </ul>
