@@ -259,6 +259,12 @@
   background: rgba(255, 255, 255, 0.08);
 }
 
+.cart-item__quantity button:disabled {
+  background: none;
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
 .cart-item__quantity span {
   min-width: 1.5rem;
   text-align: center;
