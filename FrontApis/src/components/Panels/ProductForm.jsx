@@ -96,6 +96,7 @@ const ProductForm = ({
       } else {
         //Sin validacion de tamano
         onChange({ target: { name: 'base64img', value: dataUrl } });
+        onChange({target: {name: 'image_preview_url', value: dataUrl}})
         setPreviewUrl(dataUrl);
       }
     };
