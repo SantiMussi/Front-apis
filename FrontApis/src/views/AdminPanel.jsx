@@ -126,7 +126,6 @@ function THEGODPAGE() {
     }
   };
 
-  // cambia de forma controlada el rol de usuario usando Redux
   const handleUserRoleChange = async (user, newRole) => {
     const normalizedRole = (newRole || "").trim().toUpperCase();
 
@@ -152,6 +151,9 @@ function THEGODPAGE() {
 
       if (actionResult.meta.requestStatus === "fulfilled") {
         notify("success", "Rol actualizado correctamente");
+
+        // refresca la lista desde el back
+        await dispatch(fetchUsersThunk());
       } else {
         const errMsg =
           actionResult.error?.message ||
@@ -462,7 +464,7 @@ function THEGODPAGE() {
       notify(
         "error",
         err.message ||
-          "No se pudo eliminar la categoría (puede estar en uso)"
+        "No se pudo eliminar la categoría (puede estar en uso)"
       );
     } finally {
       setLoading(false);
@@ -554,7 +556,7 @@ function THEGODPAGE() {
     if (!couponForm.expirationDate) {
       notify("error", "Seleccioná una fecha de expiración");
       return;
-    } else if(couponForm.expirationDate < new Date().toISOString().split('T')[0]) {
+    } else if (couponForm.expirationDate < new Date().toISOString().split('T')[0]) {
       notify("error", "La fecha de expiración no puede ser en el pasado");
       return;
     }

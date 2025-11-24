@@ -48,13 +48,13 @@ export const updateUser = createAsyncThunk(
 );
 
 export const fetchCurrentUser = createAsyncThunk(
-  "users/fetchCurrentUser",
-  async () => {
-    const { data } = await axios.get(`${BASE_URL}/users/me`, {
-      headers: authHeader(),
-    });
-    return data;
-  }
+    "users/fetchCurrentUser",
+    async () => {
+        const { data } = await axios.get(`${BASE_URL}/users/me`, {
+            headers: authHeader(),
+        });
+        return data;
+    }
 );
 
 //Slice
@@ -105,17 +105,16 @@ const usersSlice = createSlice({
             })
             .addCase(updateUser.fulfilled, (state, action) => {
                 state.saving = false;
-                const updated = action.payload;
-                if (updated && typeof updated === "object") {
-                    const id = resolveUserId(updated);
-                    if (id !== null) {
-                        const index = state.users.findIndex(
-                            (u) => resolveUserId(u) === id
-                        );
-                        if (index >= 0) {
-                            state.users[index] = updated;
-                        }
-                    }
+
+                const { id, user } = action.meta.arg;
+
+                const index = state.users.findIndex(u => resolveUserId(u) === id);
+                if (index >= 0) {
+                    // mergea el usuario actual con los cambios
+                    state.users[index] = {
+                        ...state.users[index],
+                        ...user,
+                    };
                 }
             })
             .addCase(updateUser.rejected, (state, action) => {
@@ -124,18 +123,18 @@ const usersSlice = createSlice({
                     action.error?.message || "Error al actualizar usuario";
             })
             .addCase(fetchCurrentUser.pending, (state) => {
-              state.currentUserLoading = true;
-              state.currentUserError = null;
+                state.currentUserLoading = true;
+                state.currentUserError = null;
             })
             .addCase(fetchCurrentUser.fulfilled, (state, action) => {
-              state.currentUserLoading = false;
-              state.currentUser = action.payload ?? null;
+                state.currentUserLoading = false;
+                state.currentUser = action.payload ?? null;
             })
             .addCase(fetchCurrentUser.rejected, (state, action) => {
-              state.currentUserLoading = false;
-              state.currentUserError =
-                action.error?.message || "Error al obtener usuario";
-              state.currentUser = null;
+                state.currentUserLoading = false;
+                state.currentUserError =
+                    action.error?.message || "Error al obtener usuario";
+                state.currentUser = null;
             })
     },
 });
