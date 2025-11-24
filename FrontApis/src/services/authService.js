@@ -3,6 +3,7 @@ import {
     register as registerThunk,
     setRole,
     setToken,
+    setIdentifier,
 
 } from "../redux/authSlice";
 import {store} from "../redux/store.js";
@@ -38,6 +39,11 @@ export function SetToken(token, dispatch){
     return token ? { 'Authorization': `Bearer ${token}` } : {};
 }
 
+export function SetIdentifier(identifier, dispatch){
+    dispatch(setIdentifier(identifier));
+    notifyAuth();
+}
+
 export function GetToken(){
     return store.getState().auth.token;
 }
@@ -46,6 +52,7 @@ export function logout(dispatch){
     //localStorage.removeItem(TOKEN_KEY);
     SetRole("", dispatch);
     SetToken("", dispatch)
+    SetIdentifier(null, dispatch);
     //localStorage.removeItem(ROLE_KEY);
     notifyAuth();
 }
