@@ -192,6 +192,10 @@ const ProductDetail = () => {
             {qtyInCart > 0 && `(ya tenés ${qtyInCart} en el carrito)`}
           </p>
 
+          <p className="stock">
+            Talle: {product.size}
+          </p>
+
           <div className="product-detail__actions">
             {!isAdmin && (
               <div className="cart-action-bar">

@@ -43,6 +43,7 @@ function mapProduct(p) {
     image,
     categoryName: p.category?.name ?? p.categoryName ?? p.category ?? "",
     price: p.price ?? 0,
+    size: p.size
   };
 }
 
@@ -292,16 +293,18 @@ export default function VirtualFitter() {
 
     setAdding(true)
 
+
     selectedProducts.forEach((p) => {
+      console.log(p)
       dispatch(
         addToCart({
-        id: p.id,
-        name: p.name,
-        price: p.price ?? 0,
-        size: '',
-        quantity: 1,
-        base64img: p.image,
-      }))
+          id: p.id,
+          name: p.name,
+          price: p.price ?? 0,
+          size: p.size,
+          quantity: 1,
+          base64img: p.image,
+        }))
     })
 
     setAdding(false)
@@ -312,7 +315,7 @@ export default function VirtualFitter() {
       toast: true,
       position: 'top-end',
       icon: 'success',
-      title: `Se agregó ${count} prenda${count >1 ? "s" : ""} al carrito.`,
+      title: `Se agregó ${count} prenda${count > 1 ? "s" : ""} al carrito.`,
       showConfirmButton: false,
       timer: 2000,
       timerProgressBar: true,
