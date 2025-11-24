@@ -1,10 +1,9 @@
 import React, { useState } from "react";
 import AuthLoader from "./AuthLoader"; // <-- ruta relativa a este archivo
-import { getCurrentUser, login, SetRole, SetToken, SetIdentifier} from "../../services/authService";
+import { getCurrentUser, login, SetRole, SetToken, SetIdentifier } from "../../services/authService";
 import "./LoginForm.css";
 import { useNavigate } from "react-router-dom";
-
-import {useDispatch} from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 const LoginForm = () => {
   const navigate = useNavigate();
@@ -12,11 +11,12 @@ const LoginForm = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const lastPath = useSelector(state => state.nav.lastPath)
 
   const dispatch = useDispatch();
 
 
-    const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
@@ -34,7 +34,6 @@ const LoginForm = () => {
       SetRole(user.role, dispatch);
 
       //Navega al ultimo path en el q estuvo
-      const lastPath = useSelector(state => state.nav.lastPath)
       navigate(lastPath, { replace: true });
 
     } catch (err) {
