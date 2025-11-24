@@ -135,6 +135,13 @@
   letter-spacing: var(--ls-xs);
 }
 
+/* para la lista de artículos en la pantalla de confirmación */
+.checkout-item__price {
+  font-size: 0.9rem;
+  letter-spacing: var(--ls-xs);
+  text-align: right;
+}
+
 .checkout-selection {
   display: flex;
   flex-direction: column;
@@ -291,4 +298,154 @@
   .checkout-summary {
     position: static;
   }
+}
+
+/* ============================================
+   CONFIRMACIÓN DE COMPRA – ESTILO CELESTE SUAVE
+   ============================================ */
+
+.checkout-panel--success {
+  position: relative;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+
+  /* sombra suave, nada de colores fuertes */
+  box-shadow:
+    0 0 25px rgba(0, 0, 0, 0.55),
+    inset 0 0 20px rgba(255, 255, 255, 0.02);
+}
+
+/* glow MUY suave y solo celeste */
+.checkout-panel--success::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+      circle at 30% 20%,
+      rgba(0, 200, 255, 0.10),
+      transparent 60%
+    ),
+    radial-gradient(
+      circle at 80% 90%,
+      rgba(0, 200, 255, 0.06),
+      transparent 70%
+    );
+  pointer-events: none;
+}
+
+.checkout-success-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Check: celeste + minimal */
+.checkout-success-icon {
+  width: 3.2rem;
+  height: 3.2rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+
+  box-shadow:
+    0 6px 18px rgba(0, 0, 0, 0.5),
+    inset 0 0 10px rgba(255, 255, 255, 0.04);
+
+  animation: pop-in 0.35s ease-out;
+}
+
+.checkout-success-icon span {
+  font-size: 1.4rem;
+  color: #63e3ff; /* celeste suave */
+}
+
+.checkout-success-kicker {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: var(--ls-xs);
+  color: var(--text-muted);
+}
+
+.checkout-success-title {
+  font-size: 1.5rem;
+  letter-spacing: var(--ls-xs);
+}
+
+.checkout-success-meta {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+/* pastilla orden */
+.checkout-success-pill {
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.20);
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: var(--ls-xs);
+}
+
+.checkout-success-total {
+  font-size: 0.9rem;
+  letter-spacing: var(--ls-xs);
+}
+
+/* Acciones */
+.checkout-success-actions {
+  display: flex;
+  gap: 0.8rem;
+  margin-top: 1.8rem;
+}
+
+/* Botón principal – solo celeste, sin rosa */
+.checkout-primary {
+  border: none;
+  padding: 0.9rem 1.9rem;
+  text-transform: uppercase;
+  letter-spacing: var(--ls-xs);
+  cursor: pointer;
+  background: linear-gradient(135deg, #00d4ff, #66e8ff);
+  color: #000;
+  font-weight: 600;
+  border-radius: 999px;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.checkout-primary:hover {
+  transform: translateY(-2px);
+  opacity: 0.92;
+}
+
+/* Botón secundario */
+.checkout-secondary--ghost {
+  padding: 0.9rem 1.9rem;
+  border-radius: 999px;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: var(--ls-xs);
+}
+
+/* Panel de resumen */
+.checkout-panel--summary {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+}
+
+/* Animación */
+@keyframes pop-in {
+  0% { transform: scale(0.6); opacity: 0; }
+  55% { transform: scale(1.06); opacity: 1; }
+  100% { transform: scale(1); }
 }
