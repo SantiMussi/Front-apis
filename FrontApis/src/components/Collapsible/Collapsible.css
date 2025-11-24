@@ -82,9 +82,9 @@
   transform: translateY(-6px);
   will-change: max-height, opacity, transform;
 }
+
 .collapsible-content.open {
-  /* Si el contenido podría ser grande, poné un valor alto */
-  max-height: 1200px;
+  max-height: 9999px;  /* básicamente sin límite práctico */
   opacity: 1;
   transform: translateY(0);
 }

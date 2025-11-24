@@ -141,6 +141,7 @@ const ProductForm = ({
           <input
             type="number"
             step="0.01"
+            min='0'
             name="price"
             value={product.price}
             onChange={onChange}

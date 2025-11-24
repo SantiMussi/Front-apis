@@ -575,7 +575,7 @@ function THEGODPAGE() {
         await loadCoupons();
       } else {
         const errMsg =
-          actionResult.error?.message || "No se pudo crear el cupón";
+          actionResult.error?.response?.data?.message || "No se pudo crear el cupón";
         notify("error", errMsg);
       }
     } catch (error) {
