@@ -15,14 +15,14 @@ const shippingOptions = [
     title: "Envío Express",
     eta: "24-48 hs",
     description: "Entrega prioritaria en centros urbanos",
-    price: 14.99,
+    price: 8500.00,
   },
   {
     id: "STANDARD",
     title: "Envío Standard",
     eta: "3-5 días",
     description: "Envío regular con seguimiento",
-    price: 6.5,
+    price: 6000.00,
   },
   {
     id: "PICKUP",
