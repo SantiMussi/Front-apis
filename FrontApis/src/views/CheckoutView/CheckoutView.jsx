@@ -59,7 +59,6 @@ const CheckoutView = () => {
     (state) => state.coupons
   );
   const { currentUser } = useSelector((state) => state.users);
-  const [items] = useState(() => location.state?.items ?? []);
   const [selectedShipping, setSelectedShipping] = useState(shippingOptions[0]);
   const [selectedPayment, setSelectedPayment] = useState(paymentMethods[0]);
   const [couponCode, setCouponCode] = useState("");
@@ -70,6 +69,21 @@ const CheckoutView = () => {
   const [orderResult, setOrderResult] = useState(null);
   const [orderDetails, setOrderDetails] = useState(null);
 
+  const cartItems = useSelector((state) => state.cart.items);
+
+  const [items, setItems] = useState(() => {
+    return location.state?.items ?? cartItems ?? [];
+  });
+
+
+  useEffect(() => {
+    if(!cartItems || cartItems.length === 0){
+      setItems([]);
+    } else{
+      setItems(location.state?.items ?? cartItems);
+    }
+  }, [cartItems, location.state])
+  
   useEffect(() => {
     dispatch(fetchCurrentUser());
   }, [dispatch]);
