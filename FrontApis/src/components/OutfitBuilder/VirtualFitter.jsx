@@ -46,6 +46,7 @@ function mapProduct(p) {
     image,
     categoryName: p.category?.name ?? p.categoryName ?? p.category ?? "",
     price: p.price ?? 0,
+    description: p.description,
     size: p.size,
     stock,
   };
@@ -360,7 +361,7 @@ export default function VirtualFitter() {
 
     let addedCount = 0;
 
-    // 4) Agrego solo las que tengan stock disponible restante
+    // Agrego solo las que tengan stock disponible restante
     selectedProducts.forEach((p) => {
       const remaining = remainingStockFor(p);
       if (remaining <= 0) return;
@@ -374,6 +375,7 @@ export default function VirtualFitter() {
           quantity: Math.min(1, remaining),
           base64img: p.image,
           stock: p.stock,
+          description: p.description,
           categoryName: p.categoryName,
         })
       );
