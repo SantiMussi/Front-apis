@@ -5,13 +5,6 @@ import {GetToken} from "../services/authService.js";
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 
-// Funcion para que, si viene paginado como { content: [...] }, tomamos content
-const resolveArray = (payload) => {
-  if (Array.isArray(payload?.content)) return payload.content;
-  if (Array.isArray(payload)) return payload;
-  return [];
-};
-
 const authHeaders = () => {
   const token = GetToken();
   return token ? { Authorization: `Bearer ${token}` } : {};
@@ -23,8 +16,8 @@ export const fetchProducts = createAsyncThunk(
   async ({ categoryId = null } = {}) => {
     if (!categoryId) {
       const { data } = await axios.get(`${BASE_URL}/product`);
-      const items = resolveArray(data);
-      return items;
+
+      return data.content;
     }
 
     const { data } = await axios.get(`${BASE_URL}/categories/${categoryId}`);
