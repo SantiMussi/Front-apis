@@ -10,15 +10,10 @@ const authHeaders = () => {
 };
 
 // Normalizador de categoría -> { id, label }
-const normalizeCategory = (c) => {
-    if (typeof c === "string") {
-        return { id: c, label: c };
-    }
-    return {
-        id: c?.id ?? c?.description,
-        label: c?.description ?? c?.name ?? String(c?.id ?? ""),
-    };
-};
+const normalizeCategory = (c) => ({
+  id: c?.id,
+  label: c?.description ?? "",
+});
 
 // Get de todas las categorías
 export const fetchCategories = createAsyncThunk(
