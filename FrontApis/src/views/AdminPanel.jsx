@@ -815,6 +815,7 @@ function THEGODPAGE() {
         id="orders"
         isOpen={openPanel === "orders"}
         onToggle={togglePanel}
+        notify={notify}
       />
     </div>
   );

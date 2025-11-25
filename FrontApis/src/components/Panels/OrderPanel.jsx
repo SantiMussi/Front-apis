@@ -13,7 +13,7 @@ import {
 } from "../../redux/ordersSlice.js";
 
 
-export default function OrderPanel({ id = "orders", isOpen, onToggle, className = "" }) {
+export default function OrderPanel({ id = "orders", isOpen, onToggle, className = "", notify }) {
   // Data
   const [page, setPage] = useState(0);
   const { orders = [], loading, error } = useSelector((state) => state.orders);
@@ -24,27 +24,29 @@ export default function OrderPanel({ id = "orders", isOpen, onToggle, className 
   const [statusFilter, setStatusFilter] = useState("");
   const [orderQuery, setOrderQuery] = useState("");
 
-  // Notificación simple local
-  const [toast, setToast] = useState(null);
-  const notify = useCallback((type, message) => {
-    setToast({ type, message });
-    window.clearTimeout(notify.timeoutId);
-    notify.timeoutId = window.setTimeout(() => setToast(null), 3500);
-  }, []);
+  // Si por algún motivo no viene notify, armamos un fallback que solo loguea
+  const safeNotify = useCallback(
+    (type, message) => {
+      if (typeof notify === "function") {
+        notify(type, message);
+      } else {
+        console[type === "error" ? "error" : "log"](`[${type}] ${message}`);
+      }
+    },
+    [notify]
+  );
 
   useEffect(() => {
     const loadOrders = async () => {
       const action = await dispatch(fetchOrdersThunk());
 
       if (fetchOrdersThunk.rejected.match(action)) {
-        notify("error", action?.error?.message || "No pudimos cargar las ordenes")
+        safeNotify("error", action?.error?.message || "No pudimos cargar las ordenes");
       }
-    }
-    loadOrders();
-    return () => {
-      if (notify.timeoutId) window.clearTimeout(notify.timeoutId);
     };
-  }, [dispatch, notify]);
+    loadOrders();
+  }, [dispatch, safeNotify]);
+
 
   // Lista de estados disponibles (canónicos ES)
   const availableStatuses = useMemo(() => CANON_STATES, []);
@@ -84,18 +86,19 @@ export default function OrderPanel({ id = "orders", isOpen, onToggle, className 
 
   const handleOrderStatusChange = async (orderId, nextToken) => {
     try {
-      const action = await dispatch(updateOrderStatusThunk({ orderId, status: nextToken }));
+      const action = await dispatch(
+        updateOrderStatusThunk({ orderId, status: nextToken })
+      );
 
       if (updateOrderStatusThunk.fulfilled.match(action)) {
-        notify("success", `Estado de la orden #${orderId} → ${nextToken}`)
+        safeNotify("success", `Estado de la orden #${orderId} → ${nextToken}`);
       } else {
-        throw new Error(action?.error?.message || "No se pudo actualizar el estado")
+        throw new Error(action?.error?.message || "No se pudo actualizar el estado");
       }
     } catch (err) {
-      notify("error", err?.message || "Error al actualizar el estado");
+      safeNotify("error", err?.message || "Error al actualizar el estado");
     }
   };
-
   const rightInfo = loading ? "—" : `${paginatedOrders.length} en esta página`;
 
   return (
@@ -159,16 +162,6 @@ export default function OrderPanel({ id = "orders", isOpen, onToggle, className 
             </button>
           )}
         </div>
-
-        {toast && (
-          <div
-            className={`admin-alert ${toast.type === "error" ? "error" : "success"
-              }`}
-            style={{ marginBottom: 12 }}
-          >
-            {toast.message}
-          </div>
-        )}
 
         {loading && <div className="admin-loading">Cargando órdenes...</div>}
 
