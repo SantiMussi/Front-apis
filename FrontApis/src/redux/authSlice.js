@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
+import { fetchCurrentUser } from "./usersSlice";
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -72,7 +73,7 @@ const authSlice = createSlice({
       .addCase(login.fulfilled, (state, action) => {
         state.loading = false;
         state.token = action.payload.access_token;
-        state.role = action.payload.role;
+        state.role = action.payload.role ?? state.role;
         state.identifier = action.payload.email ?? null;
       })
       .addCase(login.rejected, (state, action) => {
@@ -94,8 +95,15 @@ const authSlice = createSlice({
       .addCase(register.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message ?? "Register error";
+      })
+
+      .addCase(fetchCurrentUser.fulfilled, (state, action) => {
+        const user = action.payload;
+        if (!user) return;
+        state.role = user.role ?? state.role;
+        state.identifier = user.email ?? state.identifier;
       });
-  },
+},
 });
 
 export const { setToken, setRole, setIdentifier, logout } = authSlice.actions;

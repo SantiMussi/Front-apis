@@ -3,7 +3,8 @@ import AuthLoader from "./AuthLoader";
 import "./LoginForm.css";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { login as loginThunk } from "../../redux/authSlice"
+import { login as loginThunk } from "../../redux/authSlice";
+import { fetchCurrentUser as fetchCurrentUserThunk } from "../../redux/usersSlice";
 
 const LoginForm = () => {
   const dispatch = useDispatch();
@@ -14,23 +15,29 @@ const LoginForm = () => {
   const [error, setError] = useState(null);
   const lastPath = useSelector(state => state.nav.lastPath)
 
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
-    const action = await dispatch(
-      loginThunk({
-        email,
-        password,
-      })
-    )
+    try {
+      const action = await dispatch(
+        loginThunk({
+          email,
+          password,
+        })
+      );
 
-    if(loginThunk.fulfilled.match(action)){
-      navigate(lastPath, {replace: true})
-    } else{
-      setLocalError(action.error?.message || 'Error de autenticación');
+      if (loginThunk.fulfilled.match(action)) {
+        await dispatch(fetchCurrentUserThunk());
+
+        // si no hubiera lastPath por alguna razón, caé al home
+        navigate(lastPath || "/", { replace: true });
+      } else {
+        setError(action.error?.message || "Error de autenticación");
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
