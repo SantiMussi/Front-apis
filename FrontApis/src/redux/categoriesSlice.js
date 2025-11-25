@@ -4,13 +4,6 @@ import { GetToken } from "../services/authService.js";
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 
-//Por si el contenido viene en un array, etc. Basicamente normaliza el payload
-const resolveArray = (payload) => {
-    if (Array.isArray(payload)) return payload;
-    if (Array.isArray(payload?.content)) return payload.content;
-    return [];
-}
-
 const authHeaders = () => {
     const token = GetToken();
     return token ? { Authorization: `Bearer ${token}` } : {};
@@ -33,8 +26,7 @@ export const fetchCategories = createAsyncThunk(
     async () => {
         const { data } = await axios.get(`${BASE_URL}/categories`);
 
-        const raw = resolveArray(data);
-        return raw.map(normalizeCategory);
+        return data.content.map(normalizeCategory);
     }
 );
 
