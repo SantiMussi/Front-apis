@@ -1,8 +1,8 @@
 import {useState} from "react";
 import {useNavigate} from "react-router-dom";
 import {useDispatch, useSelector} from "react-redux";
-import {register as registerThunk} from "../../redux/authSlice"
-
+import { register as registerThunk} from "../../redux/authSlice"
+import { fetchCurrentUser as fetchCurrentUserThunk } from "../../redux/usersSlice";
 
 function Register() {
     const navigate = useNavigate();
@@ -45,6 +45,10 @@ function Register() {
         };
 
         const action = await dispatch(registerThunk(payload));
+
+        if(registerThunk.fulfilled.match(action)){
+            await dispatch(fetchCurrentUserThunk())
+        }
 
         if(registerThunk.fulfilled.match(action)){
             navigate("/", {replace: true, state: {justRegistered: true}})
