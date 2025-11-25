@@ -1,31 +1,24 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import {IsLoggedIn, onAuthChange} from "../../services/authService";
+import { useDispatch, useSelector } from "react-redux";
+
 import OrderCard from "../../components/OrderComponents/OrderCard";
 import "./Orders.css";
-import {useDispatch, useSelector} from "react-redux";
-import {fetchUserOrders} from "../../redux/ordersSlice.js";
+import { fetchUserOrders } from "../../redux/ordersSlice.js";
 
 export default function OrdersPage() {
   const navigate = useNavigate();
-
-  const [logged, setLogged] = useState(IsLoggedIn());
-  const {orders, loading, err } = useSelector((state) => state.orders);
   const dispatch = useDispatch();
 
-  // Escuchar cambios de login hasta pasar auth a Redux
-  useEffect(() => {
-    const unsubscribe = onAuthChange(({ isLoggedIn: nextLogged }) =>
-      setLogged(nextLogged)
-    );
-    return unsubscribe;
-  }, []);
+  // estado de auth desde Redux
+  const logged = useSelector((state) => !!state.auth.token);
+
+  const { orders, loading, err } = useSelector((state) => state.orders);
 
   // Cargar órdenes del usuario logueado
   useEffect(() => {
     if (!logged) return;
-
-    dispatch(fetchUserOrders())
+    dispatch(fetchUserOrders());
   }, [dispatch, logged]);
 
   // Si no está logueado
@@ -85,10 +78,7 @@ export default function OrdersPage() {
       {!loading && !err && orders.length > 0 && (
         <section className="orders-list">
           {orders.map((o) => (
-            <OrderCard
-              key={o?.id ?? o?.orderId}
-              order={o}
-            />
+            <OrderCard key={o?.id ?? o?.orderId} order={o} />
           ))}
         </section>
       )}

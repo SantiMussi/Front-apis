@@ -5,10 +5,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchProductById as fetchProductByIdThunk } from "../redux/productsSlice";
 import Swal from "sweetalert2";
 
-import { GetRole, IsLoggedIn } from "../services/authService";
 import { formatCurrency, resolveItemPricing } from "../helpers/pricing";
 import { flyImageToCart } from "../utils/flyToCart";
 import { setLastPath } from "../redux/navSlice";
+
 const ProductDetail = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -27,6 +27,9 @@ const ProductDetail = () => {
   } = useSelector((state) => state.products);
 
   const cartItems = useSelector((state) => state.cart?.items ?? []);
+  const isLoggedIn = useSelector((state) => !!state.auth.token);
+  const role = useSelector((state) => state.auth.role);
+  const isAdmin = role === "ADMIN" || role === "SELLER";
 
   const qtyInCart = product
     ? cartItems.find((it) => it.id === product.id)?.quantity ?? 0
@@ -45,7 +48,6 @@ const ProductDetail = () => {
   useEffect(() => {
     if (!product) return;
 
-    // si no queda stock disponible, cantidad 0, si no, arrancamos en 1
     const initialQty = remainingStock > 0 ? 1 : 0;
     setQuantity(initialQty);
   }, [product, remainingStock]);
@@ -74,13 +76,13 @@ const ProductDetail = () => {
 
   const increaseQuantity = () => {
     if (!product) return;
-    setQuantity((prevQuantity) => {
-      return Math.min(remainingStock, prevQuantity + 1);
-    });
+    setQuantity((prevQuantity) =>
+      Math.min(remainingStock, prevQuantity + 1)
+    );
   };
 
   const isOutOfStock = remainingStock <= 0;
-  const isAdmin = GetRole() === "ADMIN" || GetRole() === "SELLER";
+
   const { unitPrice, compareAtPrice, hasDiscount, discountRate } =
     resolveItemPricing(product);
 
@@ -95,8 +97,8 @@ const ProductDetail = () => {
   };
 
   const handleAddToCart = () => {
-    if (!IsLoggedIn()) {
-      dispatch(setLastPath(location.pathname))
+    if (!isLoggedIn) {
+      dispatch(setLastPath(location.pathname));
       navigate("/login");
       return;
     }
@@ -173,7 +175,9 @@ const ProductDetail = () => {
           <p className="description">{product.description}</p>
 
           <div className="price-block product-detail__price">
-            <span className="price-current">{formatCurrency(unitPrice)}</span>
+            <span className="price-current">
+              {formatCurrency(unitPrice)}
+            </span>
 
             {hasDiscount && (
               <>
@@ -192,9 +196,7 @@ const ProductDetail = () => {
             {qtyInCart > 0 && `(ya tenés ${qtyInCart} en el carrito)`}
           </p>
 
-          <p className="stock">
-            Talle: {product.size}
-          </p>
+          <p className="stock">Talle: {product.size}</p>
 
           <div className="product-detail__actions">
             {!isAdmin && (
@@ -228,14 +230,18 @@ const ProductDetail = () => {
 
                 <button
                   type="button"
-                  className={`add-to-cart-button ${added ? "added" : ""}`}
+                  className={`add-to-cart-button ${
+                    added ? "added" : ""
+                  }`}
                   disabled={isOutOfStock}
                   onClick={handleAddToCart}
                 >
-                  <span className={`btn-label-base ${added ? "hidden" : ""}`}>
-                    {isOutOfStock
-                      ? "Sin stock"
-                      : "Agregar al carrito"}
+                  <span
+                    className={`btn-label-base ${
+                      added ? "hidden" : ""
+                    }`}
+                  >
+                    {isOutOfStock ? "Sin stock" : "Agregar al carrito"}
                   </span>
 
                   <span

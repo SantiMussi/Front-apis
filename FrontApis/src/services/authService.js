@@ -1,157 +1,19 @@
-import {
-    login as loginThunk,
-    register as registerThunk,
-    setRole,
-    setToken,
-    setIdentifier,
+import { store } from "../redux/store";
 
-} from "../redux/authSlice";
-import {store} from "../redux/store.js";
-
-const BASE_URL = import.meta.env.VITE_API_URL;
-const authEmitter = new EventTarget();
-const notifyAuth = () => authEmitter.dispatchEvent(new Event('auth-change'));
-
-export function onAuthChange(cb){
-    const handler = () => cb( {isLoggedIn: IsLoggedIn(), role: GetRole()} );
-    authEmitter.addEventListener('auth-change', handler);
-
-    //cleanup
-    return () => authEmitter.removeEventListener('auth-change', handler);
+// helpers internos
+export function GetToken() {
+  return store.getState().auth.token;
 }
 
-//Token y headers 
-export function authHeader(){
-    const token = GetToken();
-    return token ? { 'Authorization': `Bearer ${token}` } : {};
-}
-
-export function SetToken(token, dispatch){
-
-
-
-    dispatch(setToken(token))
-
-    notifyAuth();
-
-    return token ? { 'Authorization': `Bearer ${token}` } : {};
-}
-
-export function SetIdentifier(identifier, dispatch){
-    dispatch(setIdentifier(identifier));
-    notifyAuth();
-}
-
-export function GetToken(){
-    return store.getState().auth.token;
-}
-
-export function logout(dispatch){
-    SetRole("", dispatch);
-    SetToken("", dispatch)
-    SetIdentifier(null, dispatch);
-    notifyAuth();
-}
-
-//User / rol
-export async function getCurrentUser(){
-    const res = await fetch(`${BASE_URL}/users/me`, {
-        headers: {...authHeader()}
-    });
-    if(!res.ok) throw new Error(await res.text() || `Error ${res.status}`);
-    return res.json();
-}
-
-//Helpers de rol
-export function SetRole(role, dispatch){
-
-    // console.log(role)
-
-    dispatch(setRole(role))
-
-    notifyAuth();
-}
-
-export function GetRole(){
-
-    return store.getState().auth.role;
-
-}
-
-export function hasRole(...requiredRoles){
-    const role = GetRole();
-    return !!role && requiredRoles.includes(role);
+export function GetRole() {
+  return store.getState().auth.role;
 }
 
 export function IsLoggedIn() {
   return !!GetToken();
 }
 
-
-// AUTH API
-export async function login(dispatch, email, password){
-
-    const payload = {
-        email: email,
-        password: password
-
-    }
-
-    const result = await dispatch(loginThunk(payload)).unwrap();
-
-    return result.data;
-
-
-
-    //
-    // METODO ANTIGUO DE LOGIN, TODAVIA NO LO SACO
-    //
-
-
-    // Usa la variable de entorno para la URL base
-    /*const response = await fetch(`${BASE_URL}/api/v1/auth/authenticate`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({email, password})
-    });
-
-
-  if (!response.ok) {
-    const errorText = await response.text();
-
-    const errorData = JSON.parse(errorText);
-    throw new Error(errorData.message);
-  }
-
-  return response.json();*/
-
-}
-export async function register(dispatch, firstname, lastname, email, password){
-
-    const payload = {
-        firstname: firstname,
-        lastname: lastname,
-        email: email,
-        password: password,
-        role: 'USER'
-    }
-
-    const response = await dispatch(registerThunk(payload)).unwrap();
-
-    return response.data;
-
-
-
-    /*const response = await fetch(`${BASE_URL}/api/v1/auth/register`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({firstname, lastname, email, password, role: 'USER'})
-    })
-
-    if(!response.ok){
-        const errorData = await response.json().catch(() => null);
-        const message = errorData?.message || `Error ${response.status}`
-        throw new Error(message);
-    }
-    return response.json();*/
+export function hasRole(...requiredRoles) {
+  const role = GetRole();
+  return !!role && requiredRoles.includes(role);
 }

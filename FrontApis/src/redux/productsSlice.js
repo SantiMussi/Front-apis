@@ -12,7 +12,6 @@ const resolveArray = (payload) => {
   return [];
 };
 
-//HASTA TENER EL AUTH EN REDUX
 const authHeaders = () => {
   const token = GetToken();
   return token ? { Authorization: `Bearer ${token}` } : {};

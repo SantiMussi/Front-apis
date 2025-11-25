@@ -38,7 +38,6 @@ export const fetchCategories = createAsyncThunk(
     }
 );
 
-
 // Post de categorías, requiere login
 export const createCategory = createAsyncThunk(
     "categories/createCategory",

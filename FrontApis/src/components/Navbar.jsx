@@ -1,77 +1,59 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { hasRole, IsLoggedIn, GetRole, onAuthChange, logout, getCurrentUser, SetRole } from '../services/authService'
-import UserWidget from "./UserWidget/UserWidget.jsx"
-import './UserWidget/UserWidget.css'
-import { useDispatch } from "react-redux";
-import { setLastPath } from '../redux/navSlice.js';
+import { useDispatch, useSelector } from "react-redux";
+
+import UserWidget from "./UserWidget/UserWidget.jsx";
+import "./UserWidget/UserWidget.css";
+import { setLastPath } from "../redux/navSlice.js";
 
 export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
 
-  const [auth, setAuth] = useState({
-    isAuth: IsLoggedIn(),
-    role: GetRole()
-  });
+  const isAuth = useSelector((state) => !!state.auth.token);
+  const role = useSelector((state) => state.auth.role);
 
+  const isAdminOrSeller = role === "ADMIN" || role === "SELLER";
+
+  // Guarda el último path
   useEffect(() => {
-    if (!['/login', '/register'].includes(location.pathname)) {
+    if (!["/login", "/register"].includes(location.pathname)) {
       dispatch(setLastPath(location.pathname));
     }
-  }, [location.pathname]);
-
-  useEffect(() => {
-    const unsubscribe = onAuthChange(({ isLoggedIn, role }) => {
-      setAuth({ isAuth: isLoggedIn, role })
-    });
-
-    setAuth({ isAuth: IsLoggedIn(), role: GetRole() });
-
-    (async () => {
-      try {
-        if (IsLoggedIn()) {
-          const me = await getCurrentUser();
-          if (me?.role) SetRole(me.role, dispatch);
-          setAuth({ isAuth: true, role: me?.role ?? GetRole() });
-        }
-      } catch (e) {
-        logout(dispatch);
-        setAuth({ isAuth: false, role: null })
-      }
-    })();
-
-    return unsubscribe;
-  }, [])
+  }, [location.pathname, dispatch]);
 
   const handleLogout = () => {
-    logout(dispatch);
-    navigate('/', { replace: true });
-  }
-
-  const isAdminOrSeller = auth.role === "ADMIN" || auth.role === "SELLER";
+    // el UserWidget hace el dispatch(logout())
+    navigate("/", { replace: true });
+  };
 
   return (
     <nav>
       <div className="logo">
-        <Link to="/" className="logo-link">SZAFRANKUS</Link>
+        <Link to="/" className="logo-link">
+          SZAFRANKUS
+        </Link>
       </div>
 
       <ul className="nav-links center">
-        <li><Link to="/indumentaria">Indumentaria</Link></li>
-        <li><Link to="/virtual-fitter">Arma tu outfit</Link></li>
+        <li>
+          <Link to="/indumentaria">Indumentaria</Link>
+        </li>
+        <li>
+          <Link to="/virtual-fitter">Arma tu outfit</Link>
+        </li>
       </ul>
 
       <ul className="nav-links right">
-        {!auth.isAuth && (
+        {!isAuth && (
           <>
             <Link to="/login">Iniciar sesión</Link>
-            <Link to='/register'>Registrarse</Link>
+            <Link to="/register">Registrarse</Link>
           </>
         )}
 
-        {auth.isAuth && !hasRole('ADMIN', 'SELLER') && (
+        {isAuth && !isAdminOrSeller && (
           <li>
             <Link
               to="/cart"
@@ -98,7 +80,7 @@ export default function Navbar() {
           </li>
         )}
 
-        {auth.isAuth && (<UserWidget onLogout={handleLogout} />)}
+        {isAuth && <UserWidget onLogout={handleLogout} />}
       </ul>
     </nav>
   );

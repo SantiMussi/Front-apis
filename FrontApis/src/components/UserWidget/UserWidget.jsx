@@ -1,24 +1,25 @@
-// UserWidget.jsx — con rol badge, accesibilidad y “escape para cerrar”
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { logout, IsLoggedIn, hasRole } from '../../services/authService';
 import './UserWidget.css';
 import userAvatar from '../../assets/user-avatar.png';
 import gigachadAvatar from '../../assets/gigachad.png';
-import {useDispatch} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
+import {logout } from '../../redux/authSlice';
+import {hasRole} from "../../services/authService"
 
 export default function UserWidget({ onLogout }) {
     const [open, setOpen] = useState(false);
-    const logged = IsLoggedIn();
+
     const menuRef = useRef(null);
     const iconRef = useRef(null);
 
     const dispatch = useDispatch();
 
-
+    const logged = useSelector((state) => !!state.auth.token);
     const handleToggle = () => setOpen(v => !v);
+
     const handleLogOut = () => {
-        logout(dispatch);
+        dispatch(logout())
         onLogout?.();
         setOpen(false);
     };

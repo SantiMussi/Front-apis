@@ -33,15 +33,17 @@ export const register = createAsyncThunk(
   }
 );
 
+const initialState = {
+  token: null,
+  role: "",
+  identifier: null,
+  error: null,
+  loading: false,
+};
+
 const authSlice = createSlice({
   name: "auth",
-  initialState: {
-    token: null,
-    role: "",
-    identifier: null,
-    error: null,
-    loading: false,
-  },
+  initialState,
   reducers: {
     setToken: (state, action) => {
       state.token = action.payload;
@@ -51,7 +53,14 @@ const authSlice = createSlice({
     },
     setIdentifier: (state, action) => {
       state.identifier = action.payload ?? null;
-    }
+    },
+    logout: (state) => {
+      state.token = null;
+      state.role = "";
+      state.identifier = null;
+      state.error = null;
+      state.loading = false;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -89,5 +98,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { setToken, setRole, setIdentifier } = authSlice.actions;
+export const { setToken, setRole, setIdentifier, logout } = authSlice.actions;
 export default authSlice.reducer;

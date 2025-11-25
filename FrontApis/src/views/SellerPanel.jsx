@@ -9,7 +9,8 @@ import {
 } from "../redux/productsSlice";
 import { fetchCategories as fetchCategoriesThunk } from "../redux/categoriesSlice";
 
-import { getCurrentUser } from "../services/authService";
+import { fetchCurrentUser as fetchCurrentUserThunk } from "../redux/usersSlice"
+
 import ProductForm from "../components/Panels/ProductForm";
 import ProductList from "../components/Panels/ProductList";
 import StatusAlert from "../components/Panels/StatusAlert";
@@ -57,25 +58,29 @@ export default function SellerView() {
     setSelectedProductId(null);
   };
 
-  //Cargar usuario actual
+  // Cargar usuario actual desde Redux (usersSlice)
   const loadCurrentUser = async () => {
-    try {
-      const user = await getCurrentUser();
-      if (!user?.id) {
-        notify("error", "No se pudo identificar al usuario actual");
-        setCurrentUserId(null);
-        return;
-      }
-      setCurrentUserId(user.id);
-    } catch (error) {
-      //console.error(error);
-      notify(
-        "error",
-        error.message || "No se pudo obtener el usuario actual"
-      );
+    const action = await dispatch(fetchCurrentUserThunk());
+
+    if (!fetchCurrentUserThunk.fulfilled.match(action)) {
+      const msg =
+        action.error?.message || "No se pudo obtener el usuario actual";
+      notify("error", msg);
       setCurrentUserId(null);
+      return;
     }
+
+    const user = action.payload;
+
+    if (!user?.id) {
+      notify("error", "No se pudo identificar al usuario actual");
+      setCurrentUserId(null);
+      return;
+    }
+
+    setCurrentUserId(user.id);
   };
+
 
   // Bootstrap: productos + categorías + usuario
   useEffect(() => {

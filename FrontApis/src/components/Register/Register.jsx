@@ -1,8 +1,7 @@
 import {useState} from "react";
-import {GetRole, register, SetRole, SetToken, SetIdentifier} from "../../services/authService"
 import {useNavigate} from "react-router-dom";
-import {useDispatch} from "react-redux";
-
+import {useDispatch, useSelector} from "react-redux";
+import {register as registerThunk} from "../../redux/authSlice"
 
 
 function Register() {
@@ -21,6 +20,8 @@ function Register() {
 
     const [error, setError] = useState("");
 
+    const authLoading = useSelector((state) => state.auth.loading);
+
     const handleChange = (e) => {
         setFormData({...formData, [e.target.name]: e.target.value});
     };
@@ -36,31 +37,19 @@ function Register() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        try{
-            setError("");
+        setError('');
+        
+        const payload = {
+            ...formData,
+            role: 'USER',
+        };
 
+        const action = await dispatch(registerThunk(payload));
 
-            const data = await register(
-                dispatch,
-                formData.firstname,
-                formData.lastname,
-                formData.email,
-                formData.password
-            );
-
-            SetToken(data.access_token, dispatch);
-            SetIdentifier(formData.email, dispatch);
-            SetRole('USER', dispatch);
-            //SetToken(data.access)
-            //()
-
-            //nav al login con un mensaje de cuenta creada exitosamente
-            navigate("/", {replace:true, state: {justRegistered: true}})
-
-
-        } catch(err){
-            //console.error("Error al registrar: ", err)
-            setError("Error al registrarse: El mail ya está registrado.")
+        if(registerThunk.fulfilled.match(action)){
+            navigate("/", {replace: true, state: {justRegistered: true}})
+        } else{
+            setError(action.error?.message || 'Error al registrarse: El mail ya está registrado.')
         }
     };
 

@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import AuthLoader from "./AuthLoader"; // <-- ruta relativa a este archivo
-import { getCurrentUser, login, SetRole, SetToken, SetIdentifier } from "../../services/authService";
+import AuthLoader from "./AuthLoader";
 import "./LoginForm.css";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import { login as loginThunk } from "../../redux/authSlice"
 
 const LoginForm = () => {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -13,33 +14,23 @@ const LoginForm = () => {
   const [error, setError] = useState(null);
   const lastPath = useSelector(state => state.nav.lastPath)
 
-  const dispatch = useDispatch();
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
-    try {
+    const action = await dispatch(
+      loginThunk({
+        email,
+        password,
+      })
+    )
 
-      //Loggea al usuario y guarda la data
-      const data = await login(dispatch, email, password);
-
-      //console.log(data)
-
-      if (data?.access_token) SetToken(data.access_token, dispatch);
-      const user = await getCurrentUser();
-      SetIdentifier(user?.email ?? email, dispatch);
-      SetRole(user.role, dispatch);
-
-      //Navega al ultimo path en el q estuvo
-      navigate(lastPath, { replace: true });
-
-    } catch (err) {
-      setError(err?.message || "Error de autenticación");
-    } finally {
-      setLoading(false);
+    if(loginThunk.fulfilled.match(action)){
+      navigate(lastPath, {replace: true})
+    } else{
+      setLocalError(action.error?.message || 'Error de autenticación');
     }
   };
 

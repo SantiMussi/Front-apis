@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import Swal from "sweetalert2"; // npm install sweetalert2
 
 import {
@@ -25,9 +24,13 @@ import {
 import {
   fetchUsers as fetchUsersThunk,
   updateUser as updateUserThunk,
+  fetchCurrentUser as fetchCurrentUserThunk
 } from "../redux/usersSlice";
 
-import { getCurrentUser, hasRole } from "../services/authService";
+import { hasRole } from "../services/authService"; // solo esto del service
+import axios from "axios";
+import { useDispatch, useSelector } from "react-redux";
+
 import { EMPTY_PRODUCT } from "../constants/product";
 import ProductList from "../components/Panels/ProductList";
 import ProductForm from "../components/Panels/ProductForm";
@@ -38,6 +41,7 @@ import CouponPanel from "../components/Panels/CouponPanel";
 import { normalizeUserRecord } from "../helpers/userAdmin";
 import Collapsible from "../components/Collapsible/Collapsible";
 import OrderPanel from "../components/Panels/OrderPanel";
+
 
 const EMPTY_CATEGORY = { description: "" };
 
@@ -270,7 +274,15 @@ function THEGODPAGE() {
         return;
       }
 
-      const currentUser = await getCurrentUser();
+      const currentUserAction = await dispatch(fetchCurrentUserThunk());
+
+      if (!fetchCurrentUserThunk.fulfilled.match(currentUserAction)) {
+        notify("error", "No se pudo identificar al creador del producto");
+        setLoading(false);
+        return;
+      }
+
+      const currentUser = currentUserAction.payload;
       if (!currentUser?.id) {
         notify("error", "No se pudo identificar al creador del producto");
         setLoading(false);
