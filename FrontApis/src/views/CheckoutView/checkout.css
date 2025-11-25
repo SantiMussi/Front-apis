@@ -88,7 +88,7 @@
   gap: 1rem;
 }
 
-.checkout-item { 
+.checkout-item {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
@@ -304,111 +304,400 @@
    CONFIRMACIÓN DE COMPRA – ESTILO CELESTE SUAVE
    ============================================ */
 
+.checkout-confirmation {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: 2.5rem;
+  align-items: flex-start;
+}
+
+@media (max-width: 960px) {
+  .checkout-confirmation {
+    grid-template-columns: 1fr;
+  }
+
+  .checkout-panel--summary.checkout-panel--floating {
+    position: static;
+    top: auto;
+    right: auto;
+    width: 100%;
+    transform: none;
+  }
+}
+
+/* Fondo / confetti */
+
+.checkout-confetti {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.checkout-confetti span {
+  position: absolute;
+  width: 4px;
+  height: 14px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #00d8ff, #ffffff, #00aaff);
+  opacity: 0;
+  animation: confetti-fall 1.4s ease-out 3; /* solo 3 veces */
+  animation-fill-mode: forwards;
+}
+
+.checkout-confetti span:nth-child(1) {
+  left: 8%;
+  animation-delay: 0s;
+}
+.checkout-confetti span:nth-child(2) {
+  left: 20%;
+  animation-delay: 0.1s;
+}
+.checkout-confetti span:nth-child(3) {
+  left: 35%;
+  animation-delay: 0.2s;
+}
+.checkout-confetti span:nth-child(4) {
+  left: 50%;
+  animation-delay: 0.3s;
+}
+.checkout-confetti span:nth-child(5) {
+  left: 65%;
+  animation-delay: 0.4s;
+}
+.checkout-confetti span:nth-child(6) {
+  left: 80%;
+  animation-delay: 0.5s;
+}
+.checkout-confetti span:nth-child(7) {
+  left: 92%;
+  animation-delay: 0.25s;
+}
+.checkout-confetti span:nth-child(8) {
+  left: 5%;
+  animation-delay: 0.55s;
+}
+
+@keyframes confetti-fall {
+  0% {
+    transform: translate3d(0, -40px, 0) rotate(0deg);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(0, 260px, 0) rotate(280deg);
+    opacity: 0;
+  }
+}
+
+/* Panel éxito con glow celeste */
+
 .checkout-panel--success {
   position: relative;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(14px);
+  color: #ffffff;
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(0, 216, 255, 0.22),
+      transparent 55%
+    ),
+    radial-gradient(
+      circle at bottom right,
+      rgba(0, 128, 255, 0.18),
+      transparent 55%
+    ),
+    linear-gradient(135deg, #050509, #101018);
+  border-radius: 24px;
   border: 1px solid rgba(255, 255, 255, 0.08);
-
-  /* sombra suave, nada de colores fuertes */
   box-shadow:
-    0 0 25px rgba(0, 0, 0, 0.55),
-    inset 0 0 20px rgba(255, 255, 255, 0.02);
+    0 18px 40px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(255, 255, 255, 0.02);
+  z-index: 1;
 }
 
-/* glow MUY suave y solo celeste */
 .checkout-panel--success::before {
   content: "";
   position: absolute;
   inset: 0;
   background: radial-gradient(
-      circle at 30% 20%,
-      rgba(0, 200, 255, 0.10),
-      transparent 60%
-    ),
-    radial-gradient(
-      circle at 80% 90%,
-      rgba(0, 200, 255, 0.06),
-      transparent 70%
-    );
+    circle at 30% 0%,
+    rgba(255, 255, 255, 0.18),
+    transparent 60%
+  );
+  opacity: 0.7;
+  filter: blur(40px);
   pointer-events: none;
+  z-index: -1;
 }
 
-.checkout-success-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+/* Icono check con órbita */
+
+.checkout-success-orbit {
+  display: inline-flex;
+  padding: 16px;
+  border-radius: 999px;
+  background: radial-gradient(
+    circle,
+    rgba(0, 242, 255, 0.25),
+    transparent 60%
+  );
+  margin-bottom: 0.75rem;
 }
 
-/* Check: celeste + minimal */
 .checkout-success-icon {
-  width: 3.2rem;
-  height: 3.2rem;
-  border-radius: 50%;
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 30% 0%, #ffffff, #00ffe7);
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
-
+  color: #020308;
+  font-weight: 700;
+  font-size: 1.5rem;
   box-shadow:
-    0 6px 18px rgba(0, 0, 0, 0.5),
-    inset 0 0 10px rgba(255, 255, 255, 0.04);
-
-  animation: pop-in 0.35s ease-out;
+    0 0 0 6px rgba(0, 0, 0, 0.7),
+    0 12px 30px rgba(0, 0, 0, 0.8);
+  animation: success-pop 0.52s ease-out;
 }
 
 .checkout-success-icon span {
-  font-size: 1.4rem;
-  color: #63e3ff; /* celeste suave */
+  transform: translateY(-1px);
+}
+
+@keyframes success-pop {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Textos cabecera */
+
+.checkout-success-header {
+  margin-bottom: 1.25rem;
 }
 
 .checkout-success-kicker {
-  font-size: 0.75rem;
   text-transform: uppercase;
-  letter-spacing: var(--ls-xs);
-  color: var(--text-muted);
+  letter-spacing: 0.18em;
+  font-size: 0.75rem;
+  opacity: 0.78;
+  margin-bottom: 0.25rem;
 }
 
 .checkout-success-title {
-  font-size: 1.5rem;
-  letter-spacing: var(--ls-xs);
+  font-size: 1.7rem;
+  margin-bottom: 0.35rem;
 }
+
+.checkout-confirmation__message {
+  font-size: 0.95rem;
+  opacity: 0.86;
+}
+
+/* Pills meta */
 
 .checkout-success-meta {
   display: flex;
-  gap: 1rem;
   flex-wrap: wrap;
-  margin-bottom: 1rem;
+  gap: 0.75rem;
+  margin-bottom: 1.75rem;
 }
 
-/* pastilla orden */
 .checkout-success-pill {
-  padding: 0.3rem 0.8rem;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  padding: 0.55rem 0.9rem;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.20);
-  background: rgba(255, 255, 255, 0.05);
-  font-size: 0.78rem;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  font-size: 0.8rem;
+}
+
+.checkout-success-pill--accent {
+  background: linear-gradient(135deg, #00d8ff, #ffffff);
+  color: #020308;
+  border: none;
+}
+
+.pill-label {
   text-transform: uppercase;
-  letter-spacing: var(--ls-xs);
+  letter-spacing: 0.14em;
+  font-size: 0.7rem;
+  opacity: 0.82;
 }
 
-.checkout-success-total {
-  font-size: 0.9rem;
-  letter-spacing: var(--ls-xs);
+.pill-value {
+  font-weight: 600;
 }
 
-/* Acciones */
+/* Cards de info */
+
+.checkout-success-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+
+.checkout-success-card {
+  padding: 0.9rem 1rem;
+  border-radius: 16px;
+  background: rgba(5, 5, 18, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(16px);
+}
+
+.checkout-success-card--highlight {
+  border-color: rgba(0, 255, 231, 0.4);
+  box-shadow: 0 0 0 1px rgba(0, 255, 231, 0.24);
+}
+
+.checkout-success-card h3 {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  opacity: 0.8;
+  margin-bottom: 0.35rem;
+}
+
+.success-card-main {
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 0.15rem;
+}
+
+.success-card-sub {
+  font-size: 0.8rem;
+  opacity: 0.78;
+}
+
+.success-next-steps {
+  list-style: none;
+  padding: 0;
+  margin: 0.25rem 0 0;
+  font-size: 0.8rem;
+  opacity: 0.85;
+}
+
+.success-next-steps li + li {
+  margin-top: 0.15rem;
+}
+
+/* Timeline */
+
+.checkout-timeline {
+  margin-bottom: 1.5rem;
+}
+
+.checkout-timeline h3 {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  opacity: 0.8;
+  margin-bottom: 0.5rem;
+}
+
+.checkout-steps {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.checkout-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  padding: 0.55rem 0;
+  position: relative;
+}
+
+.checkout-step::before {
+  content: "";
+  position: absolute;
+  left: 11px;
+  top: 1.9rem;
+  bottom: -0.2rem;
+  width: 2px;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  opacity: 0.4;
+}
+
+.checkout-step:last-child::before {
+  display: none;
+}
+
+.step-bullet {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  opacity: 0.9;
+}
+
+.step-text {
+  font-size: 0.85rem;
+}
+
+.step-title {
+  font-weight: 600;
+  margin-bottom: 0.1rem;
+}
+
+.step-sub {
+  font-size: 0.78rem;
+  opacity: 0.8;
+}
+
+.checkout-step.is-done .step-bullet {
+  background: linear-gradient(135deg, #00bfff, #ffffff);
+  color: #020308;
+  border-color: transparent;
+}
+
+.checkout-step.is-active .step-bullet {
+  background: rgba(0, 255, 231, 0.16);
+  border-color: #00ffe7;
+}
+
+/* Nota + botones */
+
+.checkout-confirmation__note {
+  font-size: 0.8rem;
+  opacity: 0.78;
+  margin-bottom: 1.25rem;
+}
+
 .checkout-success-actions {
   display: flex;
-  gap: 0.8rem;
-  margin-top: 1.8rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
 }
 
-/* Botón principal – solo celeste, sin rosa */
+/* Botón principal */
+
 .checkout-primary {
   border: none;
   padding: 0.9rem 1.9rem;
@@ -427,7 +716,32 @@
   opacity: 0.92;
 }
 
-/* Botón secundario */
+.checkout-primary.checkout-primary--glow {
+  position: relative;
+  overflow: hidden;
+}
+
+.checkout-primary.checkout-primary--glow::before {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  background: radial-gradient(
+    circle at 10% 0%,
+    rgba(255, 255, 255, 0.6),
+    transparent 50%
+  );
+  opacity: 0;
+  transform: translateX(-40%);
+  transition: opacity 0.2s ease-out, transform 0.25s ease-out;
+}
+
+.checkout-primary.checkout-primary--glow:hover::before {
+  opacity: 1;
+  transform: translateX(0%);
+}
+
+/* Botón secundario ghost */
+
 .checkout-secondary--ghost {
   padding: 0.9rem 1.9rem;
   border-radius: 999px;
@@ -436,16 +750,27 @@
   letter-spacing: var(--ls-xs);
 }
 
-/* Panel de resumen */
-.checkout-panel--summary {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(10px);
+/* Panel resumen flotando */
+
+.checkout-panel--summary.checkout-panel--floating {
+  position: relative;
+  z-index: 1;
+  border-radius: 22px;
+  box-shadow:
+    0 18px 40px rgba(0, 0, 0, 0.75),
+    0 0 0 1px rgba(255, 255, 255, 0.02);
 }
 
-/* Animación */
-@keyframes pop-in {
-  0% { transform: scale(0.6); opacity: 0; }
-  55% { transform: scale(1.06); opacity: 1; }
-  100% { transform: scale(1); }
+.checkout-item--compact {
+  padding-block: 0.55rem;
+}
+
+/* Respeto prefers-reduced-motion */
+
+@media (prefers-reduced-motion: reduce) {
+  .checkout-confetti span,
+  .checkout-success-icon {
+    animation: none !important;
+    transform: none !important;
+  }
 }

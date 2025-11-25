@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { fetchCouponByCode } from "../../redux/couponsSlice";
 import { fetchOrderById, purchaseOrder } from "../../redux/ordersSlice";
 import { fetchCurrentUser } from "../../redux/usersSlice";
-import {clearCart} from '../../redux/cartSlice'
+import { clearCart } from "../../redux/cartSlice";
 import "./checkout.css";
 import { formatCurrency, resolveItemPricing } from "../../helpers/pricing";
 import { normalizeBase64Image } from "../../helpers/image";
@@ -15,14 +15,14 @@ const shippingOptions = [
     title: "Envío Express",
     eta: "24-48 hs",
     description: "Entrega prioritaria en centros urbanos",
-    price: 8500.00,
+    price: 8500.0,
   },
   {
     id: "STANDARD",
     title: "Envío Standard",
     eta: "3-5 días",
     description: "Envío regular con seguimiento",
-    price: 6000.00,
+    price: 6000.0,
   },
   {
     id: "PICKUP",
@@ -53,12 +53,15 @@ const paymentMethods = [
 
 const CheckoutView = () => {
   const navigate = useNavigate();
-  const location = useLocation(); // useLocation para que el programa guarde de donde venimos (ruta)
+  const location = useLocation();
   const dispatch = useDispatch();
+
   const { couponByCodeLoading: couponLoading } = useSelector(
     (state) => state.coupons
   );
   const { currentUser } = useSelector((state) => state.users);
+  const cartItems = useSelector((state) => state.cart.items);
+
   const [selectedShipping, setSelectedShipping] = useState(shippingOptions[0]);
   const [selectedPayment, setSelectedPayment] = useState(paymentMethods[0]);
   const [couponCode, setCouponCode] = useState("");
@@ -69,21 +72,33 @@ const CheckoutView = () => {
   const [orderResult, setOrderResult] = useState(null);
   const [orderDetails, setOrderDetails] = useState(null);
 
-  const cartItems = useSelector((state) => state.cart.items);
-
   const [items, setItems] = useState(() => {
     return location.state?.items ?? cartItems ?? [];
   });
 
+  const shippingSummary = useMemo(() => {
+    const id = orderDetails?.shippingMethod ?? selectedShipping?.id;
+    const option = shippingOptions.find((o) => o.id === id);
+    return option ?? selectedShipping;
+  }, [orderDetails, selectedShipping]);
+
+  const paymentSummary = useMemo(() => {
+    const id = orderDetails?.paymentMethod ?? selectedPayment?.id;
+    const method = paymentMethods.find((m) => m.id === id);
+    return method ?? selectedPayment;
+  }, [orderDetails, selectedPayment]);
 
   useEffect(() => {
-    if(!cartItems || cartItems.length === 0){
+    // si ya hay orderResult no pisamos los items de la confirmación
+    if (orderResult) return;
+
+    if (!cartItems || cartItems.length === 0) {
       setItems([]);
-    } else{
+    } else {
       setItems(location.state?.items ?? cartItems);
     }
-  }, [cartItems, location.state])
-  
+  }, [cartItems, location.state, orderResult]);
+
   useEffect(() => {
     dispatch(fetchCurrentUser());
   }, [dispatch]);
@@ -94,11 +109,10 @@ const CheckoutView = () => {
       const els = document.querySelectorAll(".shipping-option__info");
       let max = 0;
       els.forEach((el) => {
-        // usar scrollWidth para incluir contenido que pueda envolver
         const w = Math.ceil(el.scrollWidth);
         if (w > max) max = w;
       });
-      // añadir un pequeño padding para evitar cortes exactos
+
       if (max > 0) {
         document.documentElement.style.setProperty(
           "--shipping-info-width",
@@ -109,10 +123,8 @@ const CheckoutView = () => {
       }
     };
 
-    // calcular al montar y cuando cambie el tamaño de ventana
     updateShippingInfoWidth();
     window.addEventListener("resize", updateShippingInfoWidth);
-    // si hay cambios dinámicos en el DOM, reintentar después de 100ms
     const t = setTimeout(updateShippingInfoWidth, 100);
 
     return () => {
@@ -121,7 +133,6 @@ const CheckoutView = () => {
     };
   }, []);
 
-  // 
   useEffect(() => {
     if (location.state?.couponCode) {
       setCouponCode(location.state.couponCode);
@@ -132,9 +143,12 @@ const CheckoutView = () => {
     return items.reduce(
       (acc, item) => {
         const quantity = Number(item.quantity ?? 1) || 1;
-        const { unitPrice, compareAtPrice, hasDiscount } = resolveItemPricing(item);
+        const { unitPrice, compareAtPrice, hasDiscount } =
+          resolveItemPricing(item);
         const lineSubtotal = unitPrice * quantity;
-        const lineSavings = hasDiscount ? (compareAtPrice - unitPrice) * quantity : 0;
+        const lineSavings = hasDiscount
+          ? (compareAtPrice - unitPrice) * quantity
+          : 0;
 
         return {
           subtotal: acc.subtotal + lineSubtotal,
@@ -147,10 +161,11 @@ const CheckoutView = () => {
   }, [items]);
 
   const shippingCost = selectedShipping.price;
-  const couponDiscount = appliedCoupon ? subtotal * (appliedCoupon.discount ?? 0) : 0;
+  const couponDiscount = appliedCoupon
+    ? subtotal * (appliedCoupon.discount ?? 0)
+    : 0;
   const total = Math.max(subtotal - couponDiscount + shippingCost, 0);
 
-  // logica de aplicacion de cupones
   const handleApplyCoupon = async (event) => {
     event.preventDefault();
     if (!couponCode.trim()) {
@@ -175,9 +190,7 @@ const CheckoutView = () => {
 
         setAppliedCoupon(null);
         setCouponError(
-          isNotFound
-            ? "Cupón no válido"
-            : "Error al validar el cupón."
+          isNotFound ? "Cupón no válido" : "Error al validar el cupón."
         );
         return;
       }
@@ -187,7 +200,7 @@ const CheckoutView = () => {
       if (expiration) {
         const isExpired = new Date(expiration) < new Date();
         if (isExpired) {
-          throw new Error("Cupón expirado.")
+          throw new Error("Cupón expirado.");
         }
       }
       setAppliedCoupon({
@@ -215,17 +228,17 @@ const CheckoutView = () => {
     }
   };
 
-  // logica de eliminacion de cupon
   const handleRemoveCoupon = () => {
     setAppliedCoupon(null);
     setCouponCode("");
     setCouponError("");
   };
 
-  // logica de confirmacion de compra
   const handleConfirmPurchase = async () => {
     if (items.length === 0) {
-      setCheckoutError("Tu carrito está vacío. Volvé a la tienda para agregar productos.");
+      setCheckoutError(
+        "Tu carrito está vacío. Volvé a la tienda para agregar productos."
+      );
       return;
     }
 
@@ -251,14 +264,19 @@ const CheckoutView = () => {
     if (purchaseOrder.fulfilled.match(action)) {
       const response = action.payload;
       setOrderResult(response);
-      dispatch(clearCart())
 
       if (response?.orderId) {
-        const detailsAction = dispatch(fetchOrderById(response.orderId));
+        const detailsAction = await dispatch(
+          fetchOrderById(response.orderId)
+        );
+
         if (fetchOrderById.fulfilled.match(detailsAction)) {
-          setOrderDetails(detailsAction.payload)
+          setOrderDetails(detailsAction.payload);
         }
       }
+
+      // recién acá limpiamos el carrito
+      dispatch(clearCart());
     } else {
       setCheckoutError(
         action.error?.message || "No pudimos completar tu compra."
@@ -281,7 +299,9 @@ const CheckoutView = () => {
           <p>
             {orderResult
               ? "¡Gracias por elegirnos!"
-              : `${totalItems} ${totalItems === 1 ? "artículo" : "artículos"} listos para despachar`}
+              : `${totalItems} ${
+                  totalItems === 1 ? "artículo" : "artículos"
+                } listos para despachar`}
           </p>
         </div>
       </header>
@@ -289,39 +309,131 @@ const CheckoutView = () => {
       {orderResult ? (
         <section className="checkout-layout container">
           <div className="checkout-confirmation">
-            {/* PANEL IZQUIERDO - ÉXITO */}
+            {/* CONFETTI / FONDO DECORATIVO */}
+            <div className="checkout-confetti" aria-hidden="true">
+              <span />
+              <span />
+              <span />
+              <span />
+              <span />
+              <span />
+              <span />
+              <span />
+            </div>
+
+            {/* PANEL IZQUIERDO - ÉXITO CON CHUCU */}
             <div className="checkout-panel checkout-panel--success">
-              <div className="checkout-success-header">
+              <div className="checkout-success-orbit">
                 <div className="checkout-success-icon">
                   <span>✓</span>
                 </div>
-                <div>
-                  <p className="checkout-success-kicker">Compra confirmada</p>
-                  <h2 className="checkout-success-title">¡Gracias por tu compra!</h2>
-                </div>
+              </div>
+
+              <div className="checkout-success-header">
+                <p className="checkout-success-kicker">Compra confirmada</p>
+                <h2 className="checkout-success-title">
+                  ¡Gracias por tu compra,{" "}
+                  {currentUser?.firstName ?? currentUser?.name ?? ""}!
+                </h2>
+                <p className="checkout-confirmation__message">
+                  {orderResult.message ||
+                    "Tu pedido ya está en marcha. En unos minutos vas a recibir un mail con todos los detalles."}
+                </p>
               </div>
 
               <div className="checkout-success-meta">
                 <span className="checkout-success-pill">
-                  Orden #{orderResult.orderId}
+                  <span className="pill-label">Nº de orden</span>
+                  <span className="pill-value">#{orderResult.orderId}</span>
                 </span>
-                <span className="checkout-success-total">
-                  Total pagado: {formatCurrency(orderResult.total ?? total)}
+
+                <span className="checkout-success-pill checkout-success-pill--accent">
+                  <span className="pill-label">Total pagado</span>
+                  <span className="pill-value">
+                    {formatCurrency(orderResult.total ?? total)}
+                  </span>
                 </span>
               </div>
 
-              <p className="checkout-confirmation__message">
-                {orderResult.message || "La operación se realizó correctamente."}
-              </p>
+              {/* DATOS CLAVE DE LA ORDEN */}
+              <div className="checkout-success-grid">
+                <div className="checkout-success-card">
+                  <h3>Envío</h3>
+                  <p className="success-card-main">{shippingSummary.title}</p>
+                  <p className="success-card-sub">
+                    {shippingSummary.description} · {shippingSummary.eta}
+                  </p>
+                </div>
+
+                <div className="checkout-success-card">
+                  <h3>Método de pago</h3>
+                  <p className="success-card-main">{paymentSummary.title}</p>
+                  <p className="success-card-sub">
+                    {paymentSummary.description}
+                  </p>
+                </div>
+
+                <div className="checkout-success-card checkout-success-card--highlight">
+                  <h3>¿Y ahora?</h3>
+                  <ul className="success-next-steps">
+                    <li>Revisamos tu pago y preparamos el pedido.</li>
+                    <li>Te avisamos por mail cuando salga a reparto.</li>
+                    <li>Podés seguir el estado desde “Mis órdenes”.</li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* TIMELINE DE ESTADO */}
+              <div className="checkout-timeline">
+                <h3>Estado de tu pedido</h3>
+                <ol className="checkout-steps">
+                  <li className="checkout-step is-done">
+                    <span className="step-bullet">1</span>
+                    <div className="step-text">
+                      <p className="step-title">Compra confirmada</p>
+                      <p className="step-sub">Ya registramos tu orden.</p>
+                    </div>
+                  </li>
+                  <li className="checkout-step is-active">
+                    <span className="step-bullet">2</span>
+                    <div className="step-text">
+                      <p className="step-title">Preparando tu pedido</p>
+                      <p className="step-sub">
+                        Nuestro equipo está alistando tus prendas.
+                      </p>
+                    </div>
+                  </li>
+                  <li className="checkout-step">
+                    <span className="step-bullet">3</span>
+                    <div className="step-text">
+                      <p className="step-title">En camino</p>
+                      <p className="step-sub">
+                        Te avisaremos cuando salga a reparto.
+                      </p>
+                    </div>
+                  </li>
+                  <li className="checkout-step">
+                    <span className="step-bullet">4</span>
+                    <div className="step-text">
+                      <p className="step-title">Entregado</p>
+                      <p className="step-sub">
+                        ¡Listo para estrenar tu outfit!
+                      </p>
+                    </div>
+                  </li>
+                </ol>
+              </div>
 
               <p className="checkout-confirmation__note">
-                Enviamos un correo con los detalles de la compra y el seguimiento de tu pedido.
+                Enviamos un correo con los detalles de la compra y el
+                seguimiento de tu pedido. Si no lo ves en unos minutos, revisá
+                la carpeta de spam.
               </p>
 
               <div className="checkout-success-actions">
                 <button
                   type="button"
-                  className="checkout-primary"
+                  className="checkout-primary checkout-primary--glow"
                   onClick={() => navigate("/orders")}
                 >
                   Ver detalle de la orden
@@ -337,11 +449,14 @@ const CheckoutView = () => {
             </div>
 
             {/* PANEL DERECHO - RESUMEN DE ARTÍCULOS */}
-            <div className="checkout-panel checkout-panel--summary">
-              <h3>Resumen de artículos</h3>
+            <div className="checkout-panel checkout-panel--summary checkout-panel--floating">
+              <h3>Artículos de tu pedido</h3>
               <ul className="checkout-items">
                 {(orderDetails?.items ?? items).map((item) => (
-                  <li key={item.id ?? item.productId} className="checkout-item">
+                  <li
+                    key={item.id ?? item.productId}
+                    className="checkout-item checkout-item--compact"
+                  >
                     <div>
                       <p className="checkout-item__title">
                         {item.name ?? item.productName}
@@ -353,7 +468,7 @@ const CheckoutView = () => {
                     <span className="checkout-item__price">
                       {formatCurrency(
                         item.subtotal ??
-                        item.price * (item.quantity ?? item.qty ?? 1)
+                          item.price * (item.quantity ?? item.qty ?? 1)
                       )}
                     </span>
                   </li>
@@ -367,9 +482,14 @@ const CheckoutView = () => {
           <div className="checkout-panel">
             <h2>No hay artículos en el checkout</h2>
             <p>
-              Volvé al carrito para seleccionar productos y luego elegí el método de envío y pago.
+              Volvé al carrito para seleccionar productos y luego elegí el
+              método de envío y pago.
             </p>
-            <button type="button" className="checkout-secondary" onClick={handleBackToCart}>
+            <button
+              type="button"
+              className="checkout-secondary"
+              onClick={handleBackToCart}
+            >
               Ir al carrito
             </button>
           </div>
@@ -386,11 +506,15 @@ const CheckoutView = () => {
                     <button
                       key={option.id}
                       type="button"
-                      className={`shipping-option ${isActive ? "active" : ""}`}
+                      className={`shipping-option ${
+                        isActive ? "active" : ""
+                      }`}
                       onClick={() => setSelectedShipping(option)}
                     >
                       <div className="shipping-option__info">
-                        <span className="shipping-option__title">{option.title}</span>
+                        <span className="shipping-option__title">
+                          {option.title}
+                        </span>
                         <span className="shipping-option__meta">
                           {option.description} · {option.eta}
                         </span>
@@ -415,14 +539,20 @@ const CheckoutView = () => {
                     <button
                       key={method.id}
                       type="button"
-                      className={`payment-option ${isActive ? "active" : ""}`}
+                      className={`payment-option ${
+                        isActive ? "active" : ""
+                      }`}
                       onClick={() => setSelectedPayment(method)}
                     >
                       <div>
-                        <span className="payment-option__title">{method.title}</span>
+                        <span className="payment-option__title">
+                          {method.title}
+                        </span>
                       </div>
                       <div>
-                        <span className="payment-option__meta">{method.description}</span>
+                        <span className="payment-option__meta">
+                          {method.description}
+                        </span>
                       </div>
                       <span className="payment-option__radio" aria-hidden>
                         {isActive ? "●" : "○"}
@@ -439,11 +569,17 @@ const CheckoutView = () => {
                 <input
                   type="text"
                   value={couponCode}
-                  onChange={(event) => setCouponCode(event.target.value.toUpperCase())}
+                  onChange={(event) =>
+                    setCouponCode(event.target.value.toUpperCase())
+                  }
                   placeholder="Código promocional"
                   className="coupon-input"
                 />
-                <button type="submit" className="checkout-secondary" disabled={couponLoading}>
+                <button
+                  type="submit"
+                  className="checkout-secondary"
+                  disabled={couponLoading}
+                >
                   {couponLoading ? "Validando..." : "Aplicar"}
                 </button>
                 {appliedCoupon && (
@@ -463,7 +599,8 @@ const CheckoutView = () => {
               )}
               {appliedCoupon && (
                 <p className="coupon-success">
-                  Cupón {appliedCoupon.code} aplicado. Descuento de {(appliedCoupon.discount * 100).toFixed(0)}%.
+                  Cupón {appliedCoupon.code} aplicado. Descuento de{" "}
+                  {(appliedCoupon.discount * 100).toFixed(0)}%.
                 </p>
               )}
             </div>
@@ -484,7 +621,9 @@ const CheckoutView = () => {
                   <li key={item.id} className="checkout-item">
                     <div className="checkout-item__info">
                       <p className="checkout-item__title">{item.name}</p>
-                      <span className="checkout-item__meta">Cantidad: {quantity}</span>
+                      <span className="checkout-item__meta">
+                        Cantidad: {quantity}
+                      </span>
                     </div>
                     <div className="checkout-item__pricing">
                       {hasDiscount && (
@@ -524,7 +663,9 @@ const CheckoutView = () => {
             {savings > 0 && (
               <div className="summary-row savings">
                 <span>Ahorros</span>
-                <span className="savings-tag">- {formatCurrency(savings)}</span>
+                <span className="savings-tag">
+                  - {formatCurrency(savings)}
+                </span>
               </div>
             )}
             <div className="summary-row">
@@ -534,13 +675,17 @@ const CheckoutView = () => {
             <div className="summary-row">
               <span>Envío ({selectedShipping.title})</span>
               <span>
-                {shippingCost === 0 ? "Sin cargo" : formatCurrency(shippingCost)}
+                {shippingCost === 0
+                  ? "Sin cargo"
+                  : formatCurrency(shippingCost)}
               </span>
             </div>
             {couponDiscount > 0 && (
               <div className="summary-row savings">
                 <span>Cupón</span>
-                <span className="savings-tag">- {formatCurrency(couponDiscount)}</span>
+                <span className="savings-tag">
+                  - {formatCurrency(couponDiscount)}
+                </span>
               </div>
             )}
             <div className="summary-row total">
@@ -561,7 +706,8 @@ const CheckoutView = () => {
               {processing ? "Procesando..." : "Confirmar compra"}
             </button>
             <p className="checkout-note">
-              Vas a poder revisar los datos de pago antes de confirmar la operación.
+              Vas a poder revisar los datos de pago antes de confirmar la
+              operación.
             </p>
           </aside>
         </section>
@@ -571,13 +717,3 @@ const CheckoutView = () => {
 };
 
 export default CheckoutView;
-
-/* CHECKOUT
-- Tiene resumen con forma de envio, etc
-- Permite seleccionar metodo de pago
-- Aplicar cupon de descuento
-- Finalizar compra
- 
---> Una vez finalizada, muestra id de orden y resumen
---> Tambien mensaje de "hemos enviado un email con los detalles"
-*/
