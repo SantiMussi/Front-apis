@@ -22,29 +22,47 @@ export default function UserWidget({ onLogout }) {
     const handleToggle = () => setOpen(v => !v);
 
     const handleLogOut = async () => {
-        const result = await Swal.fire({
-            title: "¿Cerrar sesión?",
-            html: "<b>Tu carrito será borrado.</b><br/>¿Seguro que querés continuar?",
-            icon: "warning",
-            background: "#111",
-            color: "#fff",
-            showCancelButton: true,
-            confirmButtonColor: "#ff3b3b",
-            cancelButtonColor: "#444",
-            confirmButtonText: "Sí, cerrar sesión",
-            cancelButtonText: "Volver",
-        });
 
+        let result;
+
+        if (hasRole('USER')) {
+            result = await Swal.fire({
+                title: "¿Cerrar sesión?",
+                icon: "warning",
+                html: "<b>Tu carrito será borrado.</b><br/>¿Seguro que querés continuar?",
+                background: "#111",
+                color: "#fff",
+                showCancelButton: true,
+                confirmButtonColor: "#ff3b3b",
+                cancelButtonColor: "#444",
+                confirmButtonText: "Sí, cerrar sesión",
+                cancelButtonText: "Volver",
+            });
+        } else {
+            result = await Swal.fire({
+                title: "¿Cerrar sesión?",
+                icon: "warning",
+                background: "#111",
+                color: "#fff",
+                showCancelButton: true,
+                confirmButtonColor: "#ff3b3b",
+                cancelButtonColor: "#444",
+                confirmButtonText: "Sí, cerrar sesión",
+                cancelButtonText: "Volver",
+            });
+        }
 
         if (result.isConfirmed) {
             dispatch(logout());
             onLogout?.();
             setOpen(false);
-
             await Swal.fire({
+                toast: true,
                 title: "Sesión cerrada",
-                text: 'Carrito eliminado',
+                background: "#fff",
+                color: '#111',
                 icon: "success",
+                position: "top-right",
                 timer: 1000,
                 showConfirmButton: false,
             });
