@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import './UserWidget.css';
 import userAvatar from '../../assets/user-avatar.png';
 import gigachadAvatar from '../../assets/gigachad.png';
+import { clearCart } from '../../redux/cartSlice';
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from '../../redux/authSlice';
 import { hasRole } from "../../services/authService"
@@ -42,12 +43,14 @@ export default function UserWidget({ onLogout }) {
 
             await Swal.fire({
                 title: "Sesión cerrada",
-                text: "Tu carrito ha sido borrado.",
+                text: 'Carrito eliminado',
                 icon: "success",
-                timer: 1500,
+                timer: 1000,
                 showConfirmButton: false,
             });
         }
+
+        dispatch(clearCart())
     };
 
     let avatarSrc = userAvatar;
