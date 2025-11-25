@@ -196,12 +196,17 @@ const CheckoutView = () => {
       }
 
       const coupon = action.payload;
+      
       const expiration = coupon?.expirationDate ?? coupon?.expirationdate;
       if (expiration) {
         const isExpired = new Date(expiration) < new Date();
         if (isExpired) {
           throw new Error("Cupón expirado.");
         }
+      }
+
+      if (!coupon?.active){
+        throw new Error("El cupón no existe.")
       }
       setAppliedCoupon({
         ...coupon,
