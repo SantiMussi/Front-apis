@@ -3,9 +3,11 @@ import { Link } from 'react-router-dom';
 import './UserWidget.css';
 import userAvatar from '../../assets/user-avatar.png';
 import gigachadAvatar from '../../assets/gigachad.png';
-import {useDispatch, useSelector} from "react-redux";
-import {logout } from '../../redux/authSlice';
-import {hasRole} from "../../services/authService"
+import { useDispatch, useSelector } from "react-redux";
+import { logout } from '../../redux/authSlice';
+import { hasRole } from "../../services/authService"
+import Swal from 'sweetalert2';
+
 
 export default function UserWidget({ onLogout }) {
     const [open, setOpen] = useState(false);
@@ -18,15 +20,39 @@ export default function UserWidget({ onLogout }) {
     const logged = useSelector((state) => !!state.auth.token);
     const handleToggle = () => setOpen(v => !v);
 
-    const handleLogOut = () => {
-        dispatch(logout())
-        onLogout?.();
-        setOpen(false);
+    const handleLogOut = async () => {
+        const result = await Swal.fire({
+            title: "¿Cerrar sesión?",
+            html: "<b>Tu carrito será borrado.</b><br/>¿Seguro que querés continuar?",
+            icon: "warning",
+            background: "#111",
+            color: "#fff",
+            showCancelButton: true,
+            confirmButtonColor: "#ff3b3b",
+            cancelButtonColor: "#444",
+            confirmButtonText: "Sí, cerrar sesión",
+            cancelButtonText: "Volver",
+        });
+
+
+        if (result.isConfirmed) {
+            dispatch(logout());
+            onLogout?.();
+            setOpen(false);
+
+            await Swal.fire({
+                title: "Sesión cerrada",
+                text: "Tu carrito ha sido borrado.",
+                icon: "success",
+                timer: 1500,
+                showConfirmButton: false,
+            });
+        }
     };
 
-    let avatarSrc= userAvatar;
+    let avatarSrc = userAvatar;
     const roleClass = hasRole('ADMIN') ? 'admin' : hasRole('SELLER') ? 'seller' : 'user';
-    if(hasRole('ADMIN')) {
+    if (hasRole('ADMIN')) {
         avatarSrc = gigachadAvatar;
     }
 
