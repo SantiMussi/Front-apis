@@ -34,7 +34,7 @@ const LoginForm = () => {
         // si no hubiera lastPath por alguna razón, caé al home
         navigate(lastPath || "/", { replace: true });
       } else {
-        setError(action.error?.message || "Error de autenticación");
+        setError("Error de autenticación");
       }
     } finally {
       setLoading(false);

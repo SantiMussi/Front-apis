@@ -78,7 +78,7 @@ const authSlice = createSlice({
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message ?? "Login error";
+        state.error = "Login error";
       })
 
       // REGISTER
@@ -94,7 +94,7 @@ const authSlice = createSlice({
       })
       .addCase(register.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message ?? "Register error";
+        state.error = "Register error";
       })
 
       .addCase(fetchCurrentUser.fulfilled, (state, action) => {
